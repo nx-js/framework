@@ -1,0 +1,35 @@
+{
+  "name": "@risingstack/nx",
+  "version": "1.0.0",
+  "description": "Next generation client side framework",
+  "main": "index.js",
+  "author": {
+    "name": "Miklos Bertalan",
+    "email": "miklos.bertalan@risingstack.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:RisingStack/nx.git"
+  },
+  "bugs": {
+    "url": "https://github.com/RisingStack/nx/issues"
+  },
+  "homepage": "https://github.com/RisingStack/nx#readme",
+  "license": "MIT",
+  "keywords": [
+    "nx",
+    "client",
+    "framework",
+    "next"
+  ],
+  "dependecies": {
+    "@risingstack/nx-compile": "1.0.0",
+    "@risingstack/nx-observer": "1.0.0"
+  },
+  "devDependencies": {
+    "chai": "3.5.0",
+    "mocha": "2.5.3",
+    "standard": "7.1.2",
+    "pre-push": "0.1.1"
+  }
+}
