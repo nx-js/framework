@@ -7,24 +7,22 @@ const symbols = require('./symbols')
 const config = Symbol('config')
 
 module.exports = function component (rawConfig) {
-  return {use, useOnChildren, register, [config]: validateAndCloneConfig(rawConfig)}
+  return {use, useOnContent, register, [config]: validateAndCloneConfig(rawConfig)}
 }
 
 function use (middleware) {
   if (typeof middleware !== 'function') {
     throw new TypeError('first argument must be a function')
   }
-
   this[config].middlewares.push(middleware)
   return this
 }
 
-function useOnChildren (childrenMiddleware) {
-  if (typeof childrenMiddleware !== 'function') {
+function useOnContent (contentMiddleware) {
+  if (typeof contentMiddleware !== 'function') {
     throw new TypeError('first argument must be a function')
   }
-
-  this[config].childrenMiddlewares.push(childrenMiddleware)
+  this[config].contentMiddlewares.push(contentMiddleware)
   return this
 }
 
@@ -32,7 +30,6 @@ function register (name) {
   if (typeof name !== 'string') {
     throw new TypeError('first argument must be a string')
   }
-
   const proto = {
     createdCallback: onComponentInstantiated,
     attachedCallback: onComponentInstanceAttached
@@ -40,11 +37,12 @@ function register (name) {
   proto[config] = this[config]
 
   if (this[config].element) {
-    Object.setPrototypeOf(proto, this[config].element)
+    Object.setPrototypeOf(proto, this[config].elementProto)
   } else {
     Object.setPrototypeOf(proto, HTMLElement.prototype)
   }
   document.registerElement(name, {prototype: proto, extends: this[config].element})
+
   return name
 }
 
@@ -54,19 +52,17 @@ function onComponentInstantiated () {
   } else if (this[config].state === true) {
     this[symbols.state] = observer.observable()
   }
-
   if (this[config].state === 'inherit') {
     this[symbols.inheritState] = true
   }
-
-  this[symbols.isolateMiddlewares] = this[config].isolateMiddlewares
-  this[symbols.childrenMiddlewares] = this[config].childrenMiddlewares.slice()
+  this[symbols.isolate] = this[config].isolate
+  this[symbols.contentMiddlewares] = this[config].contentMiddlewares.slice()
   this[symbols.middlewares] = this[config].middlewares.slice()
 }
 
 function validateAndCloneConfig (rawConfig = {}) {
   if (typeof rawConfig !== 'object') {
-    throw new TypeError('invalid config, must be an object or undefined')
+    throw new TypeError('invalid component config, must be an object or undefined')
   }
 
   const resultConfig = {}
@@ -78,27 +74,29 @@ function validateAndCloneConfig (rawConfig = {}) {
   } else if (rawConfig.state === undefined) {
     resultConfig.state = true
   } else {
-    throw new Error('invalid state config')
+    throw new Error('invalid state config: ' + rawConfig.state)
   }
 
-  if (typeof rawConfig.isolateMiddlewares === 'boolean') {
-    resultConfig.isolateMiddlewares = rawConfig.isolateMiddlewares
-  } else if (rawConfig.isolateMiddlewares !== undefined) {
-    throw new Error('invalid isolateMiddlewares config')
+  if (typeof rawConfig.isolate === 'boolean' || rawConfig.isolate === 'middlewares') {
+    resultConfig.isolate = rawConfig.isolate
+  } else if (rawConfig.isolate === undefined) {
+    resultConfig.isolate = false
+  } else {
+    throw new Error(`invalid isolate config: ${rawConfig.isolate}, must be a boolean or 'middlewares'`)
   }
 
   if (typeof rawConfig.element === 'string') {
     try {
-      resultConfig.element = Object.getPrototypeOf(document.createElement(rawConfig.element))
+      resultConfig.elementProto = Object.getPrototypeOf(document.createElement(rawConfig.element))
+      resultConfig.element = rawConfig.element
     } catch (err) {
-      throw new Error('invalid element config, must be the name of a native element')
+      throw new Error(`invalid element config: ${rawConfig.element}, must be the name of a native element`)
     }
   } else if (rawConfig.element !== undefined) {
-    throw new Error('invalid element config, must be the name of a native element')
+    throw new Error(`invalid element config: ${rawConfig.element}, must be the name of a native element`)
   }
 
-  resultConfig.childrenMiddlewares = []
+  resultConfig.contentMiddlewares = []
   resultConfig.middlewares = []
-
   return resultConfig
 }

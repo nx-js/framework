@@ -11,6 +11,9 @@
     "type": "git",
     "url": "git@github.com:RisingStack/nx.git"
   },
+  "scripts": {
+    "build": "webpack ./index.js nx.js"
+  },
   "bugs": {
     "url": "https://github.com/RisingStack/nx/issues"
   },
@@ -22,14 +25,11 @@
     "framework",
     "next"
   ],
-  "dependecies": {
+  "dependencies": {
     "@risingstack/nx-compile": "1.0.0",
-    "@risingstack/nx-observer": "1.0.0"
+    "@risingstack/nx-observe": "1.0.0"
   },
   "devDependencies": {
-    "chai": "3.5.0",
-    "mocha": "2.5.3",
-    "standard": "7.1.2",
-    "pre-push": "0.1.1"
+    "webpack": "1.13.1"
   }
 }

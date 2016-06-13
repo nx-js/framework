@@ -8,11 +8,18 @@ const components = require('./components')
 const observer = require('@risingstack/nx-observe')
 const compiler = require('@risingstack/nx-compile')
 
-module.exports = {
+const nx = {
   component,
   symbols,
   middlewares,
   components,
   observer,
   compiler
+}
+
+if (module && module.exports) {
+  module.exports = nx
+}
+if (window) {
+  window.nx = nx
 }

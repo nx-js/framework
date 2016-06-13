@@ -5,11 +5,11 @@ const {evaluate, interpolate, attributes, content, flow, sync, router} = require
 
 module.exports = function app(config) {
   return component(config)
-    .useOnChildren(evaluate.expression)
-    .useOnChildren(interpolate)
-    .useOnChildren(attributes)
-    .useOnChildren(content)
-    .useOnChildren(router.ref)
-    .useOnChildren(flow)
-    .useOnChildren(sync)
+    .useOnContent(evaluate.expression)
+    .useOnContent(interpolate)
+    .useOnContent(attributes)
+    .useOnContent(content)
+    .useOnContent(router.ref)
+    .useOnContent(flow)
+    .useOnContent(sync)
 }

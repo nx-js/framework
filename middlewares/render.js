@@ -52,7 +52,8 @@ function composeContentWithTemplate (elem, state, template) {
 
   if (defaultSlot) {
     clearContent(defaultSlot)
-    Array.prototype.forEach.call(elem.children, (child) => defaultSlot.appendChild(child))
+    // this was elem.children before -> check it works with childNodes too!!
+    Array.prototype.forEach.call(elem.childNodes, (childNode) => defaultSlot.appendChild(childNode))
   } else {
     clearContent(elem)
   }

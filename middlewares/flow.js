@@ -8,14 +8,14 @@ module.exports = function flow (elem, state, next) {
   elem.$using('flow')
 
   if (hasIf(elem) && hasRepeat(elem)) {
-    throw new Error('cant use if and repeat on the same node')
+    throw new Error('cant use nx-if and nx-repeat on the same node')
   } else if (hasIf(elem) || hasRepeat(elem)) {
     elem.$extractContent()
   }
 
   if (hasIf(elem)) {
     let showing = false
-    elem.$attribute('if', (show) => {
+    elem.$attribute('nx-if', (show) => {
       if (show && !showing) {
         elem.$insertContent()
         showing = true
@@ -27,11 +27,11 @@ module.exports = function flow (elem, state, next) {
   }
 
   if (hasRepeat(elem)) {
-    const repeatValue = elem.getAttribute('repeat-value') || '$value'
-    const repeatIndex = elem.getAttribute('repeat-index') || '$index'
+    const repeatValue = elem.getAttribute('nx-repeat-value') || '$value'
+    const repeatIndex = elem.getAttribute('nx-repeat-index') || '$index'
 
     const prevArray = []
-    elem.$attribute('repeat', (array) => {
+    elem.$attribute('nx-repeat', (array) => {
       if (!Array.isArray(array)) {
         return
       }
@@ -55,9 +55,9 @@ module.exports = function flow (elem, state, next) {
 }
 
 function hasIf (elem) {
-  return (elem.hasAttribute('$if') || elem.hasAttribute('@if'))
+  return (elem.hasAttribute('$nx-if') || elem.hasAttribute('@nx-if'))
 }
 
 function hasRepeat (elem) {
-  return (elem.hasAttribute('$repeat') || elem.hasAttribute('@repeat'))
+  return (elem.hasAttribute('$nx-repeat') || elem.hasAttribute('@nx-repeat'))
 }

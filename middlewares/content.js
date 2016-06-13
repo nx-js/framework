@@ -45,15 +45,16 @@ function $insertContent (index = 0, contextState) {
   }
 
   const content = document.importNode(this[contentTemplate], true)
+
   if (contextState) {
     contextState = observer.observable(contextState)
     Object.setPrototypeOf(contextState, this[ownerState])
-  }
-
-  let node = content.firstChild
-  while (node) {
-    node[symbols.contextState] = contextState
-    node = node.nextSibling
+    
+    let node = content.firstChild
+    while (node) {
+      node[symbols.contextState] = contextState
+      node = node.nextSibling
+    }
   }
   this.insertBefore(content, findContentStartAtIndex(this, index))
 }
@@ -62,7 +63,6 @@ function $removeContent (index = 0) {
   if (typeof index !== 'number') {
     throw new TypeError('first argument must be a number')
   }
-
   let node = findContentStartAtIndex(this, index)
   let next
   while (node && !isSeparator(node)) {
@@ -80,7 +80,6 @@ function $replaceContent (index = 0, contextState) {
   if (contextState !== undefined && typeof contextState !== 'object') {
     throw new TypeError('second argument must be an object or undefined')
   }
-
   this.$removeContent(index)
   this.$insertContent(index, contextState)
 }

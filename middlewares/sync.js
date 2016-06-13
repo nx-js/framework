@@ -1,110 +1,213 @@
 'use strict'
 
-const SYNC_WITH_STATE = Symbol('SYNC WITH STATE')
-const SYNC_ON = Symbol('SYNC ON')
-const SYNC_MODE = Symbol('SYNC MODE')
+const syncWithState = Symbol('syncWithState')
+const syncOn = Symbol('syncOn')
+const syncMode = Symbol('syncMode')
+
+const syncModes = ['non', 'setup', 'one-way', 'two-way']
+const syncTriggers = ['input', 'change', 'submit']
+
+document.addEventListener('input', inputListener, true)
+document.addEventListener('change', changeListener, true)
+document.addEventListener('submit', submitListener, true)
+
+function inputListener (ev) {
+  if (ev.target[syncMode] !== 'non' && ev.target[syncOn] === 'input') {
+    syncStateWithInput(ev.target[syncWithState], ev.target)
+  }
+}
+
+function changeListener (ev) {
+  if (ev.target[syncMode] !== 'non' && ev.target[syncOn] === 'change') {
+    if (isInput(ev.target)) {
+      syncStateWithInput(ev.target[syncWithState], ev.target)
+    } else if (isSelect(ev.target)) {
+      syncStateWithSelect(ev.target[syncWithState], ev.target)
+    }
+  }
+}
+
+function submitListener (ev) {
+  syncStateWithForm(ev.target)
+  ev.preventDefault()
+}
 
 module.exports = function sync (elem, state, next) {
-  if (elem instanceof HTMLOptionElement) syncOption(elem, state)
-  if (!(elem instanceof HTMLInputElement || elem instanceof HTMLSelectElement || elem instanceof HTMLTextAreaElement)) return next()
+  if (!isInput(elem) && !isSelect(elem) && !isOption(elem)) return next()
   elem.$require('attributes')
   elem.$using('sync')
 
-  elem[SYNC_WITH_STATE] = state
-  elem[SYNC_MODE] = elem.getAttribute('sync-mode') || 'two-way'
-  elem[SYNC_ON] = elem.getAttribute('sync-on')
-  if (!elem[SYNC_ON]) {
-    if (elem.form) elem[SYNC_ON] = 'submit'
-    else elem[SYNC_ON] = 'change'
+  if (isInput(elem) || isSelect(elem)) {
+    elem[syncWithState] = state
+    elem[syncMode] = elem.getAttribute('nx-sync-mode') || 'two-way'
+    elem[syncOn] = elem.getAttribute('nx-sync-on')
+    if (!elem[syncOn]) {
+      if (elem.form) elem[syncOn] = 'submit'
+      else elem[syncOn] = 'change'
+    }
+    if (!syncModes.includes(elem[syncMode])) {
+      throw new Error(`sync-mode must be one of ${syncModes}, instead it is ${elem[syncMode]}`)
+    }
+    if (!syncTriggers.includes(elem[syncOn])) {
+      throw new Error(`sync-on must be one of ${syncTriggers}, instead it is ${elem[syncOn]}`)
+    }
+    if (elem[syncOn] === 'submit' && !elem.form) {
+      throw new Error(`${elem} must have a parent form to sync on submit`)
+    }
+    if (elem[syncOn] === 'input' && !isInput(elem)) {
+      throw new Error(`${elem} must be a text area or an input to sync on input events`)
+    }
   }
-
-  setupListener(elem)
-  setupObserver(elem)
+  if (isInput(elem)) {
+    syncInput(elem, state)
+  } else if (isOption(elem)) {
+    syncOption(elem, state)
+  }
 
   return next()
 }
 
 function syncOption (option, state) {
-  option.$observe(() => {
-    const select = option.parentNode // need a better implementation
-    if (!select) return
-    // I have to check if state[select.name] is an array or defined at all
-    // for example if both are undefined I am funcked?
-    if (select.type === 'select-one') {
-      if (option.value === state[select.name]) option.selected = true
-    } else if (select.type === 'select-multiple') {
-      if (state[select.name].indexOf(option.value) !== -1) option.selected = true
+  let select = option.parentNode
+  if (!(select instanceof HTMLSelectElement)) {
+    select = select.parentNode
+  }
+  if (!(select instanceof HTMLSelectElement)) {
+    return
+  }
+
+  if (select[syncMode] === 'two-way') {
+    option.$observe(() => syncSelectOptionWithState(select, option, state))
+  } else if (select[syncMode] === 'setup') {
+    syncSelectOptionWithState(select, option, state)
+  }
+}
+
+function syncSelectOptionWithState (select, option, state) {
+  const name = select.name
+  const value = state[select.name]
+
+  if (select.multiple) {
+    if (isArray(name, value) && value.includes(option.value)) {
+      option.selected = true
+    } else {
+      option.selected = false
     }
-  })
-}
-
-function setupListener (elem) {
-  const trigger = elem[SYNC_ON]
-  if (trigger === 'input') elem.addEventListener('input', listener)
-  else if (trigger === 'change') elem.addEventListener('change', listener)
-  else if (trigger === 'submit' && elem.form) elem.form.addEventListener('submit', listener)
-  else if (trigger !== 'non') throw new Error('invalid sync-on value')
-}
-
-function listener (ev) {
-  const elem = ev.target
-  const state = elem[SYNC_WITH_STATE]
-
-  if (elem instanceof HTMLFormElement) {
-    syncForm(elem, state)
-    ev.preventDefault()
-  } else syncFormControl(elem, state)
-}
-
-function syncForm (form, state) {
-  Array.prototype.forEach.call(form.elements, processFormControl)
-}
-
-function processFormControl (elem) {
-  if (elem[SYNC_ON] === 'submit' && elem[SYNC_WITH_STATE]) {
-    syncFormControl(elem, elem[SYNC_WITH_STATE])
+  } else {
+    if (isType(name, value, 'string') && option.value === value) {
+      option.selected = true
+    } else {
+      option.selected = false
+    }
   }
 }
 
-function syncFormControl (elem, state) {
-  if (elem.type === 'radio' || elem.type === 'checkbox') state[elem.name] = elem.checked
-  else if (elem.type === 'select-multiple') {
-    state[elem.name] = Array.prototype.map.call(elem.selectedOptions, optionToValue)
+function syncStateWithSelect (state, select) {
+  if (select.multiple) {
+    state[select.name] = Array.prototype.map.call(select.selectedOptions, optionToValue)
+  } else {
+    state[select.name] = select.value
   }
-  else if (elem.type === 'number' || elem.type === 'range') state[elem.name] = Number(elem.value)
-  // else if (elem.type === 'date' || elem.type === 'datetime-local' || elem.type === 'month') state[elem.name] = new Date(elem.value).getTime()
-  else state[elem.name] = (elem.value !== '') ? elem.value : undefined
 }
 
 function optionToValue (option) {
   return option.value
 }
 
-function setupObserver (elem) {
-  const mode = elem[SYNC_MODE]
-  if (mode === 'two-way') elem.$observe(() => observer(elem))
-  else if (mode === 'one-time') observer(elem)
-  else if (mode !== 'one-way') throw new Error('invalid sync-mode value')
+function syncInput (input, state) {
+  if (input[syncMode] === 'two-way') {
+    input.$observe(() => syncInputWithState(input, state))
+  } else if (input[syncMode] === 'setup') {
+    syncInputWithState(input, state)
+  } else if (input[syncMode] !== 'one-way' && input[syncMode] !== 'non') {
+    throw new Error(`invalid sync-mode ${input[syncMode]}`)
+  }
 }
 
-// throw on error if its bad type in state!
-function observer (elem) {
-  const state = elem[SYNC_WITH_STATE]
+function syncInputWithState (input, state) {
+  const name = input.name
+  const value = state[input.name]
 
-  if ((elem.type === 'number' || elem.type === 'range') && state[elem.name] !== undefined && (typeof state[elem.name] !== 'number')) {
-    throw new Error(`${elem.name} should be a number, instead it is ${typeof state[elem.name]}`)
-  }
-  if (elem.type === 'radio' || elem.type === 'checkbox' && state[elem.name] !== undefined && (typeof state[elem.name] !== 'boolean')) {
-    throw new Error(`${elem.name} should be a boolean, instead it is ${typeof state[elem.name]}`)
-  }
-
-  if (elem.type === 'radio' || elem.typema === 'checkbox') elem.checked = state[elem.name]
-  else if (elem.type === 'select-multiple') {
-    for (let name of state[elem.name]) {
-      // the others should be unselected! -> TODO -> iterate options and select/deselect
-      elem.options[name].selected = true
+  if (input.type === 'number' || input.type === 'range') {
+    if (isType(name, value, 'number')) {
+      input.value = value
+    } else {
+      input.value = ''
+    }
+  } else if (input.type === 'radio' || input.type === 'checkbox') {
+    if (isType(name, value, 'boolean')) {
+      input.checked = value
+    } else {
+      input.checked = false
     }
   } else {
-    elem.value = (state[elem.name] !== undefined) ? state[elem.name] : ''
+    if (isType(name, value, 'string')) {
+      input.value = value
+    } else {
+      input.value = ''
+    }
   }
+}
+
+function syncStateWithInput (state, input) {
+  if (input.type === 'number' || input.type === 'range') {
+    if (input.value !== '') {
+      state[input.name] = Number(input.value)
+    } else {
+      state[input.name] = undefined
+    }
+  } else if (input.type === 'radio' || input.type === 'checkbox') {
+    state[input.name] = input.checked
+  } else {
+    if (input.value !== '') {
+      state[input.name] = input.value
+    } else {
+      state[input.name] = undefined
+    }
+  }
+}
+
+function syncStateWithForm (form) {
+  Array.prototype.forEach.call(form.elements, syncStateWithFormElement)
+}
+
+function syncStateWithFormElement (elem) {
+  if (elem[syncMode] === 'non' || !elem[syncOn] === 'submit') {
+    return
+  }
+  if (isInput(elem))  {
+    syncStateWithInput(elem[syncWithState], elem)
+  } else if (isSelect(elem)) {
+    syncStateWithSelect(elem[syncWithState], elem)
+  }
+}
+
+function isType (name, value, type) {
+  if (value === undefined) {
+    return false
+  } else if ((typeof value) !== type) {
+    throw new Error(`${name} should be a ${type}, instead it is ${typeof value}`)
+  }
+  return true
+}
+
+function isArray (name, value) {
+  if (value === undefined) {
+    return false
+  } else if (!Array.isArray(value)) {
+    throw new Error(`${name} should be an array`)
+  }
+  return true
+}
+
+function isInput (elem) {
+  return (elem instanceof HTMLInputElement || elem instanceof HTMLTextAreaElement)
+}
+
+function isSelect (elem) {
+  return (elem instanceof HTMLSelectElement)
+}
+
+function isOption (elem) {
+  return (elem instanceof HTMLOptionElement)
 }

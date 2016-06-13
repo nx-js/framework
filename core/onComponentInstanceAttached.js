@@ -14,10 +14,10 @@ const contentWatcherConfig = {
 module.exports = function onComponentAttached () {
   const context = getContext(this)
 
-  if (!context.contentWatcherNode) {
+  if (!context.contentWatcherNode && context.isolate !== true) {
     this[symbols.contentWatcher] = new MutationObserver(onMutations)
     this[symbols.contentWatcher].observe(this, contentWatcherConfig)
-    setTimeout(setupNodeAndChildren, 0, this, context.state, context.childrenMiddlewares)
+    setTimeout(setupNodeAndChildren, 0, this, context.state, context.contentMiddlewares)
   }
 }
 
@@ -30,10 +30,12 @@ function onMutations (mutations) {
 
 function onNodeAdded (node) {
   const context = getContext(node)
-  setupNodeAndChildren(node, context.state, context.childrenMiddlewares)
+  if (context.isolate !== true) {
+    setupNodeAndChildren(node, context.state, context.contentMiddlewares)
+  }
 }
 
-function setupNodeAndChildren (node, state, childrenMiddlewares) {
+function setupNodeAndChildren (node, state, contentMiddlewares) {
   if (node[symbols.lifecycleStage] === detached) {
     throw new Error(`you cant reattach a detached node: ${node}`)
   }
@@ -60,18 +62,18 @@ function setupNodeAndChildren (node, state, childrenMiddlewares) {
     state = node[symbols.state]
   }
 
-  composeAndRunMiddlewares(node, state, contextState, childrenMiddlewares, node[symbols.middlewares])
-    .then(() => setupChildren(node, state, childrenMiddlewares))
+  composeAndRunMiddlewares(node, state, contextState, contentMiddlewares, node[symbols.middlewares])
+    .then(() => setupChildren(node, state, contentMiddlewares))
 }
 
-function composeAndRunMiddlewares (node, state, contextState, childrenMiddlewares, middlewares) {
+function composeAndRunMiddlewares (node, state, contextState, contentMiddlewares, middlewares) {
   return new Promise((resolve) => {
     let i = 0
     let j = 0
-    
+
     function next () {
-      if (i < childrenMiddlewares.length) {
-        childrenMiddlewares[i++](node, contextState, next)
+      if (i < contentMiddlewares.length) {
+        contentMiddlewares[i++](node, contextState, next)
       } else if (middlewares && j < middlewares.length) {
         middlewares[j++](node, state, next)
       } else {
@@ -82,15 +84,17 @@ function composeAndRunMiddlewares (node, state, contextState, childrenMiddleware
   })
 }
 
-function setupChildren (node, state, childrenMiddlewares) {
-  if (node[symbols.isolateMiddlewares] === true) {
-    childrenMiddlewares = node[symbols.childrenMiddlewares].slice()
-  } else if (node[symbols.childrenMiddlewares]) {
-    childrenMiddlewares = childrenMiddlewares.concat(node[symbols.childrenMiddlewares])
+function setupChildren (node, state, contentMiddlewares) {
+  if (node[symbols.isolate] === true) {
+    return
+  } else if (node[symbols.isolateMiddlewares] === 'middlewares') {
+    contentMiddlewares = node[symbols.contentMiddlewares].slice()
+  } else if (node[symbols.contentMiddlewares]) {
+    contentMiddlewares = contentMiddlewares.concat(node[symbols.contentMiddlewares])
   }
 
   Array.prototype.forEach.call(node.childNodes, (childNode) => {
-    setupNodeAndChildren(childNode, state, childrenMiddlewares)
+    setupNodeAndChildren(childNode, state, contentMiddlewares)
   })
 }
 
@@ -117,8 +121,8 @@ function runCleanupFunction (cleanupFunction) {
 }
 
 function getContext (node) {
-  const context = {childrenMiddlewares: []}
-  let isolateMiddlewares = false
+  const context = {contentMiddlewares: []}
+  let isolate = false
 
   node = node.parentNode
   while (node) {
@@ -129,13 +133,16 @@ function getContext (node) {
       context.state = node[symbols.contextState]
     }
 
-    if (node[symbols.isolateMiddlewares]) {
-      isolateMiddlewares = true
-    }
-    if (node[symbols.childrenMiddlewares] && !isolateMiddlewares) {
-      context.childrenMiddlewares.push(...node[symbols.childrenMiddlewares])
+    if (isolate !== true && isolate !== 'middlewares') {
+      isolate = node[symbols.isolate]
+    } else if (isolate === true) {
+      context.isolate = true
+      return context
     }
 
+    if (node[symbols.contentMiddlewares] && !isolate) {
+      context.contentMiddlewares.push(...node[symbols.contentMiddlewares])
+    }
     if (node[symbols.contentWatcher]) {
       context.contentWatcherNode = node
     }

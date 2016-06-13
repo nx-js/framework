@@ -33,7 +33,6 @@ function $eval (rawExpression, handler) {
   if (typeof handler !== 'function') {
     throw new TypeError('second argument must be a function')
   }
-
   this[expressions].add({rawExpression, handler, appliedFilters: [], observed: false})
 }
 
@@ -44,7 +43,6 @@ function $observedEval (rawExpression, handler) {
   if (typeof handler !== 'function') {
     throw new TypeError('second argument must be a function')
   }
-
   this[expressions].add({rawExpression, handler, appliedFilters: [], observed: true})
 }
 
