@@ -79,8 +79,8 @@ function filter (name, handler) {
   }
 
   return function filterMiddleware (node, state, next) {
-    node.$require('eval')
-    if (!node.$isUsing('eval-filter')) node.$using('eval-filter')
+    node.$require('evaluate')
+    if (!node.$isUsing('evaluate-filter')) node.$using('evaluate-filter')
 
     if (node[filters].has(name)) {
       throw new Error(`a filter named ${name} already exists on ${node}`)

@@ -1,10 +1,7 @@
 'use strict'
 
-const symbols = require('../core').symbols
-
 module.exports = function render (config) {
   config = validateAndCloneConfig(config)
-
   if (config.cache) {
     config.template = cacheTemplate(config.template)
   }
@@ -37,26 +34,24 @@ function composeContentWithTemplate (elem, state, template) {
   let defaultSlot
 
   Array.prototype.forEach.call(template.querySelectorAll('slot'), (slot) => {
-    slot[symbols.contextState] = state
-
     if (slot.hasAttribute('name') && slot.getAttribute('name') !== '') {
       const slotFillers = elem.querySelectorAll(`[slot=${slot.getAttribute('name')}]`)
       if (slotFillers.length) {
         clearContent(slot)
         Array.prototype.forEach.call(slotFillers, (slotFiller) => slot.appendChild(slotFiller))
       }
-    } else {
+    } else if (!defaultSlot) {
       defaultSlot = slot
     }
   })
 
-  if (defaultSlot) {
+  if (defaultSlot && elem.childNodes.length) {
     clearContent(defaultSlot)
-    // this was elem.children before -> check it works with childNodes too!!
-    Array.prototype.forEach.call(elem.childNodes, (childNode) => defaultSlot.appendChild(childNode))
-  } else {
-    clearContent(elem)
+    while (elem.firstChild) {
+      defaultSlot.appendChild(elem.firstChild)
+    }
   }
+  clearContent(elem)
 }
 
 function cacheTemplate (template) {

@@ -87,7 +87,7 @@ function composeAndRunMiddlewares (node, state, contextState, contentMiddlewares
 function setupChildren (node, state, contentMiddlewares) {
   if (node[symbols.isolate] === true) {
     return
-  } else if (node[symbols.isolateMiddlewares] === 'middlewares') {
+  } else if (node[symbols.isolate] === 'middlewares') {
     contentMiddlewares = node[symbols.contentMiddlewares].slice()
   } else if (node[symbols.contentMiddlewares]) {
     contentMiddlewares = contentMiddlewares.concat(node[symbols.contentMiddlewares])
@@ -99,7 +99,7 @@ function setupChildren (node, state, contentMiddlewares) {
 }
 
 function cleanupNodeAndChildren (node) {
-  if (node[symbols.lifecycleStage] !== detached) {
+  if (node[symbols.lifecycleStage] !== attached) {
     return
   }
   if (node.parentNode && node.parentNode[symbols.lifecycleStage] === attached) {

@@ -77,7 +77,7 @@ function findParentRouter (node) {
 
 function transitionToRoute (router, route) {
   const routerData = router[ROUTER_DATA]
-  const viewName = route[routerData.depth] || routerData.defaultView
+  const viewName = route.shift() || routerData.defaultView
 
   if (routerData.currentView !== viewName) {
     const routerChangeEventSettings = {
@@ -158,13 +158,14 @@ function $go (route, params = {}, options = {}) {
   const parentRouter = findParentRouter(this)
   if (relative && parentRouter) {
     for (let childRouter of parentRouter[ROUTER_DATA].children) {
-      transitionToRoute(childRouter, route)
+      transitionToRoute(childRouter, route.slice())
     }
     updateHistory(relativeToAbsoluteRoute(parentRouter, route), params, options)
   } else {
-    transitionToRouteFromRoot(route)
+    transitionToRouteFromRoot(route.slice())
     updateHistory(route, params, options)
   }
+  window.scrollTo(0, 0)
 }
 
 function params (config) {
