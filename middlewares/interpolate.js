@@ -15,7 +15,7 @@ module.exports = function interpolate (node, state, next) {
 function interpolateValue (node, attribute) {
   const tokens = attribute ? parseValue(attribute.value) : parseValue(node.nodeValue)
 
-  for (let token of tokens) {
+  tokens.forEach((token) => {
     if (typeof token === 'object') {
       if (!token.observed) {
         node.$eval(token.expression, (value) => interpolateToken(token, value, tokens, node, attribute))
@@ -23,10 +23,13 @@ function interpolateValue (node, attribute) {
         node.$observedEval(token.expression, (value) => interpolateToken(token, value, tokens, node, attribute))
       }
     }
-  }
+  })
 }
 
-function interpolateToken (token, value = '', tokens, node, attribute) {
+function interpolateToken (token, value, tokens, node, attribute) {
+  if (value === undefined) {
+    value = ''
+  }
   if (token.value !== value) {
     token.value = value
     if (attribute) {

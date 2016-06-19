@@ -149,7 +149,13 @@ function onRefClick (ev) {
   this.$go(this.getAttribute('nx-ref'), this[REF_DATA].params, this[REF_DATA].options)
 }
 
-function $go (route, params = {}, options = {}) {
+function $go (route, params, options) {
+  if (params === undefined) {
+    params = {}
+  }
+  if (options === undefined) {
+    options = {}
+  }
   const relative = route.charAt(0) === '/'
 
   if (relative) route = route.slice(1)
@@ -225,7 +231,10 @@ function absoluteToRelativeRoute (router, route) {
   return route.slice(router[ROUTER_DATA].depth)
 }
 
-function routeToPath (route = []) {
+function routeToPath (route) {
+  if (route === undefined) {
+    route = []
+  }
   return '/' + route.join('/')
 }
 

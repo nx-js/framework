@@ -39,7 +39,13 @@ module.exports = function sync (elem, state, next) {
 
   if (isInput(elem) || isSelect(elem)) {
     elem[syncWithState] = state
-    elem[syncMode] = elem.getAttribute('nx-sync-mode') || 'two-way'
+    elem[syncMode] = elem.getAttribute('nx-sync-mode')
+    if (!elem.name) {
+      elem[syncMode] = 'non'
+    }
+    if (!elem[syncMode]) {
+      elem[syncMode] = 'two-way'
+    }
     elem[syncOn] = elem.getAttribute('nx-sync-on')
     if (!elem[syncOn]) {
       if (elem.form) elem[syncOn] = 'submit'
@@ -134,9 +140,15 @@ function syncInputWithState (input, state) {
     } else {
       input.value = ''
     }
-  } else if (input.type === 'radio' || input.type === 'checkbox') {
+  } else if (input.type === 'checkbox') {
     if (isType(name, value, 'boolean')) {
       input.checked = value
+    } else {
+      input.checked = false
+    }
+  } else if (input.type === 'radio') {
+    if (isType(name, value, 'string')) {
+      input.checked = (input.value === value)
     } else {
       input.checked = false
     }
@@ -156,7 +168,7 @@ function syncStateWithInput (state, input) {
     } else {
       state[input.name] = undefined
     }
-  } else if (input.type === 'radio' || input.type === 'checkbox') {
+  } else if (input.type === 'checkbox') {
     state[input.name] = input.checked
   } else {
     if (input.value !== '') {

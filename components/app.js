@@ -1,15 +1,15 @@
 'use strict'
 
-const {component} = require('../core')
-const {evaluate, interpolate, attributes, content, flow, sync, router} = require('../middlewares')
+const core = require('../core')
+const middlewares = require('../middlewares')
 
 module.exports = function app (config) {
-  return component(config)
-    .useOnContent(evaluate.expression)
-    .useOnContent(interpolate)
-    .useOnContent(attributes)
-    .useOnContent(content)
-    .useOnContent(router.ref)
-    .useOnContent(flow)
-    .useOnContent(sync)
+  return core.component(config)
+    .useOnContent(middlewares.evaluate.expression)
+    .useOnContent(middlewares.interpolate)
+    .useOnContent(middlewares.attributes)
+    .useOnContent(middlewares.content)
+    .useOnContent(middlewares.router.ref)
+    .useOnContent(middlewares.flow)
+    .useOnContent(middlewares.sync)
 }

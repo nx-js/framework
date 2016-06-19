@@ -12,7 +12,8 @@
     "url": "git@github.com:RisingStack/nx.git"
   },
   "scripts": {
-    "build": "webpack ./index.js nx.js"
+    "build": "webpack ./index.js nx.js",
+    "minify": "uglifyjs nx.js --compress --mangle --output nx.min.js"
   },
   "bugs": {
     "url": "https://github.com/RisingStack/nx/issues"
@@ -27,9 +28,11 @@
   ],
   "dependencies": {
     "@risingstack/nx-compile": "1.0.0",
-    "@risingstack/nx-observe": "1.0.0"
+    "@risingstack/nx-observe": "1.0.1",
+    "webcomponentsjs": "1.0.2"
   },
   "devDependencies": {
-    "webpack": "1.13.1"
+    "webpack": "1.13.1",
+    "uglify-js": "github:mishoo/UglifyJS2#harmony"
   }
 }

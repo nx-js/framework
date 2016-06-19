@@ -30,19 +30,12 @@ function register (name) {
   if (typeof name !== 'string') {
     throw new TypeError('first argument must be a string')
   }
-  const proto = {
-    createdCallback: onComponentInstantiated,
-    attachedCallback: onComponentInstanceAttached
-  }
+  const parentProto = this[config].element ? this[config].elementProto : HTMLElement.prototype
+  const proto = Object.create(parentProto)
+  proto.createdCallback = onComponentInstantiated
+  proto.attachedCallback = onComponentInstanceAttached
   proto[config] = this[config]
-
-  if (this[config].element) {
-    Object.setPrototypeOf(proto, this[config].elementProto)
-  } else {
-    Object.setPrototypeOf(proto, HTMLElement.prototype)
-  }
   document.registerElement(name, {prototype: proto, extends: this[config].element})
-
   return name
 }
 
@@ -60,7 +53,10 @@ function onComponentInstantiated () {
   this[symbols.middlewares] = this[config].middlewares.slice()
 }
 
-function validateAndCloneConfig (rawConfig = {}) {
+function validateAndCloneConfig (rawConfig) {
+  if (rawConfig === undefined) {
+    rawConfig = {}
+  }
   if (typeof rawConfig !== 'object') {
     throw new TypeError('invalid component config, must be an object or undefined')
   }

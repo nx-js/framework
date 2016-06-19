@@ -33,7 +33,10 @@ function $extractContent () {
   this[contentTemplate] = template
 }
 
-function $insertContent (index = 0, contextState) {
+function $insertContent (index, contextState) {
+  if (index === undefined) {
+    index = 0
+  }
   if (typeof index !== 'number') {
     throw new TypeError('first argument must be a number')
   }
@@ -49,7 +52,7 @@ function $insertContent (index = 0, contextState) {
   if (contextState) {
     contextState = observer.observable(contextState)
     Object.setPrototypeOf(contextState, this[ownerState])
-    
+
     let node = content.firstChild
     while (node) {
       node[symbols.contextState] = contextState
@@ -59,7 +62,10 @@ function $insertContent (index = 0, contextState) {
   this.insertBefore(content, findContentStartAtIndex(this, index))
 }
 
-function $removeContent (index = 0) {
+function $removeContent (index) {
+  if (index === undefined) {
+    index = 0
+  }
   if (typeof index !== 'number') {
     throw new TypeError('first argument must be a number')
   }
@@ -73,7 +79,10 @@ function $removeContent (index = 0) {
   this.removeChild(node)
 }
 
-function $replaceContent (index = 0, contextState) {
+function $replaceContent (index, contextState) {
+  if (index === undefined) {
+    index = 0
+  }
   if (typeof index !== 'number') {
     throw new TypeError('first argument must be a number')
   }

@@ -12,13 +12,7 @@ const contentWatcherConfig = {
 }
 
 module.exports = function onComponentAttached () {
-  const context = getContext(this)
-
-  if (!context.contentWatcherNode && context.isolate !== true) {
-    this[symbols.contentWatcher] = new MutationObserver(onMutations)
-    this[symbols.contentWatcher].observe(this, contentWatcherConfig)
-    setTimeout(setupNodeAndChildren, 0, this, context.state, context.contentMiddlewares)
-  }
+  onNodeAdded(this)
 }
 
 function onMutations (mutations) {
@@ -31,6 +25,10 @@ function onMutations (mutations) {
 function onNodeAdded (node) {
   const context = getContext(node)
   if (context.isolate !== true) {
+    if (!context.contentWatcherNode) {
+      node[symbols.contentWatcher] = new MutationObserver(onMutations)
+      node[symbols.contentWatcher].observe(node, contentWatcherConfig)
+    }
     setupNodeAndChildren(node, context.state, context.contentMiddlewares)
   }
 }
@@ -62,8 +60,19 @@ function setupNodeAndChildren (node, state, contentMiddlewares) {
     state = node[symbols.state]
   }
 
-  composeAndRunMiddlewares(node, state, contextState, contentMiddlewares, node[symbols.middlewares])
+  return composeAndRunMiddlewares(node, state, contextState, contentMiddlewares, node[symbols.middlewares])
     .then(() => setupChildren(node, state, contentMiddlewares))
+    .then(() => afterSetup(node), () => afterSetup(node))
+}
+
+function afterSetup(node) {
+  if (node instanceof Element && node.hasAttribute('nx-cloak')) {
+    setTimeout(uncloakNode, 0, node)
+  }
+}
+
+function uncloakNode (node) {
+  node.removeAttribute('nx-cloak')
 }
 
 function composeAndRunMiddlewares (node, state, contextState, contentMiddlewares, middlewares) {
@@ -93,9 +102,9 @@ function setupChildren (node, state, contentMiddlewares) {
     contentMiddlewares = contentMiddlewares.concat(node[symbols.contentMiddlewares])
   }
 
-  Array.prototype.forEach.call(node.childNodes, (childNode) => {
+  return Promise.all(Array.prototype.map.call(node.childNodes, (childNode) => {
     setupNodeAndChildren(childNode, state, contentMiddlewares)
-  })
+  }))
 }
 
 function cleanupNodeAndChildren (node) {

@@ -2,19 +2,21 @@
 
 require('./polyfills')
 
-const {component, symbols} = require('./core')
-const middlewares = require('./middlewares')
-const components = require('./components')
-const observer = require('@risingstack/nx-observe')
-const compiler = require('@risingstack/nx-compile')
+if (document) {
+  const style = document.createElement('style')
+  style.appendChild(document.createTextNode('[nx-cloak] { display: none; }'))
+  document.head.appendChild(style)
+}
+
+const core = require('./core')
 
 const nx = {
-  component,
-  symbols,
-  middlewares,
-  components,
-  observer,
-  compiler
+  component: core.component,
+  symbols: core.symbols,
+  middlewares: require('./middlewares'),
+  components: require('./components'),
+  observer: require('@risingstack/nx-observe'),
+  compiler: require('@risingstack/nx-compile')
 }
 
 if (module && module.exports) {
