@@ -7,17 +7,17 @@ const syncMode = Symbol('syncMode')
 const syncModes = ['non', 'setup', 'one-way', 'two-way']
 const syncTriggers = ['input', 'change', 'submit']
 
-document.addEventListener('input', inputListener, true)
-document.addEventListener('change', changeListener, true)
-document.addEventListener('submit', submitListener, true)
+document.addEventListener('input', onInput, true)
+document.addEventListener('change', onChange, true)
+document.addEventListener('submit', onSubmit, true)
 
-function inputListener (ev) {
+function onInput (ev) {
   if (ev.target[syncMode] !== 'non' && ev.target[syncOn] === 'input') {
     syncStateWithInput(ev.target[syncWithState], ev.target)
   }
 }
 
-function changeListener (ev) {
+function onChange (ev) {
   if (ev.target[syncMode] !== 'non' && ev.target[syncOn] === 'change') {
     if (isInput(ev.target)) {
       syncStateWithInput(ev.target[syncWithState], ev.target)
@@ -27,7 +27,7 @@ function changeListener (ev) {
   }
 }
 
-function submitListener (ev) {
+function onSubmit (ev) {
   syncStateWithForm(ev.target)
   ev.preventDefault()
 }
@@ -51,10 +51,10 @@ module.exports = function sync (elem, state, next) {
       if (elem.form) elem[syncOn] = 'submit'
       else elem[syncOn] = 'change'
     }
-    if (!syncModes.includes(elem[syncMode])) {
+    if (syncModes.indexOf(elem[syncMode]) === -1) {
       throw new Error(`sync-mode must be one of ${syncModes}, instead it is ${elem[syncMode]}`)
     }
-    if (!syncTriggers.includes(elem[syncOn])) {
+    if (syncTriggers.indexOf(elem[syncOn]) === -1) {
       throw new Error(`sync-on must be one of ${syncTriggers}, instead it is ${elem[syncOn]}`)
     }
     if (elem[syncOn] === 'submit' && !elem.form) {
@@ -94,7 +94,7 @@ function syncSelectOptionWithState (select, option, state) {
   const value = state[select.name]
 
   if (select.multiple) {
-    if (isArray(name, value) && value.includes(option.value)) {
+    if (isArray(name, value) && value.indexOf(option.value) !== -1) {
       option.selected = true
     } else {
       option.selected = false

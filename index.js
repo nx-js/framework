@@ -1,13 +1,13 @@
 'use strict'
 
-require('./polyfills')
-
-if (document) {
-  const style = document.createElement('style')
-  style.appendChild(document.createTextNode('[nx-cloak] { display: none; }'))
-  document.head.appendChild(style)
+if (window === undefined) {
+  throw new Error('nx can only be used in a browser')
+}
+if (window.Proxy === undefined) {
+  throw new Error('nx does not support this browser')
 }
 
+require('./polyfills')
 const core = require('./core')
 
 const nx = {
@@ -22,6 +22,4 @@ const nx = {
 if (module && module.exports) {
   module.exports = nx
 }
-if (window) {
-  window.nx = nx
-}
+window.nx = nx
