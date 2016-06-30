@@ -22,7 +22,7 @@ function expression (node, state, next) {
   next()
 
   for (let expression of node[expressions]) {
-    evaluateExpression(node, state, expression)
+    evaluateAndHandleExpression(node, state, expression)
   }
 }
 
@@ -46,14 +46,31 @@ function $observedEval (rawExpression, handler) {
   this[expressions].add({rawExpression, handler, appliedFilters: [], observed: true})
 }
 
-function evaluateExpression (node, state, expression) {
+function evaluateAndHandleExpression (node, state, expression) {
   parseExpression(node, expression, node[filters])
 
   if (!expression.observed) {
-    expression.handler(applyFilters(expression.appliedFilters, expression.exec(state)))
+    expression.handler(evaluateExpression(expression, state))
   } else {
-    node.$observe(() => expression.handler(applyFilters(expression.appliedFilters, expression.exec(state))))
+    node.$observe(() => expression.handler(evaluateExpression(expression, state)))
   }
+}
+
+function evaluateExpression (expression, state) {
+  let value = expression.exec(state)
+  for (let filter of expression.appliedFilters) {
+    const args = evaluateArgExpressions(filter.argExpressions, state)
+    value = filter.effect(value, ...args)
+  }
+  return value
+}
+
+function evaluateArgExpressions (argExpressions, state) {
+  const args = []
+  for (let argExpression of argExpressions) {
+    args.push(argExpression(state))
+  }
+  return args
 }
 
 function parseExpression (node, expression, availableFilters) {
@@ -66,8 +83,13 @@ function parseExpression (node, expression, availableFilters) {
     if (!availableFilters.has(filterName)) {
       throw new Error(`there is no filter named ${filterName} on ${node}`)
     }
-    expression.appliedFilters.push({effect: availableFilters.get(filterName), args: filterText})
+    const argExpressions = filterText.map(compileArg)
+    expression.appliedFilters.push({effect: availableFilters.get(filterName), argExpressions: argExpressions})
   }
+}
+
+function compileArg (arg) {
+  return compiler.compileExpression(arg)
 }
 
 function filter (name, handler) {
@@ -88,11 +110,4 @@ function filter (name, handler) {
     node[filters].set(name, handler)
     return next()
   }
-}
-
-function applyFilters (appliedFilters, value) {
-  for (let filter of appliedFilters) {
-    value = filter.effect(value, ...filter.args)
-  }
-  return value
 }

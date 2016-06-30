@@ -89,28 +89,29 @@ function routeRouterAndChildren (router, route) {
   route = route.slice()
   const viewName = route.shift()
 
-  if (router[routerConfig].currentView !== viewName) {
-    routeRouter(router, viewName)
-  }
-  for (let childRouter of router[routerConfig].children) {
-    routeRouterAndChildren(childRouter, route)
-  }
+  routeRouter(router, viewName)
+  Promise.resolve().then(() => routeChildren(router, route))
 }
 
 function routeRouter (router, viewName) {
-  while (router.firstChild) {
-    router.removeChild(router.firstChild)
-  }
-
+  const templates = router[routerConfig].templates
   const defaultView = router[routerConfig].defaultView
-  if (router[routerConfig].templates.has(viewName)) {
-    router.appendChild(document.importNode(router[routerConfig].templates.get(viewName), true))
+
+  if (!templates.has(viewName) && templates.has(defaultView)) {
+    viewName = defaultView
+  }
+  if (router[routerConfig].currentView !== viewName) {
+    while (router.firstChild) {
+      router.removeChild(router.firstChild)
+    }
+    router.appendChild(document.importNode(templates.get(viewName), true))
     router[routerConfig].currentView = viewName
-  } else if (router[routerConfig].templates.has(defaultView)) {
-    router.appendChild(document.importNode(router[routerConfig].templates.get(defaultView), true))
-    router[routerConfig].currentView = defaultView
-  } else {
-    router[routerConfig].currentView = undefined
+  }
+}
+
+function routeChildren (router, route) {
+  for (let childRouter of router[routerConfig].children) {
+    routeRouterAndChildren(childRouter, route)
   }
 }
 

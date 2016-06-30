@@ -28,7 +28,7 @@
   ],
   "dependencies": {
     "@risingstack/nx-compile": "1.0.0",
-    "@risingstack/nx-observe": "1.0.1",
+    "@risingstack/nx-observe": "1.0.2",
     "webcomponentsjs": "1.0.2"
   },
   "devDependencies": {

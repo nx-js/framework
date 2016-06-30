@@ -11,7 +11,7 @@ const contentWatcherConfig = {
   subtree: true
 }
 
-module.exports = function onComponentAttached () {
+module.exports = function onComponentInstanceAttached () {
   onNodeAdded(this)
 }
 
@@ -67,7 +67,7 @@ function setupNodeAndChildren (node, state, contentMiddlewares) {
 
 function afterSetup(node) {
   if (node instanceof Element && node.hasAttribute('nx-cloak')) {
-    setTimeout(uncloakNode, 0, node)
+    Promise.resolve(node).then(uncloakNode)
   }
 }
 
