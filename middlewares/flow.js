@@ -36,17 +36,20 @@ module.exports = function flow (elem, state, next) {
         return
       }
 
+      let viewIndex = 0
       for (let i = 0; i < Math.max(array.length, prevArray.length); i++) {
         if (prevArray[i] !== array[i]) {
           if (array[i] === undefined) {
-            elem.$removeContent(i)
+            elem.$removeContent(viewIndex)
+            viewIndex--
           } else if (prevArray[i] === undefined) {
-            elem.$insertContent(i, {[repeatValue]: array[i], [repeatIndex]: i})
+            elem.$insertContent(viewIndex, {[repeatValue]: array[viewIndex], [repeatIndex]: viewIndex})
           } else {
-            elem.$replaceContent(i, {[repeatValue]: array[i], [repeatIndex]: i})
+            elem.$replaceContent(viewIndex, {[repeatValue]: array[viewIndex], [repeatIndex]: viewIndex})
           }
           prevArray[i] = array[i]
         }
+        viewIndex++
       }
     })
   }

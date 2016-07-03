@@ -4,7 +4,7 @@ const syncWithState = Symbol('syncWithState')
 const syncOn = Symbol('syncOn')
 const syncMode = Symbol('syncMode')
 
-const syncModes = ['non', 'setup', 'one-way', 'two-way']
+const syncModes = ['none', 'setup', 'one-way', 'two-way']
 const syncTriggers = ['input', 'change', 'submit']
 
 document.addEventListener('input', onInput, true)
@@ -12,13 +12,13 @@ document.addEventListener('change', onChange, true)
 document.addEventListener('submit', onSubmit, true)
 
 function onInput (ev) {
-  if (ev.target[syncMode] !== 'non' && ev.target[syncOn] === 'input') {
+  if (ev.target[syncMode] !== 'none' && ev.target[syncOn] === 'input') {
     syncStateWithInput(ev.target[syncWithState], ev.target)
   }
 }
 
 function onChange (ev) {
-  if (ev.target[syncMode] !== 'non' && ev.target[syncOn] === 'change') {
+  if (ev.target[syncMode] !== 'none' && ev.target[syncOn] === 'change') {
     if (isInput(ev.target)) {
       syncStateWithInput(ev.target[syncWithState], ev.target)
     } else if (isSelect(ev.target)) {
@@ -41,7 +41,7 @@ module.exports = function sync (elem, state, next) {
     elem[syncWithState] = state
     elem[syncMode] = elem.getAttribute('nx-sync-mode')
     if (!elem.name) {
-      elem[syncMode] = 'non'
+      elem[syncMode] = 'none'
     }
     if (!elem[syncMode]) {
       elem[syncMode] = 'two-way'
@@ -125,7 +125,7 @@ function syncInput (input, state) {
     input.$observe(() => syncInputWithState(input, state))
   } else if (input[syncMode] === 'setup') {
     syncInputWithState(input, state)
-  } else if (input[syncMode] !== 'one-way' && input[syncMode] !== 'non') {
+  } else if (input[syncMode] !== 'one-way' && input[syncMode] !== 'none') {
     throw new Error(`invalid sync-mode ${input[syncMode]}`)
   }
 }
@@ -184,7 +184,7 @@ function syncStateWithForm (form) {
 }
 
 function syncStateWithFormElement (elem) {
-  if (elem[syncMode] === 'non' || !elem[syncOn] === 'submit') {
+  if (elem[syncMode] === 'none' || !elem[syncOn] === 'submit') {
     return
   }
   if (isInput(elem))  {
