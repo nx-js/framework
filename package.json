@@ -1,6 +1,6 @@
 {
   "name": "@risingstack/nx",
-  "version": "1.0.0",
+  "version": "1.0.0-alpha",
   "description": "Next generation client side framework",
   "main": "index.js",
   "author": {
@@ -18,13 +18,15 @@
   "bugs": {
     "url": "https://github.com/RisingStack/nx/issues"
   },
-  "homepage": "https://github.com/RisingStack/nx#readme",
+  "homepage": "http://nx-nxframework.rhcloud.com",
   "license": "MIT",
   "keywords": [
     "nx",
     "client",
     "framework",
-    "next"
+    "next",
+    "next generation",
+    "data binding"
   ],
   "dependencies": {
     "@risingstack/nx-compile": "1.0.1",
