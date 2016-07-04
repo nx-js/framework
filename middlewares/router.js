@@ -258,7 +258,11 @@ function pathToRoute (path) {
   return path.split('/')
 }
 
-function paramsToQuery (params = {}) {
+function paramsToQuery (params) {
+  if (params === undefined) {
+    params = {}
+  }
+
   let query = ''
   for (let param in params) {
     if (params[param] !== undefined) {
