@@ -5,6 +5,7 @@ const middlewares = require('../middlewares')
 
 module.exports = function app (config) {
   return core.component(config)
+    .useOnContent(middlewares.events)
     .useOnContent(middlewares.evaluate.expression)
     .useOnContent(middlewares.interpolate)
     .useOnContent(middlewares.attributes)
