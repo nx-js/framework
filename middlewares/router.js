@@ -23,6 +23,7 @@ function onClick (ev) {
   const route = ev.target.getAttribute('nx-ref')
   if (route && ev.target[refConfig]) {
     ev.target.$routeTo(route, ev.target[refConfig].params, ev.target[refConfig].options)
+    ev.preventDefault()
   }
 }
 
@@ -90,7 +91,7 @@ function routeRouterAndChildren (router, route) {
   const viewName = route.shift()
 
   routeRouter(router, viewName)
-  Promise.resolve().then(() => routeChildren(router, route))
+  router.$beforeRender(() => routeChildren(router, route))
 }
 
 function routeRouter (router, viewName) {
@@ -149,11 +150,25 @@ function ref (elem, state, next) {
     elem[refConfig] = {}
     elem.$attribute('nx-ref-options', (options) => elem[refConfig].options = options)
     elem.$attribute('nx-ref-params', (params) => elem[refConfig].params = params)
+
+    let path = elem.getAttribute('nx-ref')
+    const relative = path.charAt(0) === '/'
+    if (relative) {
+      path = path.slice(1)
+    }
+    let route = path.split('/')
+    if (relative) {
+      route = relativeToAbsoluteRoute(findParentRouter(elem), route)
+    }
+    elem.$beforeRender(() => {
+      const href = routeToPath(route) + paramsToQuery(elem[refConfig].params)
+      elem.setAttribute('href', href)
+    })
   }
   return next()
 }
 
-function $routeTo (route, params, options) {
+function $routeTo (path, params, options) {
   if (params === undefined) {
     params = {}
   }
@@ -161,11 +176,11 @@ function $routeTo (route, params, options) {
     options = {}
   }
 
-  const relative = route.charAt(0) === '/'
+  const relative = path.charAt(0) === '/'
   if (relative) {
-    route = route.slice(1)
+    path = path.slice(1)
   }
-  route = route.split('/')
+  const route = path.split('/')
 
   const parentRouter = findParentRouter(this)
   if (relative && parentRouter) {

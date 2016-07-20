@@ -29,9 +29,8 @@
     "data binding"
   ],
   "dependencies": {
-    "@risingstack/nx-compile": "1.0.1",
-    "@risingstack/nx-observe": "1.0.3",
-    "webcomponentsjs": "1.0.2"
+    "@risingstack/nx-compile": "^1.0.1",
+    "@risingstack/nx-observe": "^1.0.3"
   },
   "devDependencies": {
     "webpack": "1.13.1",

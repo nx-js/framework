@@ -43,6 +43,9 @@ function setupNodeAndChildren (node, state, contentMiddlewares) {
   if (node.parentNode[symbols.lifecycleStage] !== attached && !node[symbols.contentWatcher]) {
     return
   }
+  if (node instanceof HTMLUnknownElement) {
+    return
+  }
   node[symbols.lifecycleStage] = attached
 
   setupNode(node)

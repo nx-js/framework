@@ -13,6 +13,8 @@ module.exports = function setupNode (node) {
   node.$cleanup = $cleanup
   node.$observe = $observe
   node.$unobserve = $unobserve
+  node.$beforeRender = $beforeRender
+  node.$afterRender = $afterRender
 }
 
 function $using (...middlewareNames) {
@@ -72,4 +74,18 @@ function $unobserve (fn) {
     throw new TypeError('first argument must be a function')
   }
   observer.unobserve(fn)
+}
+
+function $beforeRender (fn) {
+  if (typeof fn !== 'function') {
+    throw new TypeError('first argument must be a function')
+  }
+  requestAnimationFrame(fn)
+}
+
+function $afterRender (fn) {
+  if (typeof fn !== 'function') {
+    throw new TypeError('first argument must be a function')
+  }
+  requestAnimationFrame((fn) => Promise.resolve().then(fn))
 }
