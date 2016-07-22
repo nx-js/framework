@@ -10,5 +10,7 @@ module.exports = {
   usedMiddlewareNames: Symbol('usedMiddlewareNames'),
   cleanupFunctions: Symbol('cleanupFunctions'),
   lifecycleStage: Symbol('lifecycleStage'),
-  contentWatcher: Symbol('contentWatcher')
+  contentWatcher: Symbol('contentWatcher'),
+  filters: Symbol('filters'),
+  limiters: Symbol('limiters')
 }

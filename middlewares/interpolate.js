@@ -17,11 +17,11 @@ function interpolateValue (node, attribute) {
 
   tokens.forEach((token) => {
     if (typeof token === 'object') {
-      if (!token.observed) {
-        node.$eval(token.expression, (value) => interpolateToken(token, value, tokens, node, attribute))
-      } else {
-        node.$observedEval(token.expression, (value) => interpolateToken(token, value, tokens, node, attribute))
-      }
+      // instead fo this
+      // const expression = node.$compileExpression(token.expression)
+      // node.$observe(interpolate)
+      // or simply interpolate
+      node.$evalExpression(token.expression, (value) => interpolateToken(token, value, tokens, node, attribute), token.observed)
     }
   })
 }

@@ -20,9 +20,9 @@ function $attribute (name, handler) {
   }
 
   if (this.hasAttribute('@' + name)) {
-    this.$observedEval(this.getAttribute('@' + name), handler)
+    this.$evalExpression(this.getAttribute('@' + name), handler, true)
   } else if (this.hasAttribute('$' + name)) {
-    this.$eval(this.getAttribute('$' + name), handler)
+    this.$evalExpression(this.getAttribute('$' + name), handler, false)
   } else if (this.hasAttribute(name)) {
     throw new Error(`custom attribute ${name} must start with $ or @`)
   }
