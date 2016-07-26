@@ -1,5 +1,14 @@
 'use strict'
 
+const secret = {
+  hasIf: Symbol('flow hasIf'),
+  showing: Symbol('flow showing'),
+  hasRepeat: Symbol('flow hasRepeat'),
+  repeatValue: Symbol('flow repeatValue'),
+  repeatIndex: Symbol('flow repeatIndex'),
+  prevArray: Symbol('flow prevArray')
+}
+
 module.exports = function flow (elem, state, next) {
   if (!(elem instanceof Element)) {
     return next()
@@ -7,60 +16,69 @@ module.exports = function flow (elem, state, next) {
   elem.$require('content', 'attributes')
   elem.$using('flow')
 
-  if (hasIf(elem) && hasRepeat(elem)) {
-    throw new Error('cant use nx-if and nx-repeat on the same node')
-  } else if (hasIf(elem) || hasRepeat(elem)) {
-    elem.$extractContent()
-  }
-
-  if (hasIf(elem)) {
-    let showing = false
-    elem.$attribute('nx-if', (show) => {
-      if (show && !showing) {
-        elem.$insertContent()
-        showing = true
-      } else if (!show && showing) {
-        elem.$removeContent()
-        showing = false
-      }
-    })
-  }
-
-  if (hasRepeat(elem)) {
-    const repeatValue = elem.getAttribute('nx-repeat-value') || '$value'
-    const repeatIndex = elem.getAttribute('nx-repeat-index') || '$index'
-
-    const prevArray = []
-    elem.$attribute('nx-repeat', (array) => {
-      if (!Array.isArray(array)) {
-        return
-      }
-
-      let viewIndex = 0
-      for (let i = 0; i < Math.max(array.length, prevArray.length); i++) {
-        if (prevArray[i] !== array[i]) {
-          if (array[i] === undefined) {
-            elem.$removeContent(viewIndex)
-            viewIndex--
-          } else if (prevArray[i] === undefined) {
-            elem.$insertContent(viewIndex, {[repeatValue]: array[viewIndex], [repeatIndex]: viewIndex})
-          } else {
-            elem.$replaceContent(viewIndex, {[repeatValue]: array[viewIndex], [repeatIndex]: viewIndex})
-          }
-          prevArray[i] = array[i]
-        }
-        viewIndex++
-      }
-    })
-  }
+  elem.$attribute('if', ifAttribute)
+  elem.$attribute('repeat', repeatAttribute)
+  elem.$attribute('repeat-value', repeatValueAttribute)
+  elem.$attribute('repeat-index', repeatIndexAttribute)
 
   return next()
 }
 
-function hasIf (elem) {
-  return (elem.hasAttribute('$nx-if') || elem.hasAttribute('@nx-if'))
+function ifAttribute (show, name, elem) {
+  if (elem[secret.hasRepeat]) {
+    throw new Error('cant use if and repeat on the same node')
+  }
+  if (!elem[secret.hasIf]) {
+    elem.$extractContent()
+    elem[secret.hasIf] = true
+  }
+
+  if (show && !elem[secret.showing]) {
+    elem.$insertContent()
+    elem[secret.showing] = true
+  } else if (!show && elem[secret.showing]) {
+    elem.$removeContent()
+    elem[secret.showing] = false
+  }
 }
 
-function hasRepeat (elem) {
-  return (elem.hasAttribute('$nx-repeat') || elem.hasAttribute('@nx-repeat'))
+function repeatAttribute (array, name, elem) {
+  if (elem[secret.hasIf]) {
+    throw new Error('cant use if and repeat on the same node')
+  }
+  if (!elem[secret.hasRepeat]) {
+    elem.$extractContent()
+    elem[secret.prevArray] = []
+    elem[secret.hasRepeat] = true
+  }
+  if (!Array.isArray(array)) {
+    return
+  }
+
+  const repeatValue = elem[secret.repeatValue] || elem.getAttribute('repeat-value') || '$value'
+  const repeatIndex = elem[secret.repeatIndex] || elem.getAttribute('repeat-index') || '$index'
+  const prevArray = elem[secret.prevArray]
+  let viewIndex = 0
+  for (let i = 0; i < Math.max(array.length, prevArray.length); i++) {
+    if (prevArray[i] !== array[i]) {
+      if (array[i] === undefined) {
+        elem.$removeContent(viewIndex)
+        viewIndex--
+      } else if (prevArray[i] === undefined) {
+        elem.$insertContent(viewIndex, {[repeatValue]: array[viewIndex], [repeatIndex]: viewIndex})
+      } else {
+        elem.$replaceContent(viewIndex, {[repeatValue]: array[viewIndex], [repeatIndex]: viewIndex})
+      }
+      prevArray[i] = array[i]
+    }
+    viewIndex++
+  }
+}
+
+function repeatValueAttribute (value, name, elem) {
+  elem[secret.repeatValue] = value
+}
+
+function repeatIndexAttribute (index, name, elem) {
+  elem[secret.repeatIndex] = index
 }

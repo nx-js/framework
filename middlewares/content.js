@@ -1,10 +1,11 @@
 'use strict'
 
-const symbols = require('../core').symbols
 const observer = require('@risingstack/nx-observe')
-
-const contentTemplate = Symbol('contentTemplate')
-const ownerState = Symbol('ownerState')
+const exposed = require('../core/symbols')
+const secret = {
+  template: Symbol('content template'),
+  state: Symbol('content state')
+}
 
 module.exports = function content (node, state, next) {
   if (!(node instanceof Element)) {
@@ -12,7 +13,7 @@ module.exports = function content (node, state, next) {
   }
   node.$using('content')
 
-  node[ownerState] = state
+  node[secret.state] = state
 
   node.$extractContent = $extractContent
   node.$insertContent = $insertContent
@@ -30,7 +31,7 @@ function $extractContent () {
     node = this.firstChild
   }
   template.appendChild(document.createComment('#separator#'))
-  this[contentTemplate] = template
+  this[secret.template] = template
 }
 
 function $insertContent (index, contextState) {
@@ -43,19 +44,19 @@ function $insertContent (index, contextState) {
   if (contextState !== undefined && typeof contextState !== 'object') {
     throw new TypeError('second argument must be an object or undefined')
   }
-  if (!this[contentTemplate]) {
+  if (!this[secret.template]) {
     throw new Error('you must extract a template with $extractContent before inserting')
   }
 
-  const content = document.importNode(this[contentTemplate], true)
+  const content = document.importNode(this[secret.template], true)
 
   if (contextState) {
     contextState = observer.observable(contextState)
-    Object.setPrototypeOf(contextState, this[ownerState])
+    Object.setPrototypeOf(contextState, this[secret.state])
 
     let node = content.firstChild
     while (node) {
-      node[symbols.contextState] = contextState
+      node[exposed.contextState] = contextState
       node = node.nextSibling
     }
   }

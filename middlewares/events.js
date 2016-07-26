@@ -2,49 +2,46 @@
 
 const compiler = require('@risingstack/nx-compile')
 
-const eventState = Symbol('eventState')
-const eventHandlers = Symbol('eventHandlers')
-const eventNames = ['keypress', 'click', 'dblclick', 'mouseover', 'mouseout', 'scroll',
-  'blur', 'focus', 'change', 'input', 'invalid', 'reset', 'select', 'submit']
+const secret = {
+  handlers: Symbol('event handlers'),
+  state: Symbol('event state')
+}
 
 module.exports = function events (elem, state, next) {
   if (!(elem instanceof Element)) {
     return next()
   }
+  elem.$require('compile')
   elem.$using('events')
 
-  for (let eventName of eventNames) {
-    if (elem.hasAttribute(`nx-${eventName}`)) {
-      setupHandler(elem, state, eventName)
+  next()
+
+  for (let i = 0; i < elem.attributes.length; i++) {
+    const attribute = elem.attributes[i]
+
+    if (attribute.name[0] === '#') {
+      const name = attribute.name.slice(1)
+      const handler = elem.$compileCode(attribute.value)
+
+      if (!elem[secret.handlers]) {
+        elem[secret.handlers] = new Map()
+      }
+      elem[secret.handlers].set(name, handler)
+      elem[secret.state] = state
+      elem.addEventListener(name, listener)
     }
   }
-  return next()
 }
 
-function setupHandler (elem, state, eventName) {
-  if (!elem[eventState]) {
-    elem[eventState] = state
-  }
-  if (!elem[eventHandlers]) {
-    elem[eventHandlers] = new Map()
-  }
-  const handler = compiler.compileCode(elem.getAttribute(`nx-${eventName}`))
-  elem[eventHandlers].set(eventName, handler)
-  elem.addEventListener(eventName, onEvent)
-}
+function listener (ev) {
+  const handler = ev.target[secret.handlers].get(ev.type)
+  const state = ev.target[secret.state]
 
-function onEvent (ev) {
-  const eventName = ev.type.toLowerCase()
-  if (ev.target[eventHandlers] && ev.target[eventHandlers].has(eventName)) {
-    const handler = ev.target[eventHandlers].get(eventName)
-    const state = ev.target[eventState]
-
-    const $eventBackup = state.$event
-    state.$event = ev
-    try {
-      handler(state)
-    } finally {
-      state.$event = $eventBackup
-    }
+  const $eventBackup = state.$event
+  state.$event = ev
+  try {
+    handler(state)
+  } finally {
+    state.$event = $eventBackup
   }
 }

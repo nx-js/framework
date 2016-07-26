@@ -2,7 +2,7 @@
 
 const exposed = require('../core/symbols')
 
-module.exports = function filterFactory (name, handler) {
+module.exports = function limiterFactory (name, handler) {
   if (typeof name !== 'string') {
     throw new TypeError('first argument must be a string')
   }
@@ -10,14 +10,16 @@ module.exports = function filterFactory (name, handler) {
     throw new TypeError('second argument must be a function')
   }
 
-  return function filter (node, state, next) {
+  return function limiter (node, state, next) {
     node.$require('compile')
-    if (!node.$isUsing('filter')) {
-      node.$using('filter')
-      node[exposed.filters] = new Map()
+    if (!node.$isUsing('limiter')) {
+      node.$using('limiter')
+    }
+    if (!node[exposed.limiters]) {
+      node[exposed.limiters] = new Map()
     }
 
-    node[exposed.filters].set(name, handler)
+    node[exposed.limiters].set(name, handler)
     return next()
   }
 }

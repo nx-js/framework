@@ -91,7 +91,7 @@ function routeRouterAndChildren (router, route) {
   const viewName = route.shift()
 
   routeRouter(router, viewName)
-  router.$beforeRender(() => routeChildren(router, route))
+  Promise.resolve().then(() => routeChildren(router, route))
 }
 
 function routeRouter (router, viewName) {
@@ -160,7 +160,7 @@ function ref (elem, state, next) {
     if (relative) {
       route = relativeToAbsoluteRoute(findParentRouter(elem), route)
     }
-    elem.$beforeRender(() => {
+    Promise.resolve().then(() => {
       const href = routeToPath(route) + paramsToQuery(elem[refConfig].params)
       elem.setAttribute('href', href)
     })

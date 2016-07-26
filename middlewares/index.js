@@ -2,13 +2,16 @@
 
 module.exports = {
   attributes: require('./attributes'),
-  evaluate: require('./evaluate'),
+  compile: require('./compile'),
   filter: require('./filter'),
+  limiter: require('./limiter'),
   events: require('./events'),
   interpolate: require('./interpolate'),
   render: require('./render'),
   content: require('./content'),
   flow: require('./flow'),
-  sync: require('./sync'),
+  bindable: require('./bindable'),
+  bind: require('./bind'),
+  style: require('./style'),
   router: require('./router')
 }

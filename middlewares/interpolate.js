@@ -1,46 +1,41 @@
 'use strict'
 
 module.exports = function interpolate (node, state, next) {
-  node.$require('evaluate')
-  node.$using('interpolate')
-
-  if (node.nodeType === Node.TEXT_NODE) {
-    interpolateValue(node)
-  } else if (node.nodeType === Node.ELEMENT_NODE) {
-    Array.prototype.forEach.call(node.attributes, (attribute) => interpolateValue(node, attribute))
+  if (node.nodeType !== Node.TEXT_NODE) {
+    return next()
   }
-  return next()
+  node.$require('compile')
+  node.$using('interpolate')
+  next()
+  interpolateValue(node, state)
 }
 
-function interpolateValue (node, attribute) {
-  const tokens = attribute ? parseValue(attribute.value) : parseValue(node.nodeValue)
+function interpolateValue (node, state) {
+  const tokens = parseValue(node.nodeValue)
 
   tokens.forEach((token) => {
     if (typeof token === 'object') {
-      // instead fo this
-      // const expression = node.$compileExpression(token.expression)
-      // node.$observe(interpolate)
-      // or simply interpolate
-      node.$evalExpression(token.expression, (value) => interpolateToken(token, value, tokens, node, attribute), token.observed)
+      const expression = node.$compileExpression(token.expression)
+      if (token.observed) {
+        node.$observe(() => interpolateToken(token, expression(state), tokens, node))
+      } else {
+        interpolateToken(token, expression(state), tokens, node)
+      }
     }
   })
 }
 
-function interpolateToken (token, value, tokens, node, attribute) {
+function interpolateToken (token, value, tokens, node) {
   if (value === undefined) {
     value = ''
   }
   if (token.value !== value) {
     token.value = value
-    if (attribute) {
-      attribute.value = joinTokens(tokens, node, attribute)
-    } else {
-      node.nodeValue = joinTokens(tokens, node, attribute)
-    }
+    node.nodeValue = joinTokens(tokens)
   }
 }
 
-function joinTokens (tokens, node, attribute) {
+function joinTokens (tokens) {
   return tokens.map(tokenToString).join('')
 }
 

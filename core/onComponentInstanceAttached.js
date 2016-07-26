@@ -65,7 +65,7 @@ function setupNodeAndChildren (node, state, contentMiddlewares) {
 
   return composeAndRunMiddlewares(node, state, contextState, contentMiddlewares, node[symbols.middlewares])
     .then(() => setupChildren(node, state, contentMiddlewares))
-    .then(() => afterSetup(node), () => afterSetup(node))
+    .then(() => afterSetup(node))
 }
 
 function afterSetup(node) {
