@@ -4,7 +4,10 @@ module.exports = {
   capitalize: require('./capitalize'),
   uppercase: require('./uppercase'),
   lowercase: require('./lowercase'),
-  pluralize: require('./pluralize'),
+  unit: require('./unit'),
   json: require('./json'),
-  slice: require('./slice')
+  slice: require('./slice'),
+  date: require('./date'),
+  time: require('./time'),
+  datetime: require('./datetime')
 }

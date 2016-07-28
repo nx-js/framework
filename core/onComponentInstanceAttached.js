@@ -69,13 +69,13 @@ function setupNodeAndChildren (node, state, contentMiddlewares) {
 }
 
 function afterSetup(node) {
-  if (node instanceof Element && node.hasAttribute('nx-cloak')) {
+  if (node instanceof Element && node.hasAttribute('cloak')) {
     Promise.resolve(node).then(uncloakNode)
   }
 }
 
 function uncloakNode (node) {
-  node.removeAttribute('nx-cloak')
+  node.removeAttribute('cloak')
 }
 
 function composeAndRunMiddlewares (node, state, contextState, contentMiddlewares, middlewares) {
@@ -153,7 +153,7 @@ function getContext (node) {
     }
 
     if (node[symbols.contentMiddlewares] && !isolate) {
-      context.contentMiddlewares.push(...node[symbols.contentMiddlewares])
+      context.contentMiddlewares.unshift(...node[symbols.contentMiddlewares])
     }
     if (node[symbols.contentWatcher]) {
       context.contentWatcherNode = node

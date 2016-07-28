@@ -1,7 +1,9 @@
 'use strict'
 
-const routerConfig = Symbol('routerConfig')
-const refConfig = Symbol('refConfig')
+const secret = {
+  config: Symbol('router config'),
+  iref: Symbol('router iref')
+}
 
 let currentRoute = []
 let currentParams = {}
@@ -20,9 +22,9 @@ function onPopState (ev) {
 }
 
 function onClick (ev) {
-  const route = ev.target.getAttribute('nx-ref')
-  if (route && ev.target[refConfig]) {
-    ev.target.$routeTo(route, ev.target[refConfig].params, ev.target[refConfig].options)
+  const route = ev.target.getAttribute('iref')
+  if (route && ev.target[secret.iref]) {
+    ev.target.$routeTo(route, ev.target[secret.iref].params, ev.target[secret.iref].options)
     ev.preventDefault()
   }
 }
@@ -35,7 +37,7 @@ module.exports = {
 
 function route (router, state, next) {
   if (!(router instanceof Element)) {
-    return next()
+    throw new Error('router only works with element nodes')
   }
   router.$using('router-route')
 
@@ -46,18 +48,18 @@ function route (router, state, next) {
 }
 
 function setupRouter (router) {
-  router[routerConfig] = {
+  router[secret.config] = {
     children: new Set(),
     templates: new Map()
   }
 
   const parentRouter = findParentRouter(router)
   if (parentRouter) {
-    router[routerConfig].depth = parentRouter[routerConfig].depth + 1
-    parentRouter[routerConfig].children.add(router)
-    router.$cleanup(() => parentRouter[routerConfig].children.delete(router))
+    router[secret.config].depth = parentRouter[secret.config].depth + 1
+    parentRouter[secret.config].children.add(router)
+    router.$cleanup(() => parentRouter[secret.config].children.delete(router))
   } else {
-    router[routerConfig].depth = 0
+    router[secret.config].depth = 0
     rootRouters.add(router)
     router.$cleanup(() => rootRouters.delete(router))
   }
@@ -68,9 +70,9 @@ function extractViews (router) {
   while (router.firstChild) {
     view = router.firstChild
     if (view instanceof Element && view.hasAttribute('nx-route')) {
-      router[routerConfig].templates.set(view.getAttribute('nx-route'), view)
+      router[secret.config].templates.set(view.getAttribute('nx-route'), view)
       if (view.hasAttribute('nx-default-route')) {
-        router[routerConfig].defaultView = view.getAttribute('nx-route')
+        router[secret.config].defaultView = view.getAttribute('nx-route')
       }
     }
     router.removeChild(view)
@@ -80,9 +82,7 @@ function extractViews (router) {
 function findParentRouter (node) {
   while(node.parentNode) {
     node = node.parentNode
-    if (node[routerConfig]) {
-      return node
-    }
+    if (node[secret.config]) return node
   }
 }
 
@@ -95,23 +95,23 @@ function routeRouterAndChildren (router, route) {
 }
 
 function routeRouter (router, viewName) {
-  const templates = router[routerConfig].templates
-  const defaultView = router[routerConfig].defaultView
+  const templates = router[secret.config].templates
+  const defaultView = router[secret.config].defaultView
 
   if (!templates.has(viewName) && templates.has(defaultView)) {
     viewName = defaultView
   }
-  if (router[routerConfig].currentView !== viewName) {
+  if (router[secret.config].currentView !== viewName) {
     while (router.firstChild) {
       router.removeChild(router.firstChild)
     }
     router.appendChild(document.importNode(templates.get(viewName), true))
-    router[routerConfig].currentView = viewName
+    router[secret.config].currentView = viewName
   }
 }
 
 function routeChildren (router, route) {
-  for (let childRouter of router[routerConfig].children) {
+  for (let childRouter of router[secret.config].children) {
     routeRouterAndChildren(childRouter, route)
   }
 }
@@ -138,20 +138,18 @@ function updateHistory (route, params, options) {
 }
 
 function ref (elem, state, next) {
-  if (!(elem instanceof Element)) {
-    return next()
-  }
+  if (!(elem instanceof Element)) return next()
   elem.$require('attributes')
   elem.$using('router-ref')
 
   elem.$routeTo = $routeTo
 
-  if (elem.hasAttribute('nx-ref')) {
-    elem[refConfig] = {}
-    elem.$attribute('nx-ref-options', (options) => elem[refConfig].options = options)
-    elem.$attribute('nx-ref-params', (params) => elem[refConfig].params = params)
+  if (elem.hasAttribute('iref')) {
+    elem[secret.iref] = {}
+    elem.$attribute('iref-options', (options) => elem[secret.iref].options = options)
+    elem.$attribute('iref-params', (params) => elem[secret.iref].params = params)
 
-    let path = elem.getAttribute('nx-ref')
+    let path = elem.getAttribute('iref')
     const relative = path.charAt(0) === '/'
     if (relative) {
       path = path.slice(1)
@@ -161,7 +159,7 @@ function ref (elem, state, next) {
       route = relativeToAbsoluteRoute(findParentRouter(elem), route)
     }
     Promise.resolve().then(() => {
-      const href = routeToPath(route) + paramsToQuery(elem[refConfig].params)
+      const href = routeToPath(route) + paramsToQuery(elem[secret.iref].params)
       elem.setAttribute('href', href)
     })
   }
@@ -184,7 +182,7 @@ function $routeTo (path, params, options) {
 
   const parentRouter = findParentRouter(this)
   if (relative && parentRouter) {
-    for (let siblingRouter of parentRouter[routerConfig].children) {
+    for (let siblingRouter of parentRouter[secret.config].children) {
       routeRouterAndChildren(siblingRouter, route)
     }
     updateHistory(relativeToAbsoluteRoute(parentRouter, route), params, options)
@@ -252,11 +250,11 @@ function syncParamsWithState (config, state) {
 }
 
 function relativeToAbsoluteRoute (router, route) {
-  return currentRoute.slice(0, router[routerConfig].depth + 1).concat(route)
+  return currentRoute.slice(0, router[secret.config].depth + 1).concat(route)
 }
 
 function absoluteToRelativeRoute (router, route) {
-  return route.slice(router[routerConfig].depth)
+  return route.slice(router[secret.config].depth)
 }
 
 function routeToPath (route) {

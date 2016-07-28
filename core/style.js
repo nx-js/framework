@@ -1,5 +1,6 @@
 'use strict'
 
 const style = document.createElement('style')
-style.appendChild(document.createTextNode('[nx-cloak] { display: none; }'))
+const cloak = document.createTextNode('[cloak] { display: none; }')
+style.appendChild(cloak)
 document.head.appendChild(style)

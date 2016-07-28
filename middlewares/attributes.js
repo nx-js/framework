@@ -55,7 +55,7 @@ function processAttributesWithoutHandler (elem, state) {
   }
 }
 
-function processAttributesWithHandler (elem, state, attribute) {
+function processAttributesWithHandler (elem, state) {
   if (!elem[secret.handlers]) return
   const attributesToRemove = []
 

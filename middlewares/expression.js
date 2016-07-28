@@ -9,22 +9,8 @@ const argsRegex = /\S+/g
 module.exports = function expression (node, state, next) {
   node.$using('expression')
 
-  node.$filter = $filter
   node.$compileExpression = $compileExpression
   return next()
-}
-
-function $filter (name, handler) {
-  if (typeof name !== 'string') {
-    throw new TypeError('first argument must be a string')
-  }
-  if (typeof handler !== 'function') {
-    throw new TypeError('second argument must be a function')
-  }
-  if (!this[exposed.filters]) {
-    this[exposed.filters] = new Map()
-  }
-  this[exposed.filters].set(name, handler)
 }
 
 function $compileExpression (rawExpression) {
