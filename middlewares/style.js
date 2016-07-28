@@ -5,9 +5,7 @@ const secret = {
 }
 
 module.exports = function style (elem, state, next) {
-  if (!(elem instanceof HTMLElement)) {
-    return next()
-  }
+  if (!(elem instanceof HTMLElement)) return next()
   elem.$require('attributes')
   elem.$using('style')
 
@@ -18,7 +16,7 @@ module.exports = function style (elem, state, next) {
   return next()
 }
 
-function classAttribute (classes, name, elem) {
+function classAttribute (classes, elem) {
   if (typeof classes === 'object') {
     const classList = []
     for (let className in classes) {
@@ -31,26 +29,21 @@ function classAttribute (classes, name, elem) {
   elem.setAttribute('class', classes)
 }
 
-// this is not yet working!
-function styleAttribute (styles, name, elem) {
-  let styleString
+function styleAttribute (styles, elem) {
   if (typeof styles === 'object') {
-    styleString = ''
-    for (let key in styles) {
-      styleString += `${key}: ${styles[key]}; `
+    const styleList = []
+    for (let styleName in styles) {
+      styleList.push(`${styleName}: ${styles[styleName]};`)
     }
-  } else {
-    styleString = styles
+    styles = styleList.join(' ')
   }
-  elem.setAttribute('style', styleString)
+  elem.setAttribute('style', styles)
 }
 
-// this is not yet working!
-function showAttribute (show, name, elem) {
+function showAttribute (show, elem) {
   if (show) {
-    elem.style.display = elem[secret.display]
+    elem.style.display = ''
   } else {
-    elem[secret.display] = elem.style.display
     elem.style.display = 'none'
   }
 }

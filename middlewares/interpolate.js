@@ -1,10 +1,8 @@
 'use strict'
 
 module.exports = function interpolate (node, state, next) {
-  if (node.nodeType !== Node.TEXT_NODE) {
-    return next()
-  }
-  node.$require('compile')
+  if (node.nodeType !== Node.TEXT_NODE) return next()
+  node.$require('expression')
   node.$using('interpolate')
   next()
   interpolateValue(node, state)
@@ -26,25 +24,15 @@ function interpolateValue (node, state) {
 }
 
 function interpolateToken (token, value, tokens, node) {
-  if (value === undefined) {
-    value = ''
-  }
+  if (value === undefined) value = ''
   if (token.value !== value) {
     token.value = value
-    node.nodeValue = joinTokens(tokens)
+    node.nodeValue = tokens.map(tokenToString).join('')
   }
-}
-
-function joinTokens (tokens) {
-  return tokens.map(tokenToString).join('')
 }
 
 function tokenToString (token) {
-  if (typeof token === 'object') {
-    return token.value
-  } else {
-    return token
-  }
+  return (typeof token === 'object') ? token.value : token
 }
 
 function parseValue (string) {

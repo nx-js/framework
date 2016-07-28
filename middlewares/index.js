@@ -2,7 +2,8 @@
 
 module.exports = {
   attributes: require('./attributes'),
-  compile: require('./compile'),
+  code: require('./code'),
+  expression: require('./expression'),
   filter: require('./filter'),
   limiter: require('./limiter'),
   events: require('./events'),

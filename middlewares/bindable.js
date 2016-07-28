@@ -1,14 +1,18 @@
 'use strict'
 
-const exposed = require('../core/symbols')
+const secret = {
+  state: Symbol('bindable state'),
+  bindable: Symbol('bindable params')
+}
 const paramsRegex = /\S+/g
+const defaultParams = {mode: 'two-way', on: 'change', type: 'string'}
 
 document.addEventListener('input', onInput, true)
 document.addEventListener('change', onInput, true)
 document.addEventListener('submit', onSubmit, true)
 
 function onInput (ev) {
-  const params = ev.target[exposed.bindable]
+  const params = ev.target[secret.bindable]
   if (params && params.on === ev.type) {
     syncStateWithElement(ev.target)
   }
@@ -20,33 +24,42 @@ function onSubmit (ev) {
 }
 
 module.exports = function bindable (elem, state, next) {
-  if (!(elem instanceof Element)) {
-    return next()
-  }
+  if (!(elem instanceof Element)) return next()
   elem.$require('attributes')
   elem.$using('bindable')
 
+  elem.$bindable = $bindable
   next()
 
-  if (elem[exposed.bindable]) {
+  if (elem[secret.bindable]) {
+    elem[secret.state] = state
     elem.$attribute('bind', bindAttribute)
   }
 }
 
-function bindAttribute (params, name, elem, state) {
+function $bindable (params) {
+  if (typeof params !== 'object') params = {}
+  this[secret.bindable] = Object.assign({}, defaultParams, params)
+}
+
+function bindAttribute (params, elem) {
   if (typeof params === 'string') {
     const tokens = params.match(paramsRegex)
-    params = {mode: tokens[0], on: tokens[1], type: tokens[2]}
+    params = {}
+    if (tokens) {
+      if (tokens[0]) params.mode = tokens[0]
+      if (tokens[1]) params.on = tokens[1]
+      if (tokens[2]) params.type = tokens[2]
+    }
   }
-  params = Object.assign({}, elem[exposed.bindable], params)
-  params.state = state
-  elem[exposed.bindable] = params
+  if (typeof params === 'object') {
+    Object.assign(elem[secret.bindable], params)
+  }
   bindElement(elem)
 }
 
 function bindElement (elem) {
-  const params = elem[exposed.bindable]
-
+  const params = elem[secret.bindable]
   if (params.mode === 'two-way') {
     elem.$observe(syncElementWithState)
     Promise.resolve().then(syncElementWithState)
@@ -55,10 +68,13 @@ function bindElement (elem) {
     Promise.resolve().then(syncElementWithState)
   } else if (params.mode === 'one-way') {
     elem.$unobserve(syncElementWithState)
+  } else {
+    throw new TypeError('bind mode must be two-way, one-time or one-way')
   }
 
   function syncElementWithState () {
-    const value = getValue(params.state, elem.name)
+    const state = elem[secret.state]
+    const value = getValue(state, elem.name)
     if (elem.type === 'checkbox') {
       elem.checked = toType(value, 'boolean')
     } else if (elem.type === 'radio') {
@@ -70,12 +86,13 @@ function bindElement (elem) {
 }
 
 function syncStateWithElement (elem) {
-  const params = elem[exposed.bindable]
+  const state = elem[secret.state]
+  const params = elem[secret.bindable]
   if (elem.type === 'radio' || elem.type === 'checkbox') {
     const value = elem.checked ? toType(elem.value, params.type) : undefined
-    setValue(params.state, elem.name, value)
+    setValue(state, elem.name, value)
   } else {
-    setValue(params.state, elem.name, toType(elem.value, params.type))
+    setValue(state, elem.name, toType(elem.value, params.type))
   }
 }
 
@@ -84,7 +101,7 @@ function syncStateWithForm (form) {
 }
 
 function syncStateWithFormControl (elem) {
-  const params = elem[exposed.bindable]
+  const params = elem[secret.bindable]
   if (params && params.on === 'submit') {
     syncStateWithElement(elem)
   }
@@ -93,10 +110,15 @@ function syncStateWithFormControl (elem) {
 function toType (value, type) {
   if (value === '') return undefined
   if (value === undefined) return ''
+
   if (type === 'string') return String(value)
-  if (type === 'number') return Number(value)
-  if (type === 'boolean') return Boolean(value)
-  if (type === 'date') return new Date(value)
+  else if (type === 'number') return Number(value)
+  else if (type === 'boolean') return Boolean(value)
+  else if (type === 'date') return new Date(value)
+  else if (type !== undefined) {
+    throw new TypeError('bind type must be string, number, boolean or date')
+  }
+
   return value
 }
 

@@ -4,27 +4,21 @@ const secret = {
   hasIf: Symbol('flow hasIf'),
   showing: Symbol('flow showing'),
   hasRepeat: Symbol('flow hasRepeat'),
-  repeatValue: Symbol('flow repeatValue'),
-  repeatIndex: Symbol('flow repeatIndex'),
   prevArray: Symbol('flow prevArray')
 }
 
 module.exports = function flow (elem, state, next) {
-  if (!(elem instanceof Element)) {
-    return next()
-  }
+  if (!(elem instanceof Element)) return next()
   elem.$require('content', 'attributes')
   elem.$using('flow')
 
   elem.$attribute('if', ifAttribute)
   elem.$attribute('repeat', repeatAttribute)
-  elem.$attribute('repeat-value', repeatValueAttribute)
-  elem.$attribute('repeat-index', repeatIndexAttribute)
 
   return next()
 }
 
-function ifAttribute (show, name, elem) {
+function ifAttribute (show, elem) {
   if (elem[secret.hasRepeat]) {
     throw new Error('cant use if and repeat on the same node')
   }
@@ -42,7 +36,7 @@ function ifAttribute (show, name, elem) {
   }
 }
 
-function repeatAttribute (array, name, elem) {
+function repeatAttribute (array, elem) {
   if (elem[secret.hasIf]) {
     throw new Error('cant use if and repeat on the same node')
   }
@@ -55,8 +49,8 @@ function repeatAttribute (array, name, elem) {
     return
   }
 
-  const repeatValue = elem[secret.repeatValue] || elem.getAttribute('repeat-value') || '$value'
-  const repeatIndex = elem[secret.repeatIndex] || elem.getAttribute('repeat-index') || '$index'
+  const repeatValue = elem.getAttribute('repeat-value') || '$value'
+  const repeatIndex = elem.getAttribute('repeat-index') || '$index'
   const prevArray = elem[secret.prevArray]
   let viewIndex = 0
   for (let i = 0; i < Math.max(array.length, prevArray.length); i++) {
@@ -73,12 +67,4 @@ function repeatAttribute (array, name, elem) {
     }
     viewIndex++
   }
-}
-
-function repeatValueAttribute (value, name, elem) {
-  elem[secret.repeatValue] = value
-}
-
-function repeatIndexAttribute (index, name, elem) {
-  elem[secret.repeatIndex] = index
 }

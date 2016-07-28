@@ -4,15 +4,27 @@ const compiler = require('@risingstack/nx-compile')
 const exposed = require('../core/symbols')
 
 const filterRegex = /(?:[^\|]|\|\|)+/g
-const limiterRegex = /(?:[^\&]|\&\&)+/g
 const argsRegex = /\S+/g
 
-module.exports = function compile (node, state, next) {
-  node.$using('compile')
+module.exports = function expression (node, state, next) {
+  node.$using('expression')
 
+  node.$filter = $filter
   node.$compileExpression = $compileExpression
-  node.$compileCode = $compileCode
   return next()
+}
+
+function $filter (name, handler) {
+  if (typeof name !== 'string') {
+    throw new TypeError('first argument must be a string')
+  }
+  if (typeof handler !== 'function') {
+    throw new TypeError('second argument must be a function')
+  }
+  if (!this[exposed.filters]) {
+    this[exposed.filters] = new Map()
+  }
+  this[exposed.filters].set(name, handler)
 }
 
 function $compileExpression (rawExpression) {
@@ -28,28 +40,6 @@ function $compileExpression (rawExpression) {
       value = filter.effect(value, ...args)
     }
     return value
-  }
-}
-
-function $compileCode (rawCode) {
-  if (typeof rawCode !== 'string') {
-    throw new TypeError('first argument must be a string')
-  }
-  const code = parseCode(this, rawCode)
-  const context = {}
-
-  return function evaluateCode (state) {
-    let i = 0
-    function next () {
-      if (i < code.limiters.length) {
-        const limiter = code.limiters[i]
-        const args = evaluateArgExpressions(limiter.argExpressions, state)
-        limiter.effect(next, context, ...args)
-      } else {
-        code.exec(state)
-      }
-    }
-    next()
   }
 }
 
@@ -71,26 +61,6 @@ function parseExpression (node, rawExpression) {
     expression.filters.push({effect, argExpressions})
   }
   return expression
-}
-
-function parseCode (node, rawCode) {
-  const tokens = rawCode.match(limiterRegex)
-  const code = {
-    exec: compiler.compileCode(tokens.shift()),
-    limiters: []
-  }
-
-  for (let limiterToken of tokens) {
-    limiterToken = limiterToken.match(argsRegex) || []
-    const limiterName = limiterToken.shift()
-    if (!node[exposed.limiters] || !node[exposed.limiters].has(limiterName)) {
-      throw new Error(`there is no limiter named ${limiterName} on ${node}`)
-    }
-    const effect = node[exposed.limiters].get(limiterName)
-    const argExpressions = limiterToken.map(compileArg)
-    code.limiters.push({effect, argExpressions})
-  }
-  return code
 }
 
 function evaluateArgExpressions (argExpressions, state) {

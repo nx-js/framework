@@ -5,15 +5,15 @@ const secret = {
 }
 
 module.exports = function attributes (elem, state, next) {
-  if (!(elem instanceof Element)) {
-    return next()
-  }
-  elem.$require('compile')
+  if (!(elem instanceof Element)) return next()
+  elem.$require('expression')
   elem.$using('attributes')
 
   elem.$attribute = $attribute
   next()
-  handleAttributes(elem, state)
+
+  processAttributesWithoutHandler(elem, state)
+  processAttributesWithHandler(elem, state)
 }
 
 function $attribute (name, handler) {
@@ -29,39 +29,54 @@ function $attribute (name, handler) {
   this[secret.handlers].set(name, handler)
 }
 
-function handleAttributes (elem, state) {
+function processAttributesWithoutHandler (elem, state) {
+  const attributesToRemove = []
+
   Array.prototype.forEach.call(elem.attributes, (attribute) => {
     if (attribute.name[0] === '$') {
-      const expression = elem.$compileExpression(attribute.value)
       const name = attribute.name.slice(1)
-      elem.removeAttribute(attribute.name)
-      handleCompiledAttribute(elem, state, name, expression)
+      if (!elem[secret.handlers] || !elem[secret.handlers].has(name)) {
+        const expression = elem.$compileExpression(attribute.value)
+        elem.setAttribute(expression(state))
+        attributesToRemove.push(attribute.name)
+      }
     } else if (attribute.name[0] === '@') {
-      const expression = elem.$compileExpression(attribute.value)
       const name = attribute.name.slice(1)
-      elem.removeAttribute(attribute.name)
-      elem.$observe(() => handleCompiledAttribute(elem, state, name, expression))
-    } else {
-      const name = attribute.name
-      const value = attribute.value
-      handleNormalAttribute(elem, state, name, value)
+      if (!elem[secret.handlers] || !elem[secret.handlers].has(name)) {
+        const expression = elem.$compileExpression(attribute.value)
+        elem.$observe(() => elem.setAttribute(expression(state)))
+        attributesToRemove.push(attribute.name)
+      }
     }
   })
-}
 
-function handleCompiledAttribute (elem, state, name, expression) {
-  const value = expression(state)
-  const handler = elem[secret.handlers].get(name)
-  if (handler) {
-    handler(value, name, elem, state)
-  } else {
-    elem.setAttribute(name, value)
+  for (let attribute of attributesToRemove) {
+    elem.removeAttribute(attribute)
   }
 }
 
-function handleNormalAttribute (elem, state, name, value) {
-  const handler = elem[secret.handlers].get(name)
-  if (handler) {
-    handler(value, name, elem, state)
+function processAttributesWithHandler (elem, state, attribute) {
+  if (!elem[secret.handlers]) return
+  const attributesToRemove = []
+
+  elem[secret.handlers].forEach((handler, name) => {
+    const onceName = '$' + name
+    const observedName = '@' + name
+
+    if (elem.hasAttribute(onceName)) {
+      const expression = elem.$compileExpression(elem.getAttribute(onceName))
+      handler(expression(state), elem)
+      attributesToRemove.push(onceName)
+    } else if (elem.hasAttribute(observedName)) {
+      const expression = elem.$compileExpression(elem.getAttribute(observedName))
+      elem.$observe(() => handler(expression(state), elem))
+      attributesToRemove.push(onceName)
+    } else if (elem.hasAttribute(name)) {
+      handler(elem.getAttribute(name), elem)
+    }
+  })
+
+  for (let attribute of attributesToRemove) {
+    elem.removeAttribute(attribute)
   }
 }

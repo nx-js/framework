@@ -10,16 +10,13 @@ module.exports = function limiterFactory (name, handler) {
     throw new TypeError('second argument must be a function')
   }
 
-  return function limiter (node, state, next) {
-    node.$require('compile')
-    if (!node.$isUsing('limiter')) {
-      node.$using('limiter')
-    }
-    if (!node[exposed.limiters]) {
-      node[exposed.limiters] = new Map()
-    }
+  return function limiter (elem, state, next) {
+    elem.$require('code')
 
-    node[exposed.limiters].set(name, handler)
+    if (!elem[exposed.limiters]) {
+      elem[exposed.limiters] = new Map()
+    }
+    elem[exposed.limiters].set(name, handler)
     return next()
   }
 }
