@@ -20,7 +20,7 @@ function $compileCode (rawCode) {
   const code = parseCode(this, rawCode)
   const context = {}
 
-  return function evaluateCode (state) {
+  return function evaluateCode (state, event) {
     let i = 0
     function next () {
       if (i < code.limiters.length) {
@@ -28,7 +28,13 @@ function $compileCode (rawCode) {
         const args = evaluateArgExpressions(limiter.argExpressions, state)
         limiter.effect(next, context, ...args)
       } else {
-        code.exec(state)
+        const $eventBackup = state.$event
+        state.$event = event
+        try {
+          code.exec(state)
+        } finally {
+          state.$event = $eventBackup
+        }
       }
     }
     next()

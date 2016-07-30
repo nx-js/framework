@@ -36,15 +36,15 @@ function processAttributesWithoutHandler (elem, state) {
     if (attribute.name[0] === '$') {
       const name = attribute.name.slice(1)
       if (!elem[secret.handlers] || !elem[secret.handlers].has(name)) {
-        const expression = elem.$compileExpression(attribute.value)
-        elem.setAttribute(expression(state))
+        const expression = elem.$compileExpression(attribute.value || name)
+        elem.setAttribute(name, expression(state))
         attributesToRemove.push(attribute.name)
       }
     } else if (attribute.name[0] === '@') {
       const name = attribute.name.slice(1)
       if (!elem[secret.handlers] || !elem[secret.handlers].has(name)) {
-        const expression = elem.$compileExpression(attribute.value)
-        elem.$observe(() => elem.setAttribute(expression(state)))
+        const expression = elem.$compileExpression(attribute.value || name)
+        elem.$observe(() => elem.setAttribute(name, expression(state)))
         attributesToRemove.push(attribute.name)
       }
     }
@@ -64,11 +64,11 @@ function processAttributesWithHandler (elem, state) {
     const observedName = '@' + name
 
     if (elem.hasAttribute(onceName)) {
-      const expression = elem.$compileExpression(elem.getAttribute(onceName))
+      const expression = elem.$compileExpression(elem.getAttribute(onceName) || name)
       handler(expression(state), elem)
       attributesToRemove.push(onceName)
     } else if (elem.hasAttribute(observedName)) {
-      const expression = elem.$compileExpression(elem.getAttribute(observedName))
+      const expression = elem.$compileExpression(elem.getAttribute(observedName) || name)
       elem.$observe(() => handler(expression(state), elem))
       attributesToRemove.push(onceName)
     } else if (elem.hasAttribute(name)) {

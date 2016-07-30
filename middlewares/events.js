@@ -31,15 +31,8 @@ module.exports = function events (elem, state, next) {
   }
 }
 
-function listener (ev) {
-  const handler = ev.target[secret.handlers].get(ev.type)
-  const state = ev.target[secret.state]
-
-  const $eventBackup = state.$event
-  state.$event = ev
-  try {
-    handler(state)
-  } finally {
-    state.$event = $eventBackup
-  }
+function listener (event) {
+  const handler = event.target[secret.handlers].get(event.type)
+  const state = event.target[secret.state]
+  handler(state, event)
 }

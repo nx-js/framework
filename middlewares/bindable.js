@@ -62,10 +62,12 @@ function bindElement (elem) {
   const params = elem[secret.bindable]
   if (params.mode === 'two-way') {
     elem.$observe(syncElementWithState)
-    Promise.resolve().then(syncElementWithState)
+    // not optimal, but resolve.then is not enough delay
+    elem.$schedule(syncElementWithState)
   } else if (params.mode === 'one-time') {
     elem.$unobserve(syncElementWithState)
-    Promise.resolve().then(syncElementWithState)
+    // not optimal, but resolve.then is not enough delay
+    elem.$schedule(syncElementWithState)
   } else if (params.mode === 'one-way') {
     elem.$unobserve(syncElementWithState)
   } else {

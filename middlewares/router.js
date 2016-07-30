@@ -69,10 +69,10 @@ function extractViews (router) {
   let view
   while (router.firstChild) {
     view = router.firstChild
-    if (view instanceof Element && view.hasAttribute('nx-route')) {
-      router[secret.config].templates.set(view.getAttribute('nx-route'), view)
-      if (view.hasAttribute('nx-default-route')) {
-        router[secret.config].defaultView = view.getAttribute('nx-route')
+    if (view instanceof Element && view.hasAttribute('route')) {
+      router[secret.config].templates.set(view.getAttribute('route'), view)
+      if (view.hasAttribute('default-route')) {
+        router[secret.config].defaultView = view.getAttribute('route')
       }
     }
     router.removeChild(view)
@@ -132,9 +132,12 @@ function updateHistory (route, params, options) {
     history.pushState(historyItem, '', url)
   }
 
-  for (let stateToSync of statesToSync) {
-    syncStateWithParams(stateToSync.state, stateToSync.config)
-  }
+  // this has to be improved and added as a microtask instead of animFrame
+  requestAnimationFrame(() => {
+    for (let stateToSync of statesToSync) {
+      syncStateWithParams(stateToSync.state, stateToSync.config)
+    }
+  })
 }
 
 function ref (elem, state, next) {

@@ -8,7 +8,7 @@ module.exports = function render (config) {
 
   return function renderMiddleware (elem, state, next) {
     if (!(elem instanceof Element)) {
-      throw new Error('render only works with html element nodes')
+      throw new Error('render only works with element nodes')
     }
     elem.$using('render')
 
