@@ -1,6 +1,6 @@
 # NX
 
-NX is a next generation client side framework. For more information please visit the [home page](http://nx-nxframework.rhcloud.com/)
+NX is a next generation client side framework. For more information please visit the [home page](http://nx-framework.com/)
 
 ## Installation
 

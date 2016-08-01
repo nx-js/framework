@@ -70,7 +70,7 @@ function processAttributesWithHandler (elem, state) {
     } else if (elem.hasAttribute(observedName)) {
       const expression = elem.$compileExpression(elem.getAttribute(observedName) || name)
       elem.$observe(() => handler(expression(state), elem))
-      attributesToRemove.push(onceName)
+      attributesToRemove.push(observedName)
     } else if (elem.hasAttribute(name)) {
       handler(elem.getAttribute(name), elem)
     }

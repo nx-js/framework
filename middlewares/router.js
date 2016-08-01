@@ -105,7 +105,10 @@ function routeRouter (router, viewName) {
     while (router.firstChild) {
       router.removeChild(router.firstChild)
     }
-    router.appendChild(document.importNode(templates.get(viewName), true))
+    const template = templates.get(viewName)
+    if (template) {
+      router.appendChild(document.importNode(template, true))
+    }
     router[secret.config].currentView = viewName
   }
 }
@@ -158,8 +161,9 @@ function ref (elem, state, next) {
       path = path.slice(1)
     }
     let route = path.split('/')
-    if (relative) {
-      route = relativeToAbsoluteRoute(findParentRouter(elem), route)
+    const parentRouter = findParentRouter(elem)
+    if (relative && parentRouter) {
+      route = relativeToAbsoluteRoute(parentRouter, route)
     }
     Promise.resolve().then(() => {
       const href = routeToPath(route) + paramsToQuery(elem[secret.iref].params)

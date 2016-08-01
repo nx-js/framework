@@ -2,7 +2,8 @@
 
 const secret = {
   state: Symbol('bindable state'),
-  bindable: Symbol('bindable params')
+  params: Symbol('bindable params'),
+  binder: Symbol('bindable binder')
 }
 const paramsRegex = /\S+/g
 const defaultParams = {mode: 'two-way', on: 'change', type: 'string'}
@@ -12,7 +13,7 @@ document.addEventListener('change', onInput, true)
 document.addEventListener('submit', onSubmit, true)
 
 function onInput (ev) {
-  const params = ev.target[secret.bindable]
+  const params = ev.target[secret.params]
   if (params && params.on === ev.type) {
     syncStateWithElement(ev.target)
   }
@@ -31,15 +32,16 @@ module.exports = function bindable (elem, state, next) {
   elem.$bindable = $bindable
   next()
 
-  if (elem[secret.bindable]) {
+  if (elem[secret.params]) {
     elem[secret.state] = state
+    elem[secret.binder] = syncElementWithState.bind(null, elem)
     elem.$attribute('bind', bindAttribute)
   }
 }
 
 function $bindable (params) {
   if (typeof params !== 'object') params = {}
-  this[secret.bindable] = Object.assign({}, defaultParams, params)
+  this[secret.params] = Object.assign({}, defaultParams, params)
 }
 
 function bindAttribute (params, elem) {
@@ -53,43 +55,43 @@ function bindAttribute (params, elem) {
     }
   }
   if (typeof params === 'object') {
-    Object.assign(elem[secret.bindable], params)
+    Object.assign(elem[secret.params], params)
   }
   bindElement(elem)
 }
 
 function bindElement (elem) {
-  const params = elem[secret.bindable]
+  const params = elem[secret.params]
+  const binder = elem[secret.binder]
   if (params.mode === 'two-way') {
-    elem.$observe(syncElementWithState)
+    elem.$observe(binder)
     // not optimal, but resolve.then is not enough delay
-    elem.$schedule(syncElementWithState)
+    elem.$schedule(binder)
   } else if (params.mode === 'one-time') {
-    elem.$unobserve(syncElementWithState)
+    elem.$unobserve(binder)
     // not optimal, but resolve.then is not enough delay
-    elem.$schedule(syncElementWithState)
+    elem.$schedule(binder)
   } else if (params.mode === 'one-way') {
-    elem.$unobserve(syncElementWithState)
+    elem.$unobserve(binder)
   } else {
     throw new TypeError('bind mode must be two-way, one-time or one-way')
   }
+}
 
-  function syncElementWithState () {
-    const state = elem[secret.state]
-    const value = getValue(state, elem.name)
-    if (elem.type === 'checkbox') {
-      elem.checked = toType(value, 'boolean')
-    } else if (elem.type === 'radio') {
-      elem.checked = (value === toType(elem.value, params.type))
-    } else {
-      elem.value = toType(value)
-    }
+function syncElementWithState (elem) {
+  const state = elem[secret.state]
+  const params = elem[secret.params]
+  const value = getValue(state, elem.name)
+  if (elem.type === 'radio' || elem.type === 'checkbox') {
+    elem.checked = (value === toType(elem.value, params.type))
+  } else {
+    elem.value = toType(value)
   }
 }
 
 function syncStateWithElement (elem) {
   const state = elem[secret.state]
-  const params = elem[secret.bindable]
+  const params = elem[secret.params]
   if (elem.type === 'radio' || elem.type === 'checkbox') {
     const value = elem.checked ? toType(elem.value, params.type) : undefined
     setValue(state, elem.name, value)
@@ -103,7 +105,7 @@ function syncStateWithForm (form) {
 }
 
 function syncStateWithFormControl (elem) {
-  const params = elem[secret.bindable]
+  const params = elem[secret.params]
   if (params && params.on === 'submit') {
     syncStateWithElement(elem)
   }
