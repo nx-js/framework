@@ -20,21 +20,23 @@ function $compileCode (rawCode) {
   const code = parseCode(this, rawCode)
   const context = {}
 
-  return function evaluateCode (state, event) {
+  return function evaluateCode (state, expando) {
+    const backup = createBackup(state, expando)
     let i = 0
     function next () {
-      if (i < code.limiters.length) {
-        const limiter = code.limiters[i++]
-        const args = evaluateArgExpressions(limiter.argExpressions, state)
-        limiter.effect(next, context, ...args)
-      } else {
-        const $eventBackup = state.$event
-        state.$event = event
-        try {
+      try {
+        Object.assign(state, expando)
+        Object.assign(context, expando)
+        if (i < code.limiters.length) {
+          const limiter = code.limiters[i++]
+          const args = evaluateArgExpressions(limiter.argExpressions, state)
+          limiter.effect(next, context, ...args)
+        } else {
           code.exec(state)
-        } finally {
-          state.$event = $eventBackup
         }
+      } finally {
+        Object.assign(state, backup)
+        Object.assign(context, backup)
       }
     }
     next()
@@ -71,4 +73,14 @@ function evaluateArgExpressions (argExpressions, state) {
 
 function compileArg (arg) {
   return compiler.compileExpression(arg)
+}
+
+function createBackup (state, expando) {
+  if (!expando) return undefined
+
+  const backup = {}
+  for (let key in expando) {
+    backup[key] = state[key]
+  }
+  return backup
 }

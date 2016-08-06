@@ -4,5 +4,6 @@ module.exports = {
   if: require('./if'),
   delay: require('./delay'),
   debounce: require('./debounce'),
-  throttle: require('./throttle')
+  throttle: require('./throttle'),
+  key: require('./key')
 }

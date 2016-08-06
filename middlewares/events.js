@@ -37,5 +37,5 @@ module.exports = function events (elem, state, next) {
 function listener (event) {
   const handler = event.target[secret.handlers].get(event.type)
   const state = event.target[secret.state]
-  handler(state, event)
+  handler(state, { $event: event })
 }

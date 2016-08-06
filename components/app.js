@@ -31,4 +31,5 @@ module.exports = function app (config) {
     .useOnContent(middlewares.limiter('delay', limiters.delay))
     .useOnContent(middlewares.limiter('debounce', limiters.debounce))
     .useOnContent(middlewares.limiter('throttle', limiters.throttle))
+    .useOnContent(middlewares.limiter('key', limiters.key))
 }
