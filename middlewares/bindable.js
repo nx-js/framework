@@ -14,7 +14,7 @@ function onInput (ev) {
   const params = ev.target[secret.params]
   if (ev.type === 'submit') {
     syncStateWithForm(ev.target)
-  } else if (params && params.on === ev.type) {
+  } else if (params && (params.on.indexOf(ev.type) !== -1)) {
     syncStateWithElement(ev.target)
   }
 }
@@ -49,12 +49,15 @@ function bindAttribute (params, elem) {
     params = {}
     if (tokens) {
       if (tokens[0]) params.mode = tokens[0]
-      if (tokens[1]) params.on = tokens[1]
+      if (tokens[1]) params.on = tokens[1].split(',')
       if (tokens[2]) params.type = tokens[2]
     }
   }
   if (typeof params === 'object') {
     Object.assign(elem[secret.params], params)
+  }
+  if (!Array.isArray(elem[secret.params].on)) {
+    elem[secret.params].on = [elem[secret.params].on]
   }
   bindElement(elem)
 }
@@ -75,7 +78,9 @@ function bindElement (elem) {
   } else {
     throw new TypeError('bind mode must be two-way, one-time or one-way')
   }
-  document.addEventListener(params.on, onInput, true)
+  for (let eventName of params.on) {
+    document.addEventListener(eventName, onInput, true)
+  }
 }
 
 function syncElementWithState (elem) {
@@ -106,7 +111,7 @@ function syncStateWithForm (form) {
 
 function syncStateWithFormControl (elem) {
   const params = elem[secret.params]
-  if (params && params.on === 'submit') {
+  if (params && (params.on.indexOf('submit') !== -1)) {
     syncStateWithElement(elem)
   }
 }
