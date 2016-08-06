@@ -18,15 +18,18 @@ module.exports = function events (elem, state, next) {
     const attribute = elem.attributes[i]
 
     if (attribute.name[0] === '#') {
-      const name = attribute.name.slice(1)
       const handler = elem.$compileCode(attribute.value)
 
       if (!elem[secret.handlers]) {
         elem[secret.handlers] = new Map()
+        elem[secret.state] = state
       }
-      elem[secret.handlers].set(name, handler)
-      elem[secret.state] = state
-      elem.addEventListener(name, listener)
+
+      const names = attribute.name.slice(1).split(',')
+      for (let name of names) {
+        elem[secret.handlers].set(name, handler)
+        elem.addEventListener(name, listener)
+      }
     }
   }
 }

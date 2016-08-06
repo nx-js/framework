@@ -84,7 +84,7 @@ function syncElementWithState (elem) {
   const value = getValue(state, elem.name)
   if (elem.type === 'radio' || elem.type === 'checkbox') {
     elem.checked = (value === toType(elem.value, params.type))
-  } else {
+  } else if (elem.value !== toType(value)) {
     elem.value = toType(value)
   }
 }

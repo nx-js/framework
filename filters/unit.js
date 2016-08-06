@@ -6,5 +6,6 @@ module.exports = function unit (value, unitName, postfix) {
   if (isNaN(value)) {
     return value + ' ' + unitName
   }
-  return value + ' ' + unitName + (1 < Math.abs(value) ? postfix : '')
+  const shouldPostFix = (value !== 0) && (1 < Math.abs(value))
+  return value + ' ' + unitName + (shouldPostFix ? postfix : '')
 }
