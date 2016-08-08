@@ -11,6 +11,7 @@ module.exports = {
   cleanupFunctions: Symbol('cleanup functions'),
   lifecycleStage: Symbol('lifecycle stage'),
   contentWatcher: Symbol('content watcher'),
+  registered: Symbol('registered custom element'),
   filters: Symbol('filters'),
   limiters: Symbol('limiters')
 }

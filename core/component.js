@@ -51,6 +51,7 @@ function onComponentInstantiated () {
   this[symbols.isolate] = this[config].isolate
   this[symbols.contentMiddlewares] = this[config].contentMiddlewares.slice()
   this[symbols.middlewares] = this[config].middlewares.slice()
+  this[symbols.registered] = true
 }
 
 function validateAndCloneConfig (rawConfig) {
