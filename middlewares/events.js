@@ -27,7 +27,12 @@ module.exports = function events (elem, state, next) {
 
       const names = attribute.name.slice(1).split(',')
       for (let name of names) {
-        elem[secret.handlers].set(name, handler)
+        let handlers = elem[secret.handlers].get(name)
+        if (!handlers) {
+          handlers = new Set()
+          elem[secret.handlers].set(name, handlers)
+        }
+        handlers.add(handler)
         elem.addEventListener(name, listener)
       }
     }
@@ -35,7 +40,9 @@ module.exports = function events (elem, state, next) {
 }
 
 function listener (event) {
-  const handler = event.target[secret.handlers].get(event.type)
+  const handlers = event.target[secret.handlers].get(event.type)
   const state = event.target[secret.state]
-  handler(state, { $event: event })
+  for (let handler of handlers) {
+    handler(state, { $event: event })  
+  }
 }
