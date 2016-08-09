@@ -35,7 +35,7 @@ function onNodeAdded (node) {
 
 function setupNodeAndChildren (node, state, contentMiddlewares) {
   if (node[symbols.lifecycleStage] === detached) {
-    throw new Error(`you cant reattach a detached node: ${node}`)
+    throw new Error(`you can't reattach a detached node: ${node}`)
   }
   if (node[symbols.lifecycleStage] === attached || !node.parentNode) {
     return
