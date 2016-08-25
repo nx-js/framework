@@ -13,7 +13,7 @@ module.exports = function app (config) {
     .useOnContent(middlewares.interpolate)
     .useOnContent(middlewares.attributes)
     .useOnContent(middlewares.style)
-    .useOnContent(middlewares.router.ref)
+    .useOnContent(middlewares.ref)
     .useOnContent(middlewares.content)
     .useOnContent(middlewares.flow)
     .useOnContent(middlewares.bindable)

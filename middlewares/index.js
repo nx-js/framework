@@ -14,5 +14,7 @@ module.exports = {
   bindable: require('./bindable'),
   bind: require('./bind'),
   style: require('./style'),
-  router: require('./router')
+  router: require('./router'),
+  params: require('./params'),
+  ref: require('./ref')
 }

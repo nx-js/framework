@@ -13,5 +13,7 @@ module.exports = {
   contentWatcher: Symbol('content watcher'),
   registered: Symbol('registered custom element'),
   filters: Symbol('filters'),
-  limiters: Symbol('limiters')
+  limiters: Symbol('limiters'),
+  routerLevel: Symbol('router level'),
+  currentView: Symbol('current router view')
 }

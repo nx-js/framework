@@ -1,50 +1,31 @@
 'use strict'
 
+const symbols = require('../core/symbols')
 const secret = {
-  config: Symbol('router config'),
-  iref: Symbol('router iref')
+  config: Symbol('router config')
 }
 
-let currentRoute = []
-let currentParams = {}
 const rootRouters = new Set()
-const statesToSync = new Set()
 
-updateHistory(pathToRoute(location.pathname), queryToParams(location.search), {history: false})
-window.addEventListener('popstate', onPopState)
-window.addEventListener('click', onClick)
+window.addEventListener('popstate', onPopState, true)
 
 function onPopState (ev) {
-  updateHistory(ev.state.route, ev.state.params, {history: false})
   for (let router of rootRouters) {
-    routeRouterAndChildren(router, ev.state.route)
+    routeRouterAndChildren(router, history.state.route)
   }
 }
 
-function onClick (ev) {
-  const route = ev.target.getAttribute('iref')
-  if (route && ev.target[secret.iref]) {
-    ev.target.$routeTo(route, ev.target[secret.iref].params, ev.target[secret.iref].options)
-    ev.preventDefault()
-  }
-}
-
-module.exports = {
-  route,
-  params,
-  ref,
-}
-
-function route (router, state, next) {
+module.exports = function router (router, state, next) {
   if (!(router instanceof Element)) {
     throw new Error('router only works with element nodes')
   }
-  router.$using('router-route')
+  router.$using('router')
 
   setupRouter(router)
   extractViews(router)
-  next()
-  routeRouterAndChildren(router, absoluteToRelativeRoute(router, currentRoute))
+  Promise.resolve().then(() =>routeRouterAndChildren(router, absoluteToRelativeRoute(router, history.state.route)))
+
+  return next()
 }
 
 function setupRouter (router) {
@@ -55,14 +36,18 @@ function setupRouter (router) {
 
   const parentRouter = findParentRouter(router)
   if (parentRouter) {
-    router[secret.config].depth = parentRouter[secret.config].depth + 1
+    router[symbols.routerLevel] = parentRouter[symbols.routerLevel] + 1
     parentRouter[secret.config].children.add(router)
     router.$cleanup(() => parentRouter[secret.config].children.delete(router))
   } else {
-    router[secret.config].depth = 0
+    router[symbols.routerLevel] = 1
     rootRouters.add(router)
     router.$cleanup(() => rootRouters.delete(router))
   }
+}
+
+function absoluteToRelativeRoute (router, route) {
+  return route.slice(router[symbols.routerLevel] - 1)
 }
 
 function extractViews (router) {
@@ -82,16 +67,36 @@ function extractViews (router) {
 function findParentRouter (node) {
   while(node.parentNode) {
     node = node.parentNode
-    if (node[secret.config]) return node
+    if (node[symbols.routerLevel] !== undefined) {
+      return node
+    }
   }
 }
 
 function routeRouterAndChildren (router, route) {
   route = route.slice()
   const viewName = route.shift()
+  const prevViewName = router[symbols.currentView]
+  let routeEvent
 
-  routeRouter(router, viewName)
-  Promise.resolve().then(() => routeChildren(router, route))
+  if (prevViewName !== viewName) {
+    const eventConfig = {
+      bubbles: true,
+      cancelable: true,
+      detail: {
+        from: prevViewName,
+        to: viewName,
+        params: history.state.params
+      }
+    }
+    routeEvent = new CustomEvent('route', eventConfig)
+    router.dispatchEvent(routeEvent)
+  }
+
+  if (!(routeEvent && routeEvent.defaultPrevented)) {
+    routeRouter(router, viewName)
+    Promise.resolve().then(() => routeChildren(router, route))
+  }
 }
 
 function routeRouter (router, viewName) {
@@ -101,7 +106,7 @@ function routeRouter (router, viewName) {
   if (!templates.has(viewName) && templates.has(defaultView)) {
     viewName = defaultView
   }
-  if (router[secret.config].currentView !== viewName) {
+  if (router[symbols.currentView] !== viewName) {
     while (router.firstChild) {
       router.removeChild(router.firstChild)
     }
@@ -109,7 +114,7 @@ function routeRouter (router, viewName) {
     if (template) {
       router.appendChild(document.importNode(template, true))
     }
-    router[secret.config].currentView = viewName
+    router[symbols.currentView] = viewName
   }
 }
 
@@ -117,196 +122,4 @@ function routeChildren (router, route) {
   for (let childRouter of router[secret.config].children) {
     routeRouterAndChildren(childRouter, route)
   }
-}
-
-function updateHistory (route, params, options) {
-  if (options.inherit) {
-    Object.assign(currentParams, params)
-  } else {
-    currentParams = params
-  }
-  currentRoute = route
-
-  const url = routeToPath(currentRoute) + paramsToQuery(currentParams)
-  const historyItem = {route: currentRoute, params: currentParams}
-  if (options.history === false) {
-    history.replaceState(historyItem, '', url)
-  } else {
-    history.pushState(historyItem, '', url)
-  }
-
-  // this has to be improved and added as a microtask instead of animFrame
-  requestAnimationFrame(() => {
-    for (let stateToSync of statesToSync) {
-      syncStateWithParams(stateToSync.state, stateToSync.config)
-    }
-  })
-}
-
-function ref (elem, state, next) {
-  if (!(elem instanceof Element)) return next()
-  elem.$require('attributes')
-  elem.$using('router-ref')
-
-  elem.$routeTo = $routeTo
-
-  if (elem.hasAttribute('iref')) {
-    elem[secret.iref] = {}
-    elem.$attribute('iref-options', (options) => elem[secret.iref].options = options)
-    elem.$attribute('iref-params', (params) => elem[secret.iref].params = params)
-
-    let path = elem.getAttribute('iref')
-    const relative = path.charAt(0) === '/'
-    if (relative) {
-      path = path.slice(1)
-    }
-    let route = path.split('/')
-    const parentRouter = findParentRouter(elem)
-    if (relative && parentRouter) {
-      route = relativeToAbsoluteRoute(parentRouter, route)
-    }
-    Promise.resolve().then(() => {
-      const href = routeToPath(route) + paramsToQuery(elem[secret.iref].params)
-      elem.setAttribute('href', href)
-    })
-  }
-  return next()
-}
-
-function $routeTo (path, params, options) {
-  if (params === undefined) {
-    params = {}
-  }
-  if (options === undefined) {
-    options = {}
-  }
-
-  const relative = path.charAt(0) === '/'
-  if (relative) {
-    path = path.slice(1)
-  }
-  const route = path.split('/')
-
-  const parentRouter = findParentRouter(this)
-  if (relative && parentRouter) {
-    for (let siblingRouter of parentRouter[secret.config].children) {
-      routeRouterAndChildren(siblingRouter, route)
-    }
-    updateHistory(relativeToAbsoluteRoute(parentRouter, route), params, options)
-  } else {
-    for (let rootRouter of rootRouters) {
-      routeRouterAndChildren(rootRouter, route)
-    }
-    updateHistory(route, params, options)
-  }
-  window.scrollTo(0, 0)
-}
-
-function params (config) {
-  return function paramsMiddleware (node, state, next) {
-    node.$using('router-params')
-
-    const stateToSync = {state, config}
-    statesToSync.add(stateToSync)
-    node.$cleanup(() => statesToSync.delete(stateToSync))
-    syncStateWithParams(state, config)
-    node.$observe(() => syncParamsWithState(config, state))
-    return next()
-  }
-}
-
-function syncStateWithParams (state, config) {
-  for (let paramName in config) {
-    if (state[paramName] !== currentParams[paramName]) {
-      if (config[paramName].type === 'number') {
-        state[paramName] = Number(currentParams[paramName])
-      } else if (config[paramName].type === 'string') {
-        state[paramName] = String(currentParams[paramName])
-      } else if (config[paramName].type === 'boolean') {
-        state[paramName] = Boolean(currentParams[paramName])
-      } else {
-        state[paramName] = currentParams[paramName]
-      }
-    }
-  }
-}
-
-function syncParamsWithState (config, state) {
-  let newParams = {}
-  let paramsChanged = false
-  let historyChanged = false
-
-  for (let paramName in config) {
-    if (currentParams[paramName] !== state[paramName]) {
-      if (config[paramName].readOnly) {
-        throw new Error(`${paramName} is readOnly`)
-      }
-      if (state[paramName] !== undefined && config[paramName].type !== (typeof state[paramName])) {
-        throw new Error(`${paramName} is of bad type, type is ${typeof state[paramName]}, should be ${config[paramName].type}`)
-      }
-      newParams[paramName] = state[paramName]
-      paramsChanged = true
-      if (config[paramName].history) {
-        historyChanged = true
-      }
-    }
-  }
-  if (paramsChanged) {
-    updateHistory(currentRoute, newParams, {history: historyChanged, inherit: true})
-  }
-}
-
-function relativeToAbsoluteRoute (router, route) {
-  return currentRoute.slice(0, router[secret.config].depth + 1).concat(route)
-}
-
-function absoluteToRelativeRoute (router, route) {
-  return route.slice(router[secret.config].depth)
-}
-
-function routeToPath (route) {
-  if (route === undefined) {
-    route = []
-  }
-  return '/' + route.join('/')
-}
-
-function pathToRoute (path) {
-  if (path.charAt(0) === '/') {
-    path = path.slice(1)
-  }
-  return path.split('/')
-}
-
-function paramsToQuery (params) {
-  if (params === undefined) {
-    params = {}
-  }
-
-  let query = ''
-  for (let param in params) {
-    if (params[param] !== undefined) {
-      query += `${param}=${params[param]}&`
-    }
-  }
-  if (query !== '') {
-    query = '?' + query.slice(0, -1)
-  }
-  return query
-}
-
-function queryToParams (query) {
-  if (query.charAt(0) === '?') {
-    query = query.slice(1)
-  }
-  query = query.split('&')
-
-  const params = {}
-  for (let keyValue of query) {
-    keyValue = keyValue.split('=')
-    if (keyValue.length === 2) {
-      params[keyValue[0]] = keyValue[1]
-    }
-  }
-  return params
 }

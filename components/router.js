@@ -5,5 +5,5 @@ const middlewares = require('../middlewares')
 
 module.exports = function routerComp (config) {
   return core.component(config)
-    .use(middlewares.router.route)
+    .use(middlewares.router)
 }
