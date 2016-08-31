@@ -23,9 +23,11 @@ module.exports = function router (router, state, next) {
 
   setupRouter(router)
   extractViews(router)
-  Promise.resolve().then(() =>routeRouterAndChildren(router, absoluteToRelativeRoute(router, history.state.route)))
 
-  return next()
+  next()
+
+  //TODO: remove Promise, it is only here because of the bad custom element Polyfill timing with router-render interaction
+  Promise.resolve().then(() => routeRouterAndChildren(router, absoluteToRelativeRoute(router, history.state.route)))
 }
 
 function setupRouter (router) {
@@ -75,46 +77,46 @@ function findParentRouter (node) {
 
 function routeRouterAndChildren (router, route) {
   route = route.slice()
-  const viewName = route.shift()
-  const prevViewName = router[symbols.currentView]
-  let routeEvent
+  const templates = router[secret.config].templates
+  const defaultView = router[secret.config].defaultView
+  const prevView = router[symbols.currentView]
+  let nextView = route.shift()
 
-  if (prevViewName !== viewName) {
+  if (!templates.has(nextView) && templates.has(defaultView)) {
+    nextView = defaultView
+  }
+  if (prevView !== nextView) {
     const eventConfig = {
       bubbles: true,
       cancelable: true,
       detail: {
-        from: prevViewName,
-        to: viewName,
+        from: prevView,
+        to: nextView,
         params: history.state.params
       }
     }
-    routeEvent = new CustomEvent('route', eventConfig)
+    const routeEvent = new CustomEvent('route', eventConfig)
     router.dispatchEvent(routeEvent)
-  }
 
-  if (!(routeEvent && routeEvent.defaultPrevented)) {
-    routeRouter(router, viewName)
-    Promise.resolve().then(() => routeChildren(router, route))
+    if (!routeEvent.defaultPrevented) {
+      //TODO: remove Promise, it is only here because of the bad custom element Polyfill timing with router-render interaction
+      Promise.resolve().then(() => routeRouter(router, nextView))
+      router[symbols.currentView] = nextView
+    }
+  } else {
+    routeChildren(router, route)
   }
 }
 
-function routeRouter (router, viewName) {
+function routeRouter (router, nextView) {
   const templates = router[secret.config].templates
-  const defaultView = router[secret.config].defaultView
 
-  if (!templates.has(viewName) && templates.has(defaultView)) {
-    viewName = defaultView
+  while (router.firstChild) {
+    router.removeChild(router.firstChild)
   }
-  if (router[symbols.currentView] !== viewName) {
-    while (router.firstChild) {
-      router.removeChild(router.firstChild)
-    }
-    const template = templates.get(viewName)
-    if (template) {
-      router.appendChild(document.importNode(template, true))
-    }
-    router[symbols.currentView] = viewName
+  const template = templates.get(nextView)
+  if (template) {
+    router.appendChild(document.importNode(template, true))
   }
 }
 

@@ -1,10 +1,14 @@
 'use strict'
 
-module.exports = function keyLimiter (next, context, ...keys) {
-  if (!(context.$event instanceof KeyboardEvent)) return next()
+const keycode = require('./keycode')
 
-  const key = context.$event.key || context.$event.keyIdentifier
-  if (!key || keys.indexOf(key) !== -1) {
+module.exports = function keyLimiter (next, context, ...keys) {
+  if (!(context.$event instanceof KeyboardEvent)) {
+    return next()
+  }
+
+  const key = keycode(context.$event)
+  if (keys.indexOf(key) !== -1) {
     next()
   }
 }

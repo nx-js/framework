@@ -30,7 +30,8 @@
   ],
   "dependencies": {
     "@risingstack/nx-compile": "^1.0.1",
-    "@risingstack/nx-observe": "^1.0.3"
+    "@risingstack/nx-observe": "^1.0.3",
+    "keycode": "^2.1.4"
   },
   "devDependencies": {
     "webpack": "1.13.1",

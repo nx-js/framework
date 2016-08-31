@@ -40,9 +40,9 @@ module.exports = function events (elem, state, next) {
 }
 
 function listener (event) {
-  const handlers = event.target[secret.handlers].get(event.type)
-  const state = event.target[secret.state]
+  const handlers = this[secret.handlers].get(event.type)
+  const state = this[secret.state]
   for (let handler of handlers) {
-    handler(state, { $event: event })  
+    handler(state, { $event: event })
   }
 }
