@@ -4,6 +4,7 @@ const observer = require('@risingstack/nx-observe')
 const exposed = require('../core/symbols')
 const secret = {
   template: Symbol('content template'),
+  separators: Symbol('content separators'),
   state: Symbol('content state')
 }
 
@@ -31,8 +32,8 @@ function $extractContent () {
     template.appendChild(node)
     node = this.firstChild
   }
-  template.appendChild(document.createComment('#separator#'))
   this[secret.template] = template
+  this[secret.separators] = []
 }
 
 function $insertContent (index, contextState) {
@@ -47,6 +48,8 @@ function $insertContent (index, contextState) {
     throw new Error('you must extract a template with $extractContent before inserting')
   }
   const content = document.importNode(this[secret.template], true)
+  const separator = document.createComment('#separator#')
+  content.appendChild(separator)
 
   if (contextState) {
     contextState = observer.observable(contextState)
@@ -59,12 +62,16 @@ function $insertContent (index, contextState) {
     }
   }
   this.insertBefore(content, findContentStartAtIndex(this, index))
+  this[secret.separators].splice(index, 0, separator)
 }
 
 function $removeContent (index) {
   index = index || 0
   if (typeof index !== 'number') {
     throw new TypeError('first argument must be a number')
+  }
+  if (!this[secret.template]) {
+    throw new Error('you must extract a template with $extractContent before removing')
   }
   let node = findContentStartAtIndex(this, index)
   let next
@@ -74,6 +81,7 @@ function $removeContent (index) {
     node = next
   }
   this.removeChild(node)
+  this[secret.separators].splice(index, 1)
 }
 
 function $replaceContent (index, contextState) {
@@ -97,20 +105,23 @@ function $mutateContext (index, extraContext) {
     throw new TypeError('second argument must be an object')
   }
   const startNode = findContentStartAtIndex(this, index)
-  const contextState = startNode[exposed.contextState]
-  if (contextState) {
-    Object.assign(contextState, extraContext)
+  if (startNode) {
+    const contextState = startNode[exposed.contextState]
+    if (contextState) {
+      Object.assign(contextState, extraContext)
+    }
   }
 }
 
 function findContentStartAtIndex (node, index) {
-  node = node.firstChild
-  let count = 0
-  while (node && count < index) {
-    if (isSeparator(node)) count++
-    node = node.nextSibling
+  index--
+  const separators = node[secret.separators]
+  if (index < 0) {
+    return node.firstChild
   }
-  return node
+  if (separators[index]) {
+    return separators[index].nextSibling
+  }
 }
 
 function isSeparator (node) {
