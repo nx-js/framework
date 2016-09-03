@@ -19,6 +19,7 @@ module.exports = function content (node, state, next) {
   node.$insertContent = $insertContent
   node.$removeContent = $removeContent
   node.$replaceContent = $replaceContent
+  node.$mutateContext = $mutateContext
 
   return next()
 }
@@ -35,9 +36,7 @@ function $extractContent () {
 }
 
 function $insertContent (index, contextState) {
-  if (index === undefined) {
-    index = 0
-  }
+  index = index || 0
   if (typeof index !== 'number') {
     throw new TypeError('first argument must be a number')
   }
@@ -47,7 +46,6 @@ function $insertContent (index, contextState) {
   if (!this[secret.template]) {
     throw new Error('you must extract a template with $extractContent before inserting')
   }
-
   const content = document.importNode(this[secret.template], true)
 
   if (contextState) {
@@ -64,9 +62,7 @@ function $insertContent (index, contextState) {
 }
 
 function $removeContent (index) {
-  if (index === undefined) {
-    index = 0
-  }
+  index = index || 0
   if (typeof index !== 'number') {
     throw new TypeError('first argument must be a number')
   }
@@ -81,9 +77,7 @@ function $removeContent (index) {
 }
 
 function $replaceContent (index, contextState) {
-  if (index === undefined) {
-    index = 0
-  }
+  index = index || 0
   if (typeof index !== 'number') {
     throw new TypeError('first argument must be a number')
   }
@@ -92,6 +86,21 @@ function $replaceContent (index, contextState) {
   }
   this.$removeContent(index)
   this.$insertContent(index, contextState)
+}
+
+function $mutateContext (index, extraContext) {
+  index = index || 0
+  if (typeof index !== 'number') {
+    throw new TypeError('first argument must be a number')
+  }
+  if (typeof extraContext !== 'object') {
+    throw new TypeError('second argument must be an object')
+  }
+  const startNode = findContentStartAtIndex(this, index)
+  const contextState = startNode[exposed.contextState]
+  if (contextState) {
+    Object.assign(contextState, extraContext)
+  }
 }
 
 function findContentStartAtIndex (node, index) {

@@ -45,26 +45,29 @@ function repeatAttribute (array, elem) {
     elem[secret.prevArray] = []
     elem[secret.hasRepeat] = true
   }
-  if (!Array.isArray(array)) {
+  if (array === undefined) {
     return
   }
+  array = Array.from(array)
+  const prevArray = elem[secret.prevArray]
 
   const repeatValue = elem.getAttribute('repeat-value') || '$value'
   const repeatIndex = elem.getAttribute('repeat-index') || '$index'
-  const prevArray = elem[secret.prevArray]
-  let viewIndex = 0
+
   for (let i = 0; i < Math.max(array.length, prevArray.length); i++) {
     if (prevArray[i] !== array[i]) {
-      if (array[i] === undefined) {
-        elem.$removeContent(viewIndex)
-        viewIndex--
-      } else if (prevArray[i] === undefined) {
-        elem.$insertContent(viewIndex, {[repeatValue]: array[viewIndex], [repeatIndex]: viewIndex})
+      if (array[i] === undefined || array[i] === prevArray[i+1]) {
+        elem.$removeContent(i)
+        prevArray.splice(i, 1)
+      } else if (prevArray[i] === undefined || prevArray[i] === array[i+1]) {
+        elem.$insertContent(i, {[repeatValue]: array[i], [repeatIndex]: i})
+        prevArray.splice(i, 0, array[i])
       } else {
-        elem.$replaceContent(viewIndex, {[repeatValue]: array[viewIndex], [repeatIndex]: viewIndex})
+        elem.$replaceContent(i, {[repeatValue]: array[i], [repeatIndex]: i})
+        prevArray[i] = array[i]
       }
-      prevArray[i] = array[i]
+    } else {
+      elem.$mutateContext(i, { [repeatIndex]: i })
     }
-    viewIndex++
   }
 }

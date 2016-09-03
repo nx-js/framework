@@ -1,6 +1,6 @@
 'use strict'
 
-const keycode = require('./keycode')
+const keycode = require('keycode')
 
 module.exports = function keyLimiter (next, context, ...keys) {
   if (!(context.$event instanceof KeyboardEvent)) {
