@@ -28,7 +28,7 @@ function $attribute (name, handler) {
     throw new TypeError('first argument must be a string')
   }
   if (name === 'disabled' && !isInput(this)) {
-    throw new TypeError('cannot disable given element')
+    throw new TypeError(`Element ${this} cannot be disabled`)
   }
   if (typeof handler !== 'function') {
     throw new TypeError('second argument must be a function')
