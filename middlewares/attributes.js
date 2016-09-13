@@ -16,9 +16,19 @@ module.exports = function attributes (elem, state, next) {
   processAttributesWithHandler(elem, state)
 }
 
+function isInput (elem) {
+  if (elem instanceof HTMLInputElement) return true
+  if (elem instanceof HTMLTextAreaElement) return true
+  if (elem instanceof HTMLSelectElement) return true
+  return false
+}
+
 function $attribute (name, handler) {
   if (typeof name !== 'string') {
     throw new TypeError('first argument must be a string')
+  }
+  if (name === 'disabled' && !isInput(this)) {
+    throw new TypeError(`Element ${this} cannot be disabled`)
   }
   if (typeof handler !== 'function') {
     throw new TypeError('second argument must be a function')

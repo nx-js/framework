@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <script src="./nx.js" type="text/javascript"></script>
+    <script>
+      nx.components.app().register('example-app')
+    </script>
+  </head>
+  <body>
+    <example-app>
+      <input type="text" name="input" @disabled="greeting" value="this works">
+      <textarea name="text" @disabled="greeting">
+        This works
+      </textarea>
+      <p @disabled="greeting">This should thow error</p>
+      <select name="select" @disabled="greeting">
+        <option value="value1">Value 1</option> 
+        <option value="value2" selected>This works too</option>
+        <option value="value3">Value 3</option>
+      </select>
+      <input type="checkbox" name="greeting" bind>
+      @{greeting}
+    </example-app>
+  </body>
+</html>

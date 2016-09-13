@@ -2,6 +2,7 @@
 
 const secret = {
   hasIf: Symbol('flow hasIf'),
+  disabled: Symbol('flow disabled'),
   showing: Symbol('flow showing'),
   hasRepeat: Symbol('flow hasRepeat'),
   prevArray: Symbol('flow prevArray')
@@ -14,8 +15,19 @@ module.exports = function flow (elem, state, next) {
 
   elem.$attribute('if', ifAttribute)
   elem.$attribute('repeat', repeatAttribute)
+  elem.$attribute('disabled', disableAttribute)
 
   return next()
+}
+
+function disableAttribute (disabled, elem) {
+  if (disabled && !elem[secret.disabled]) {
+    elem[secret.disabled] = true
+    elem.setAttribute('disabled', 'disabled')
+  } else if (!disabled && elem[secret.disabled]) {
+    elem[secret.disabled] = false
+    elem.removeAttribute('disabled')
+  }
 }
 
 function ifAttribute (show, elem) {
