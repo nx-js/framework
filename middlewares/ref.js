@@ -69,7 +69,7 @@ function $route (path, params, options) {
     route = relativeToAbsoluteRoute(this, route)
   }
   updateHistory(route, params, options)
-  window.scrollTo(0, 0)
+  window.scroll(0, 0)
 }
 
 function relativeToAbsoluteRoute (node, relativeRoute) {
