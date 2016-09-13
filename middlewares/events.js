@@ -3,8 +3,7 @@
 const compiler = require('@risingstack/nx-compile')
 
 const secret = {
-  handlers: Symbol('event handlers'),
-  state: Symbol('event state')
+  handlers: Symbol('event handlers')
 }
 
 module.exports = function events (elem, state, next) {
@@ -22,7 +21,6 @@ module.exports = function events (elem, state, next) {
 
       if (!elem[secret.handlers]) {
         elem[secret.handlers] = new Map()
-        elem[secret.state] = state
       }
 
       const names = attribute.name.slice(1).split(',')
@@ -41,8 +39,7 @@ module.exports = function events (elem, state, next) {
 
 function listener (event) {
   const handlers = this[secret.handlers].get(event.type)
-  const state = this[secret.state]
   for (let handler of handlers) {
-    handler(state, { $event: event })
+    handler({ $event: event })
   }
 }

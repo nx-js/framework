@@ -2,13 +2,16 @@
 
 const compiler = require('@risingstack/nx-compile')
 const exposed = require('../core/symbols')
-
+const secret = {
+  state: Symbol('expression state')
+}
 const filterRegex = /(?:[^\|]|\|\|)+/g
 const argsRegex = /\S+/g
 
 module.exports = function expression (node, state, next) {
   node.$using('expression')
 
+  node[secret.state] = state
   node.$compileExpression = $compileExpression
   return next()
 }
@@ -19,10 +22,10 @@ function $compileExpression (rawExpression) {
   }
   const expression = parseExpression(this, rawExpression)
 
-  return function evaluateExpression (state) {
-    let value = expression.exec(state)
+  return function evaluateExpression () {
+    let value = expression.exec()
     for (let filter of expression.filters) {
-      const args = evaluateArgExpressions(filter.argExpressions, state)
+      const args = filter.argExpressions.map(evaluateArgExpression)
       value = filter.effect(value, ...args)
     }
     return value
@@ -32,7 +35,7 @@ function $compileExpression (rawExpression) {
 function parseExpression (node, rawExpression) {
   const tokens = rawExpression.match(filterRegex)
   const expression = {
-    exec: compiler.compileExpression(tokens.shift()),
+    exec: compiler.compileExpression(tokens.shift(), node[secret.state]),
     filters: []
   }
 
@@ -43,20 +46,16 @@ function parseExpression (node, rawExpression) {
       throw new Error(`there is no filter named ${filterName} on ${node}`)
     }
     const effect = node[exposed.filters].get(filterName)
-    const argExpressions = filterToken.map(compileArg)
+    const argExpressions = filterToken.map(compileArgExpression, node)
     expression.filters.push({effect, argExpressions})
   }
   return expression
 }
 
-function evaluateArgExpressions (argExpressions, state) {
-  const args = []
-  for (let argExpression of argExpressions) {
-    args.push(argExpression(state))
-  }
-  return args
+function evaluateArgExpression (argExpression) {
+  return argExpression()
 }
 
-function compileArg (arg) {
-  return compiler.compileExpression(arg)
+function compileArgExpression (argExpression) {
+  return compiler.compileExpression(argExpression, this[secret.state])
 }

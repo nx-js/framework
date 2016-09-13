@@ -15,9 +15,9 @@ function interpolateValue (node, state) {
     if (typeof token === 'object') {
       const expression = node.$compileExpression(token.expression)
       if (token.observed) {
-        node.$observe(() => interpolateToken(token, expression(state), tokens, node))
+        node.$observe(() => interpolateToken(token, expression(), tokens, node))
       } else {
-        interpolateToken(token, expression(state), tokens, node)
+        interpolateToken(token, expression(), tokens, node)
       }
     }
   })

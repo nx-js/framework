@@ -29,7 +29,7 @@
     "data binding"
   ],
   "dependencies": {
-    "@risingstack/nx-compile": "^1.0.1",
+    "@risingstack/nx-compile": "^2.0.0",
     "@risingstack/nx-observe": "^1.0.3",
     "keycode": "^2.1.4"
   },

@@ -14,8 +14,8 @@ module.exports = function attributes (elem, state, next) {
 
   next()
 
-  processAttributesWithoutHandler(elem, state)
-  processAttributesWithHandler(elem, state)
+  processAttributesWithoutHandler(elem)
+  processAttributesWithHandler(elem)
 }
 
 function $hasAttribute (name) {
@@ -35,7 +35,7 @@ function $attribute (name, handler) {
   this[secret.handlers].set(name, handler)
 }
 
-function processAttributesWithoutHandler (elem, state) {
+function processAttributesWithoutHandler (elem) {
   const attributesToRemove = []
 
   Array.prototype.forEach.call(elem.attributes, (attribute) => {
@@ -67,7 +67,7 @@ function processAttributesWithoutHandler (elem, state) {
   }
 }
 
-function processAttributesWithHandler (elem, state) {
+function processAttributesWithHandler (elem) {
   if (!elem[secret.handlers]) return
   const attributesToRemove = []
 
@@ -77,11 +77,11 @@ function processAttributesWithHandler (elem, state) {
 
     if (elem.hasAttribute(onceName)) {
       const expression = elem.$compileExpression(elem.getAttribute(onceName) || name)
-      handler(expression(state), elem)
+      handler(expression(), elem)
       attributesToRemove.push(onceName)
     } else if (elem.hasAttribute(observedName)) {
       const expression = elem.$compileExpression(elem.getAttribute(observedName) || name)
-      elem.$observe(() => handler(expression(state), elem))
+      elem.$observe(() => handler(expression(), elem))
       attributesToRemove.push(observedName)
     } else if (elem.hasAttribute(name)) {
       handler(elem.getAttribute(name), elem)
