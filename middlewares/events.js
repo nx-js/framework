@@ -33,7 +33,7 @@ module.exports = function events (elem, state, next) {
           elem[secret.handlers].set(name, handlers)
         }
         handlers.add(handler)
-        elem.addEventListener(name, listener)
+        elem.addEventListener(name, listener, true)
       }
     }
   }

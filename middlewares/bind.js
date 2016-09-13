@@ -1,7 +1,5 @@
 'use strict'
 
-const exposed = require('../core/symbols')
-
 module.exports = function bind (elem, state, next) {
   if (!isInput(elem)) return next()
   elem.$require('bindable')

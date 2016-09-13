@@ -52,8 +52,8 @@ function $insertContent (index, contextState) {
   content.appendChild(separator)
 
   if (contextState) {
+    contextState = Object.assign(Object.create(this[secret.state]), contextState)
     contextState = observer.observable(contextState)
-    Object.setPrototypeOf(contextState, this[secret.state])
 
     let node = content.firstChild
     while (node) {

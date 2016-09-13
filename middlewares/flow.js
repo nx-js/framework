@@ -59,6 +59,7 @@ function repeatAttribute (array, elem) {
       if (array[i] === undefined || array[i] === prevArray[i+1]) {
         elem.$removeContent(i)
         prevArray.splice(i, 1)
+        i--
       } else if (prevArray[i] === undefined || prevArray[i] === array[i+1]) {
         elem.$insertContent(i, {[repeatValue]: array[i], [repeatIndex]: i})
         prevArray.splice(i, 0, array[i])
