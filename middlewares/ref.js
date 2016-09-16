@@ -6,15 +6,6 @@ const secret = {
 }
 
 updateHistory(pathToRoute(location.pathname), queryToParams(location.search), {history: false})
-window.addEventListener('click', onClick, true)
-
-function onClick (ev) {
-  const config = ev.target[secret.config]
-  if (config) {
-    ev.target.$route(config.path, config.params, config.options)
-    ev.preventDefault()
-  }
-}
 
 module.exports = function ref (elem, state, next) {
   if (!(elem instanceof Element)) return next()
@@ -39,6 +30,8 @@ function irefAttribute (path, elem) {
   const query = elem.href ? elem.href.search : ''
   const href = path + query
   elem.setAttribute('href', href)
+
+  elem.addEventListener('click', onClick, true)
 }
 
 function irefParamsAttribute (params, elem) {
@@ -49,6 +42,16 @@ function irefParamsAttribute (params, elem) {
   const path = elem.href ? elem.href.pathname : ''
   const href = path + paramsToQuery(params)
   elem.setAttribute('href', href)
+
+  elem.addEventListener('click', onClick, true)
+}
+
+function onClick (ev) {
+  const config = this[secret.config]
+  if (config) {
+    this.$route(config.path, config.params, config.options)
+    ev.preventDefault()
+  }
 }
 
 function irefOptionsAttribute (options, elem) {
