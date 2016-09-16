@@ -5,6 +5,12 @@ module.exports = function render (config) {
   if (config.cache) {
     config.template = cacheTemplate(config.template)
   }
+  if (config.style) {
+    const style = document.createTextNode(config.style)
+    const styleContainer = document.createElement('style')
+    styleContainer.appendChild(style)
+    document.head.appendChild(styleContainer)
+  }
 
   return function renderMiddleware (elem, state, next) {
     if (!(elem instanceof Element)) {
@@ -18,13 +24,7 @@ module.exports = function render (config) {
     } else {
       template = cacheTemplate(config.template)
     }
-
-    if (config.compose) {
-      composeContentWithTemplate(elem, state, template)
-    } else {
-      clearContent(elem)
-    }
-
+    composeContentWithTemplate(elem, state, template)
     elem.appendChild(template)
     return next()
   }
@@ -34,13 +34,13 @@ function composeContentWithTemplate (elem, state, template) {
   let defaultSlot
 
   Array.prototype.forEach.call(template.querySelectorAll('slot'), (slot) => {
-    if (slot.hasAttribute('name') && slot.getAttribute('name') !== '') {
+    if (slot.getAttribute('name')) {
       const slotFillers = elem.querySelectorAll(`[slot=${slot.getAttribute('name')}]`)
       if (slotFillers.length) {
         clearContent(slot)
         Array.prototype.forEach.call(slotFillers, (slotFiller) => slot.appendChild(slotFiller))
       }
-    } else if (!defaultSlot) {
+    } else if (slot.hasAttribute('name')) {
       defaultSlot = slot
     }
   })
@@ -79,20 +79,18 @@ function validateAndCloneConfig (rawConfig) {
     throw new TypeError('template config must be a string')
   }
 
+  if (typeof rawConfig.style === 'string') {
+    resultConfig.style = rawConfig.style
+  } else if (rawConfig.style !== undefined) {
+    throw new TypeError('template config must be a string or undefined')
+  }
+
   if (typeof rawConfig.cache === 'boolean') {
     resultConfig.cache = rawConfig.cache
   } else if (rawConfig.cache === undefined) {
     resultConfig.cache = true
   } else {
     throw new TypeError('cache config must be a boolean or undefined')
-  }
-
-  if (typeof rawConfig.compose === 'boolean') {
-    resultConfig.compose = rawConfig.compose
-  } else if (rawConfig.compose === undefined) {
-    resultConfig.compose = true
-  } else {
-    throw new TypeError('compose config must be a boolean or undefined')
   }
 
   return resultConfig
