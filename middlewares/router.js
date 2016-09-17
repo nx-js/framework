@@ -22,7 +22,6 @@ module.exports = function router (router, state, next) {
 
   setupRouter(router)
   extractViews(router)
-
   routeRouterAndChildren(router, absoluteToRelativeRoute(router, history.state.route))
   return next()
 }

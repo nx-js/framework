@@ -67,12 +67,9 @@ function bindElement (elem) {
   const binder = elem[secret.binder]
   if (params.mode === 'two-way') {
     elem.$observe(binder)
-    // not optimal, but resolve.then is not enough delay
-    elem.$schedule(binder)
   } else if (params.mode === 'one-time') {
     elem.$unobserve(binder)
-    // not optimal, but resolve.then is not enough delay
-    elem.$schedule(binder)
+    binder()
   } else if (params.mode === 'one-way') {
     elem.$unobserve(binder)
   } else {

@@ -13,7 +13,6 @@ module.exports = function setupNode (node) {
   node.$cleanup = $cleanup
   node.$observe = $observe
   node.$unobserve = $unobserve
-  node.$schedule = $schedule
 }
 
 function $using (...middlewareNames) {
@@ -73,11 +72,4 @@ function $unobserve (fn) {
     throw new TypeError('first argument must be a function')
   }
   observer.unobserve(fn)
-}
-
-function $schedule (fn) {
-  if (typeof fn !== 'function') {
-    throw new TypeError('first argument must be a function')
-  }
-  requestAnimationFrame(fn)
 }

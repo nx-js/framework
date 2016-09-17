@@ -92,7 +92,7 @@ function composeAndRunMiddlewares (node, state, contextState, contentMiddlewares
       } else if (middlewares && j < middlewares.length) {
         middlewares[j++](node, state, next)
       } else {
-        Promise.resolve().then(resolve)
+        resolve()
       }
     }
     next()
