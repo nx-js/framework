@@ -4,7 +4,6 @@ const symbols = require('../core/symbols')
 const secret = {
   config: Symbol('router config')
 }
-
 const rootRouters = new Set()
 
 window.addEventListener('popstate', onPopState, true)
@@ -24,10 +23,8 @@ module.exports = function router (router, state, next) {
   setupRouter(router)
   extractViews(router)
 
-  next()
-
-  //TODO: remove Promise, it is only here because of the bad custom element Polyfill timing with router-render interaction
-  Promise.resolve().then(() => routeRouterAndChildren(router, absoluteToRelativeRoute(router, history.state.route)))
+  routeRouterAndChildren(router, absoluteToRelativeRoute(router, history.state.route))
+  return next()
 }
 
 function setupRouter (router) {
@@ -98,8 +95,7 @@ function routeRouterAndChildren (router, route) {
     router.dispatchEvent(routeEvent)
 
     if (!routeEvent.defaultPrevented) {
-      //TODO: remove Promise, it is only here because of the bad custom element Polyfill timing with router-render interaction
-      Promise.resolve().then(() => routeRouter(router, nextView))
+      routeRouter(router, nextView)
       router[symbols.currentView] = nextView
     }
   } else {
