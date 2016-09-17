@@ -11,7 +11,6 @@ module.exports = function style (elem, state, next) {
 
   elem.$attribute('class', classAttribute)
   elem.$attribute('style', styleAttribute)
-  elem.$attribute('show', showAttribute)
 
   return next()
 }
@@ -38,12 +37,4 @@ function styleAttribute (styles, elem) {
     styles = styleList.join(' ')
   }
   elem.setAttribute('style', styles)
-}
-
-function showAttribute (show, elem) {
-  if (show) {
-    elem.style.display = ''
-  } else {
-    elem.style.display = 'none'
-  }
 }

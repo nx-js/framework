@@ -37,14 +37,20 @@ function processAttributesWithoutHandler (elem, state) {
       const name = attribute.name.slice(1)
       if (!elem[secret.handlers] || !elem[secret.handlers].has(name)) {
         const expression = elem.$compileExpression(attribute.value || name)
-        elem.setAttribute(name, expression(state))
+        const value = expression(state)
+        if (value) elem.setAttribute(name, value)
+        else elem.removeAttribute(name)
         attributesToRemove.push(attribute.name)
       }
     } else if (attribute.name[0] === '@') {
       const name = attribute.name.slice(1)
       if (!elem[secret.handlers] || !elem[secret.handlers].has(name)) {
         const expression = elem.$compileExpression(attribute.value || name)
-        elem.$observe(() => elem.setAttribute(name, expression(state)))
+        elem.$observe(() => {
+          const value = expression(state)
+          if (value) elem.setAttribute(name, value)
+          else elem.removeAttribute(name)
+        })
         attributesToRemove.push(attribute.name)
       }
     }
