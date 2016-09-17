@@ -91,8 +91,7 @@ function routeRouterAndChildren (router, route) {
       cancelable: true,
       detail: {
         from: prevView,
-        to: nextView,
-        params: history.state.params
+        to: nextView
       }
     }
     const routeEvent = new CustomEvent('route', eventConfig)

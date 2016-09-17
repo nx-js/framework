@@ -10,7 +10,10 @@ window.addEventListener('popstate', onPopState)
 
 function onPopState (ev) {
   for (let node of nodesToSync) {
-    syncStateWithParams(node[secret.state], history.state.params, node[secret.config])
+    const state = node[secret.state]
+    const config = node[secret.config]
+    syncStateWithParams(state, history.state.params, config)
+    syncParamsWithState(history.state.params, state, config, false)
   }
 }
 
@@ -34,19 +37,25 @@ module.exports = function params (config) {
 
 function syncStateWithParams (state, params, config) {
   for (let paramName in config) {
-    if (state[paramName] !== params[paramName]) {
-      if (params[paramName] === undefined) {
+    const param = params[paramName] || config[paramName].default
+    const type = config[paramName].type
+
+    if (config[paramName].required && param === undefined) {
+      throw new Error(`${paramName} is a required parameter`)
+    }
+    if (state[paramName] !== param) {
+      if (param === undefined) {
         state[paramName] = undefined
-      } else if (config[paramName].type === 'number') {
-        state[paramName] = Number(params[paramName])
-      } else if (config[paramName].type === 'string') {
-        state[paramName] = String(params[paramName])
-      } else if (config[paramName].type === 'boolean') {
-        state[paramName] = Boolean(params[paramName])
-      } else if (config[paramName].type === 'date') {
-        state[paramName] = new Date(params[paramName])
+      } else if (type === 'number') {
+        state[paramName] = Number(param)
+      } else if (type === 'string') {
+        state[paramName] = String(param)
+      } else if (type === 'boolean') {
+        state[paramName] = Boolean(param)
+      } else if (type === 'date') {
+        state[paramName] = new Date(param)
       } else {
-        state[paramName] = params[paramName]
+        state[paramName] = param
       }
     }
   }
