@@ -1,3 +1,3 @@
 'use strict'
 
-require('./registerElement')
+require('./customElement')

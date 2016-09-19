@@ -31,7 +31,6 @@ function setupRouter (router) {
     children: new Set(),
     templates: new Map()
   }
-
   const parentRouter = findParentRouter(router)
   if (parentRouter) {
     router[symbols.routerLevel] = parentRouter[symbols.routerLevel] + 1

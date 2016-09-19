@@ -32,14 +32,13 @@ function register (name) {
   }
   const parentProto = this[config].element ? this[config].elementProto : HTMLElement.prototype
   const proto = Object.create(parentProto)
-  proto.createdCallback = onComponentInstantiated
-  proto.attachedCallback = onComponentInstanceAttached
+  proto.attachedCallback = attachedCallback
   proto[config] = this[config]
   document.registerElement(name, {prototype: proto, extends: this[config].element})
   return name
 }
 
-function onComponentInstantiated () {
+function attachedCallback () {
   if (typeof this[config].state === 'object') {
     this[symbols.state] = this[config].state
   } else if (this[config].state === true) {
@@ -52,6 +51,8 @@ function onComponentInstantiated () {
   this[symbols.contentMiddlewares] = this[config].contentMiddlewares.slice()
   this[symbols.middlewares] = this[config].middlewares.slice()
   this[symbols.registered] = true
+
+  onComponentInstanceAttached.call(this)
 }
 
 function validateAndCloneConfig (rawConfig) {
