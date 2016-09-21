@@ -1,9 +1,7 @@
 'use strict'
 
 const secret = {
-  hasIf: Symbol('flow hasIf'),
   showing: Symbol('flow showing'),
-  hasRepeat: Symbol('flow hasRepeat'),
   prevArray: Symbol('flow prevArray')
 }
 
@@ -12,6 +10,12 @@ module.exports = function flow (elem, state, next) {
   elem.$require('content', 'attributes')
   elem.$using('flow')
 
+  if (elem.$hasAttribute('if') && elem.hasAttribute('repeat')) {
+    throw new Error('cant use if and repeat on the same node')
+  }
+  if (elem.$hasAttribute('if') || elem.$hasAttribute('repeat')) {
+    elem.$extractContent()
+  }
   elem.$attribute('if', ifAttribute)
   elem.$attribute('repeat', repeatAttribute)
 
@@ -19,14 +23,6 @@ module.exports = function flow (elem, state, next) {
 }
 
 function ifAttribute (show, elem) {
-  if (elem[secret.hasRepeat]) {
-    throw new Error('cant use if and repeat on the same node')
-  }
-  if (!elem[secret.hasIf]) {
-    elem.$extractContent()
-    elem[secret.hasIf] = true
-  }
-
   if (show && !elem[secret.showing]) {
     elem.$insertContent()
     elem[secret.showing] = true
@@ -37,18 +33,11 @@ function ifAttribute (show, elem) {
 }
 
 function repeatAttribute (array, elem) {
-  if (elem[secret.hasIf]) {
-    throw new Error('cant use if and repeat on the same node')
-  }
-  if (!elem[secret.hasRepeat]) {
-    elem.$extractContent()
-    elem[secret.prevArray] = []
-    elem[secret.hasRepeat] = true
-  }
   if (array === undefined) {
     return
   }
   array = Array.from(array)
+  elem[secret.prevArray] = elem[secret.prevArray] || []
   const prevArray = elem[secret.prevArray]
 
   const repeatValue = elem.getAttribute('repeat-value') || '$value'

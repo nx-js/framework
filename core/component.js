@@ -1,20 +1,29 @@
 'use strict'
 
 const observer = require('@risingstack/nx-observe')
-const onComponentInstanceAttached = require('./onComponentInstanceAttached')
+const validateConfig = require('./validateConfig')
+const onNodeAdded = require('./onNodeAdded')
+const onNodeRemoved = require('./onNodeRemoved')
 const symbols = require('./symbols')
 
-const config = Symbol('config')
+const secret = {
+  config: Symbol('component config'),
+  contentWatcher: Symbol('content watcher')
+}
+const contentWatcherConfig = {
+  childList: true,
+  subtree: true
+}
 
 module.exports = function component (rawConfig) {
-  return {use, useOnContent, register, [config]: validateAndCloneConfig(rawConfig)}
+  return {use, useOnContent, register, [secret.config]: validateConfig(rawConfig)}
 }
 
 function use (middleware) {
   if (typeof middleware !== 'function') {
     throw new TypeError('first argument must be a function')
   }
-  this[config].middlewares.push(middleware)
+  this[secret.config].middlewares.push(middleware)
   return this
 }
 
@@ -22,7 +31,7 @@ function useOnContent (contentMiddleware) {
   if (typeof contentMiddleware !== 'function') {
     throw new TypeError('first argument must be a function')
   }
-  this[config].contentMiddlewares.push(contentMiddleware)
+  this[secret.config].contentMiddlewares.push(contentMiddleware)
   return this
 }
 
@@ -30,71 +39,47 @@ function register (name) {
   if (typeof name !== 'string') {
     throw new TypeError('first argument must be a string')
   }
-  const parentProto = this[config].element ? this[config].elementProto : HTMLElement.prototype
+  const parentProto = this[secret.config].element ? this[secret.config].elementProto : HTMLElement.prototype
   const proto = Object.create(parentProto)
+  proto[secret.config] = this[secret.config]
   proto.attachedCallback = attachedCallback
-  proto[config] = this[config]
-  document.registerElement(name, {prototype: proto, extends: this[config].element})
-  return name
+  proto.detachedCallback = detachedCallback
+  return document.registerElement(name, {prototype: proto, extends: this[secret.config].element})
 }
 
 function attachedCallback () {
-  if (typeof this[config].state === 'object') {
-    this[symbols.state] = this[config].state
-  } else if (this[config].state === true) {
+  if (typeof this[secret.config].state === 'object') {
+    this[symbols.state] = this[secret.config].state
+  } else if (this[secret.config].state === true) {
     this[symbols.state] = observer.observable()
   }
-  if (this[config].state === 'inherit') {
+  if (this[secret.config].state === 'inherit') {
     this[symbols.inheritState] = true
   }
-  this[symbols.isolate] = this[config].isolate
-  this[symbols.contentMiddlewares] = this[config].contentMiddlewares.slice()
-  this[symbols.middlewares] = this[config].middlewares.slice()
+
+  this[symbols.isolate] = this[secret.config].isolate
+  this[symbols.contentMiddlewares] = this[secret.config].contentMiddlewares.slice()
+  this[symbols.middlewares] = this[secret.config].middlewares.slice()
+  this[symbols.root] = this[secret.config].root
   this[symbols.registered] = true
 
-  onComponentInstanceAttached.call(this)
+  if (this[symbols.root]) {
+    this[secret.contentWatcher] = new MutationObserver(onMutations)
+    this[secret.contentWatcher].observe(this, contentWatcherConfig)
+  }
+  onNodeAdded(this)
 }
 
-function validateAndCloneConfig (rawConfig) {
-  if (rawConfig === undefined) {
-    rawConfig = {}
+function detachedCallback () {
+  if (this[secret.contentWatcher]) {
+    this[secret.contentWatcher].disconnect()
   }
-  if (typeof rawConfig !== 'object') {
-    throw new TypeError('invalid component config, must be an object or undefined')
+  onNodeRemoved(this)
+}
+
+function onMutations (mutations) {
+  for (let mutation of mutations) {
+    Array.prototype.forEach.call(mutation.removedNodes, onNodeRemoved)
+    Array.prototype.forEach.call(mutation.addedNodes, onNodeAdded)
   }
-
-  const resultConfig = {}
-
-  if (typeof rawConfig.state === 'boolean' || rawConfig.state === 'inherit') {
-    resultConfig.state = rawConfig.state
-  } else if (typeof rawConfig.state === 'object' && observer.isObservable(rawConfig.state)) {
-    resultConfig.state = rawConfig.state
-  } else if (rawConfig.state === undefined) {
-    resultConfig.state = true
-  } else {
-    throw new Error('invalid state config: ' + rawConfig.state)
-  }
-
-  if (typeof rawConfig.isolate === 'boolean' || rawConfig.isolate === 'middlewares') {
-    resultConfig.isolate = rawConfig.isolate
-  } else if (rawConfig.isolate === undefined) {
-    resultConfig.isolate = false
-  } else {
-    throw new Error(`invalid isolate config: ${rawConfig.isolate}, must be a boolean or 'middlewares'`)
-  }
-
-  if (typeof rawConfig.element === 'string') {
-    try {
-      resultConfig.elementProto = Object.getPrototypeOf(document.createElement(rawConfig.element))
-      resultConfig.element = rawConfig.element
-    } catch (err) {
-      throw new Error(`invalid element config: ${rawConfig.element}, must be the name of a native element`)
-    }
-  } else if (rawConfig.element !== undefined) {
-    throw new Error(`invalid element config: ${rawConfig.element}, must be the name of a native element`)
-  }
-
-  resultConfig.contentMiddlewares = []
-  resultConfig.middlewares = []
-  return resultConfig
 }

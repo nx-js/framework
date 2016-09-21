@@ -9,11 +9,17 @@ module.exports = function attributes (elem, state, next) {
   elem.$require('expression')
   elem.$using('attributes')
 
+  elem.$hasAttribute = $hasAttribute
   elem.$attribute = $attribute
+  
   next()
 
   processAttributesWithoutHandler(elem, state)
   processAttributesWithHandler(elem, state)
+}
+
+function $hasAttribute (name) {
+  return (this.hasAttribute(name) || this.hasAttribute('$' + name) || this.hasAttribute('@' + name))
 }
 
 function $attribute (name, handler) {

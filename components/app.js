@@ -6,6 +6,8 @@ const filters = require('../filters')
 const limiters = require('../limiters')
 
 module.exports = function app (config) {
+  config = Object.assign({root: true}, config)
+  
   return core.component(config)
     .useOnContent(middlewares.code)
     .useOnContent(middlewares.expression)

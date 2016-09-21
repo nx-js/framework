@@ -10,7 +10,7 @@ module.exports = {
   usedMiddlewareNames: Symbol('used middleware names'),
   cleanupFunctions: Symbol('cleanup functions'),
   lifecycleStage: Symbol('lifecycle stage'),
-  contentWatcher: Symbol('content watcher'),
+  root: Symbol('root component'),
   registered: Symbol('registered custom element'),
   filters: Symbol('filters'),
   limiters: Symbol('limiters'),

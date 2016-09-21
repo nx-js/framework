@@ -69,7 +69,7 @@ function bindElement (elem) {
     elem.$observe(binder)
   } else if (params.mode === 'one-time') {
     elem.$unobserve(binder)
-    binder()
+    Promise.resolve().then(binder)
   } else if (params.mode === 'one-way') {
     elem.$unobserve(binder)
   } else {
