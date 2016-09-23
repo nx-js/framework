@@ -67,6 +67,7 @@ function bindElement (elem) {
   const binder = elem[secret.binder]
   if (params.mode === 'two-way') {
     elem.$observe(binder)
+    Promise.resolve().then(binder)
   } else if (params.mode === 'one-time') {
     elem.$unobserve(binder)
     Promise.resolve().then(binder)

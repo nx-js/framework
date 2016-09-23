@@ -2,13 +2,9 @@
 
 const symbols = require('./symbols')
 
-const attached = 'attached'
-const attaching = 'attaching'
-const detached = 'detached'
-
 module.exports = function onNodeRemoved (node) {
   if (!shouldProcess(node)) return
-  node[symbols.lifecycleStage] = detached
+  node[symbols.lifecycleStage] = 'detached'
 
   if (node[symbols.contentWatcher]) {
     node[symbols.contentWatcher].disconnect()
@@ -20,8 +16,8 @@ module.exports = function onNodeRemoved (node) {
 }
 
 function shouldProcess (node) {
-  const validStage = (node[symbols.lifecycleStage] === attached || node[symbols.lifecycleStage] === attaching)
-  const validParent = (!node.parentNode || node.parentNode[symbols.lifecycleStage] === detached)
+  const validStage = (node[symbols.lifecycleStage] === 'attached')
+  const validParent = (!node.parentNode || node.parentNode[symbols.lifecycleStage] === 'detached')
   return validStage && validParent
 }
 

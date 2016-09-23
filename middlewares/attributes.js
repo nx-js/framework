@@ -11,7 +11,7 @@ module.exports = function attributes (elem, state, next) {
 
   elem.$hasAttribute = $hasAttribute
   elem.$attribute = $attribute
-  
+
   next()
 
   processAttributesWithoutHandler(elem, state)

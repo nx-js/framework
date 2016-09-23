@@ -77,9 +77,14 @@ function detachedCallback () {
   onNodeRemoved(this)
 }
 
-function onMutations (mutations) {
+function onMutations (mutations, contentWatcher) {
   for (let mutation of mutations) {
     Array.prototype.forEach.call(mutation.removedNodes, onNodeRemoved)
     Array.prototype.forEach.call(mutation.addedNodes, onNodeAdded)
+  }
+
+  mutations = contentWatcher.takeRecords()
+  if (mutations.length) {
+    onMutations(mutations, contentWatcher)
   }
 }
