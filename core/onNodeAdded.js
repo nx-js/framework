@@ -17,10 +17,12 @@ function setupNodeAndChildren (node, state, contentMiddlewares, hasRoot) {
   if (node[symbols.root]) {
     hasRoot = true
   }
+
   if (node[symbols.contextState]) {
     state = node[symbols.contextState]
+  } else {
+    node[symbols.contextState] = state
   }
-  const contextState = state
 
   if (node[symbols.state]) {
     node[symbols.state].$parent = state
@@ -28,26 +30,22 @@ function setupNodeAndChildren (node, state, contentMiddlewares, hasRoot) {
       Object.setPrototypeOf(node[symbols.state], state)
     }
     state = node[symbols.state]
+  } else {
+    node[symbols.state] = state
   }
 
-  composeAndRunMiddlewares(node, state, contextState, contentMiddlewares, node[symbols.middlewares])
+  composeAndRunMiddlewares(node, state, contentMiddlewares.concat(node[symbols.middlewares]))
   setupChildren(node, state, contentMiddlewares, hasRoot)
 }
 
-function composeAndRunMiddlewares (node, state, contextState, contentMiddlewares, middlewares) {
-  let i = 0
-  let j = 0
-
-  function next () {
-    if (i < contentMiddlewares.length) {
-      contentMiddlewares[i++](node, contextState, next)
-      next()
-    } else if (middlewares && j < middlewares.length) {
-      middlewares[j++](node, state, next)
+function composeAndRunMiddlewares (node, state, middlewares) {
+  (function next () {
+    const middleware = middlewares.shift()
+    if (middleware) {
+      middleware(node, state, next)
       next()
     }
-  }
-  next()
+  })()
 }
 
 function setupChildren (node, state, contentMiddlewares, hasRoot) {

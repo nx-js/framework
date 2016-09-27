@@ -2,16 +2,12 @@
 
 const compiler = require('@risingstack/nx-compile')
 const exposed = require('../core/symbols')
-const secret = {
-  state: Symbol('code state')
-}
+
 const limiterRegex = /(?:[^\&]|\&\&)+/g
 const argsRegex = /\S+/g
 
 module.exports = function code (node, state) {
   node.$using('code')
-
-  node[secret.state] = state
   node.$compileCode = $compileCode
 }
 
@@ -20,15 +16,15 @@ function $compileCode (rawCode) {
     throw new TypeError('first argument must be a string')
   }
   const code = parseCode(this, rawCode)
-  const state = this[secret.state]
+  const contextState = this[exposed.contextState]
   const context = {}
 
   return function evaluateCode (expando) {
-    const backup = createBackup(state, expando)
+    const backup = createBackup(contextState, expando)
     let i = 0
     function next () {
       try {
-        Object.assign(state, expando)
+        Object.assign(contextState, expando)
         Object.assign(context, expando)
         if (i < code.limiters.length) {
           const limiter = code.limiters[i++]
@@ -38,7 +34,7 @@ function $compileCode (rawCode) {
           code.exec()
         }
       } finally {
-        Object.assign(state, backup)
+        Object.assign(contextState, backup)
         Object.assign(context, backup)
       }
     }
@@ -49,7 +45,7 @@ function $compileCode (rawCode) {
 function parseCode (node, rawCode) {
   const tokens = rawCode.match(limiterRegex)
   const code = {
-    exec: compiler.compileCode(tokens.shift(), node[secret.state]),
+    exec: compiler.compileCode(tokens.shift(), node[exposed.contextState]),
     limiters: []
   }
 
@@ -71,7 +67,7 @@ function evaluateArgExpression (argExpression) {
 }
 
 function compileArgExpression (argExpression) {
-  return compiler.compileExpression(argExpression, this[secret.state])
+  return compiler.compileExpression(argExpression, this[exposed.contextState])
 }
 
 function createBackup (state, expando) {

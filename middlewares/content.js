@@ -4,15 +4,12 @@ const observer = require('@risingstack/nx-observe')
 const exposed = require('../core/symbols')
 const secret = {
   template: Symbol('content template'),
-  separators: Symbol('content separators'),
-  state: Symbol('content state')
+  separators: Symbol('content separators')
 }
 
 module.exports = function content (node, state) {
   if (!(node instanceof Element)) return
   node.$using('content')
-
-  node[secret.state] = state
 
   node.$extractContent = $extractContent
   node.$insertContent = $insertContent
@@ -48,7 +45,7 @@ function $insertContent (index, contextState) {
   content.appendChild(separator)
 
   if (contextState) {
-    contextState = Object.assign(Object.create(this[secret.state]), contextState)
+    contextState = Object.assign(Object.create(this[exposed.state]), contextState)
     contextState = observer.observable(contextState)
 
     let node = content.firstChild

@@ -1,7 +1,7 @@
 'use strict'
 
+const exposed = require('../core/symbols')
 const secret = {
-  state: Symbol('bindable state'),
   params: Symbol('bindable params'),
   binder: Symbol('bindable binder')
 }
@@ -32,7 +32,6 @@ module.exports = function bindable (elem, state, next) {
   next()
 
   if (elem[secret.params]) {
-    elem[secret.state] = state
     elem[secret.binder] = syncElementWithState.bind(null, elem)
     elem.$attribute('bind', bindAttribute)
   }
@@ -82,7 +81,7 @@ function bindElement (elem) {
 }
 
 function syncElementWithState (elem) {
-  const state = elem[secret.state]
+  const state = elem[exposed.state]
   const params = elem[secret.params]
   const value = getValue(state, elem.name)
   if (elem.type === 'radio' || elem.type === 'checkbox') {
@@ -93,7 +92,7 @@ function syncElementWithState (elem) {
 }
 
 function syncStateWithElement (elem) {
-  const state = elem[secret.state]
+  const state = elem[exposed.state]
   const params = elem[secret.params]
   if (elem.type === 'radio' || elem.type === 'checkbox') {
     const value = elem.checked ? toType(elem.value, params.type) : undefined

@@ -2,16 +2,12 @@
 
 const compiler = require('@risingstack/nx-compile')
 const exposed = require('../core/symbols')
-const secret = {
-  state: Symbol('expression state')
-}
+
 const filterRegex = /(?:[^\|]|\|\|)+/g
 const argsRegex = /\S+/g
 
 module.exports = function expression (node, state) {
   node.$using('expression')
-
-  node[secret.state] = state
   node.$compileExpression = $compileExpression
 }
 
@@ -34,7 +30,7 @@ function $compileExpression (rawExpression) {
 function parseExpression (node, rawExpression) {
   const tokens = rawExpression.match(filterRegex)
   const expression = {
-    exec: compiler.compileExpression(tokens.shift(), node[secret.state]),
+    exec: compiler.compileExpression(tokens.shift(), node[exposed.contextState]),
     filters: []
   }
 
@@ -56,5 +52,5 @@ function evaluateArgExpression (argExpression) {
 }
 
 function compileArgExpression (argExpression) {
-  return compiler.compileExpression(argExpression, this[secret.state])
+  return compiler.compileExpression(argExpression, this[exposed.contextState])
 }

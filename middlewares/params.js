@@ -1,7 +1,7 @@
 'use strict'
 
+const exposed = require('../core/symbols')
 const secret = {
-  state: Symbol('params sync state'),
   config: Symbol('params sync config')
 }
 const nodesToSync = new Set()
@@ -10,7 +10,7 @@ window.addEventListener('popstate', onPopState)
 
 function onPopState (ev) {
   for (let node of nodesToSync) {
-    const state = node[secret.state]
+    const state = node[exposed.state]
     const config = node[secret.config]
     syncStateWithParams(state, history.state.params, config)
     syncParamsWithState(history.state.params, state, config, false)
@@ -21,7 +21,6 @@ module.exports = function params (config) {
   return function paramsMiddleware (node, state, next) {
     node.$using('params')
 
-    node[secret.state] = state
     node[secret.config] = config
     nodesToSync.add(node)
     node.$cleanup(() => nodesToSync.delete(node))
