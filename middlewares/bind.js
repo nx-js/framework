@@ -1,7 +1,7 @@
 'use strict'
 
-module.exports = function bind (elem, state, next) {
-  if (!isInput(elem)) return next()
+module.exports = function bind (elem, state) {
+  if (!isInput(elem)) return
   elem.$require('bindable')
   elem.$isUsing('bind')
 
@@ -10,8 +10,6 @@ module.exports = function bind (elem, state, next) {
     on: getTrigger(elem),
     type: getType(elem)
   })
-
-  return next()
 }
 
 function isInput (elem) {

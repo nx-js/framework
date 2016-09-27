@@ -7,7 +7,7 @@ const limiters = require('../limiters')
 
 module.exports = function app (config) {
   config = Object.assign({root: true}, config)
-  
+
   return core.component(config)
     .useOnContent(middlewares.code)
     .useOnContent(middlewares.expression)
@@ -15,6 +15,7 @@ module.exports = function app (config) {
     .useOnContent(middlewares.interpolate)
     .useOnContent(middlewares.attributes)
     .useOnContent(middlewares.style)
+    .useOnContent(middlewares.animate)
     .useOnContent(middlewares.ref)
     .useOnContent(middlewares.content)
     .useOnContent(middlewares.flow)

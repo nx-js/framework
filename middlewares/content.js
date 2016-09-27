@@ -8,10 +8,8 @@ const secret = {
   state: Symbol('content state')
 }
 
-module.exports = function content (node, state, next) {
-  if (!(node instanceof Element)) {
-    return next()
-  }
+module.exports = function content (node, state) {
+  if (!(node instanceof Element)) return
   node.$using('content')
 
   node[secret.state] = state
@@ -21,8 +19,6 @@ module.exports = function content (node, state, next) {
   node.$removeContent = $removeContent
   node.$replaceContent = $replaceContent
   node.$mutateContext = $mutateContext
-
-  return next()
 }
 
 function $extractContent () {
@@ -77,10 +73,10 @@ function $removeContent (index) {
   let next
   while (node && !isSeparator(node)) {
     next = node.nextSibling
-    this.removeChild(node)
+    node.remove()
     node = next
   }
-  this.removeChild(node)
+  node.remove()
   this[secret.separators].splice(index, 1)
 }
 

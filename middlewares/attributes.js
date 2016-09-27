@@ -5,7 +5,7 @@ const secret = {
 }
 
 module.exports = function attributes (elem, state, next) {
-  if (!(elem instanceof Element)) return next()
+  if (!(elem instanceof Element)) return
   elem.$require('expression')
   elem.$using('attributes')
 
@@ -43,7 +43,7 @@ function processAttributesWithoutHandler (elem) {
       const name = attribute.name.slice(1)
       if (!elem[secret.handlers] || !elem[secret.handlers].has(name)) {
         const expression = elem.$compileExpression(attribute.value || name)
-        const value = expression(state)
+        const value = expression()
         if (value) elem.setAttribute(name, value)
         else elem.removeAttribute(name)
         attributesToRemove.push(attribute.name)
@@ -53,7 +53,7 @@ function processAttributesWithoutHandler (elem) {
       if (!elem[secret.handlers] || !elem[secret.handlers].has(name)) {
         const expression = elem.$compileExpression(attribute.value || name)
         elem.$observe(() => {
-          const value = expression(state)
+          const value = expression()
           if (value) elem.setAttribute(name, value)
           else elem.removeAttribute(name)
         })

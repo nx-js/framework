@@ -8,12 +8,11 @@ const secret = {
 const filterRegex = /(?:[^\|]|\|\|)+/g
 const argsRegex = /\S+/g
 
-module.exports = function expression (node, state, next) {
+module.exports = function expression (node, state) {
   node.$using('expression')
 
   node[secret.state] = state
   node.$compileExpression = $compileExpression
-  return next()
 }
 
 function $compileExpression (rawExpression) {

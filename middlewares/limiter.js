@@ -10,13 +10,12 @@ module.exports = function limiterFactory (name, handler) {
     throw new TypeError('second argument must be a function')
   }
 
-  return function limiter (elem, state, next) {
+  return function limiter (elem, state) {
     elem.$require('code')
 
     if (!elem[exposed.limiters]) {
       elem[exposed.limiters] = new Map()
     }
     elem[exposed.limiters].set(name, handler)
-    return next()
   }
 }

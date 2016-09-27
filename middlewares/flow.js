@@ -6,7 +6,7 @@ const secret = {
 }
 
 module.exports = function flow (elem, state, next) {
-  if (!(elem instanceof Element)) return next()
+  if (!(elem instanceof Element)) return
   elem.$require('content', 'attributes')
   elem.$using('flow')
 
@@ -18,8 +18,6 @@ module.exports = function flow (elem, state, next) {
   }
   elem.$attribute('if', ifAttribute)
   elem.$attribute('repeat', repeatAttribute)
-
-  return next()
 }
 
 function ifAttribute (show, elem) {

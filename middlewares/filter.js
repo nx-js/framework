@@ -10,13 +10,12 @@ module.exports = function filterFactory (name, handler) {
     throw new TypeError('second argument must be a function')
   }
 
-  return function filter (elem, state, next) {
+  return function filter (elem, state) {
     elem.$require('expression')
 
     if (!elem[exposed.filters]) {
       elem[exposed.filters] = new Map()
     }
     elem[exposed.filters].set(name, handler)
-    return next()
   }
 }

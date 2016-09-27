@@ -4,15 +4,13 @@ const secret = {
   display: Symbol('style display')
 }
 
-module.exports = function style (elem, state, next) {
-  if (!(elem instanceof HTMLElement)) return next()
+module.exports = function style (elem, state) {
+  if (!(elem instanceof HTMLElement)) return
   elem.$require('attributes')
   elem.$using('style')
 
   elem.$attribute('class', classAttribute)
   elem.$attribute('style', styleAttribute)
-
-  return next()
 }
 
 function classAttribute (classes, elem) {

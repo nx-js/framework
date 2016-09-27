@@ -12,7 +12,7 @@ module.exports = function render (config) {
     document.head.appendChild(styleContainer)
   }
 
-  return function renderMiddleware (elem, state, next) {
+  return function renderMiddleware (elem, state) {
     if (!(elem instanceof Element)) {
       throw new Error('render only works with element nodes')
     }
@@ -26,7 +26,6 @@ module.exports = function render (config) {
     }
     composeContentWithTemplate(elem, state, template)
     elem.appendChild(template)
-    return next()
   }
 }
 
@@ -62,7 +61,7 @@ function cacheTemplate (template) {
 
 function clearContent (elem) {
   while (elem.firstChild) {
-    elem.removeChild(elem.firstChild)
+    elem.firstChild.remove()
   }
 }
 

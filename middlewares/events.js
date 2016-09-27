@@ -7,7 +7,7 @@ const secret = {
 }
 
 module.exports = function events (elem, state, next) {
-  if (!(elem instanceof Element)) return next()
+  if (!(elem instanceof Element)) return
   elem.$require('code')
   elem.$using('events')
 

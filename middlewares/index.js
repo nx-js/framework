@@ -14,6 +14,7 @@ module.exports = {
   bindable: require('./bindable'),
   bind: require('./bind'),
   style: require('./style'),
+  animate: require('./animate'),
   router: require('./router'),
   params: require('./params'),
   ref: require('./ref')

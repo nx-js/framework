@@ -14,7 +14,7 @@ function onPopState (ev) {
   }
 }
 
-module.exports = function router (router, state, next) {
+module.exports = function router (router, state) {
   if (!(router instanceof Element)) {
     throw new Error('router only works with element nodes')
   }
@@ -23,7 +23,6 @@ module.exports = function router (router, state, next) {
   setupRouter(router)
   extractViews(router)
   routeRouterAndChildren(router, absoluteToRelativeRoute(router, history.state.route))
-  return next()
 }
 
 function setupRouter (router) {
@@ -57,7 +56,7 @@ function extractViews (router) {
         router[secret.config].defaultView = view.getAttribute('route')
       }
     }
-    router.removeChild(view)
+    view.remove()
   }
 }
 
@@ -105,7 +104,7 @@ function routeRouter (router, nextView) {
   const templates = router[secret.config].templates
 
   while (router.firstChild) {
-    router.removeChild(router.firstChild)
+    router.firstChild.remove()
   }
   const template = templates.get(nextView)
   if (template) {

@@ -7,8 +7,8 @@ const secret = {
 
 updateHistory(pathToRoute(location.pathname), queryToParams(location.search), {history: false})
 
-module.exports = function ref (elem, state, next) {
-  if (!(elem instanceof Element)) return next()
+module.exports = function ref (elem, state) {
+  if (!(elem instanceof Element)) return
   elem.$require('attributes')
   elem.$using('ref')
 
@@ -19,7 +19,6 @@ module.exports = function ref (elem, state, next) {
     elem.$attribute('iref-params', irefParamsAttribute)
     elem.$attribute('iref-options', irefOptionsAttribute)
   }
-  return next()
 }
 
 function irefAttribute (path, elem) {

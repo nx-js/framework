@@ -8,12 +8,11 @@ const secret = {
 const limiterRegex = /(?:[^\&]|\&\&)+/g
 const argsRegex = /\S+/g
 
-module.exports = function code (node, state, next) {
+module.exports = function code (node, state) {
   node.$using('code')
 
   node[secret.state] = state
   node.$compileCode = $compileCode
-  return next()
 }
 
 function $compileCode (rawCode) {
