@@ -62,9 +62,6 @@ function setupChildren (node, state, contentMiddlewares, hasRoot) {
 }
 
 function shouldProcess (node, hasRoot) {
-  if (node[symbols.lifecycleStage] === 'detached') {
-    throw new Error(`you can't reattach a detached node: ${node.tagName}`)
-  }
   if (hasRoot && node[symbols.root]) {
     throw new Error(`Nested root component: ${node.tagName}`)
   }

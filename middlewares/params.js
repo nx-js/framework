@@ -10,10 +10,12 @@ window.addEventListener('popstate', onPopState)
 
 function onPopState (ev) {
   for (let node of nodesToSync) {
-    const state = node[exposed.state]
-    const config = node[secret.config]
-    syncStateWithParams(state, history.state.params, config)
-    syncParamsWithState(history.state.params, state, config, false)
+    if (document.body.contains(node)) { // TODO -> refine this a bit! I need a better check
+      const state = node[exposed.state]
+      const config = node[secret.config]
+      syncStateWithParams(state, history.state.params, config)
+      syncParamsWithState(history.state.params, state, config, false)
+    }
   }
 }
 

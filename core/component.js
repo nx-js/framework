@@ -67,14 +67,15 @@ function attachedCallback () {
     this[secret.contentWatcher] = new MutationObserver(onMutations)
     this[secret.contentWatcher].observe(this, contentWatcherConfig)
   }
+  // it might be synchronous -> doesn't belong here -> should add it to the queue
   onNodeAdded(this)
 }
 
 function detachedCallback () {
   if (this[secret.contentWatcher]) {
     this[secret.contentWatcher].disconnect()
+    onNodeRemoved(this)
   }
-  onNodeRemoved(this)
 }
 
 function onMutations (mutations, contentWatcher) {

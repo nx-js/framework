@@ -61,7 +61,7 @@ function extractViews (router) {
 }
 
 function findParentRouter (node) {
-  while(node.parentNode) {
+  while (node.parentNode) {
     node = node.parentNode
     if (node[symbols.routerLevel] !== undefined) {
       return node
@@ -101,12 +101,11 @@ function routeRouterAndChildren (router, route) {
 }
 
 function routeRouter (router, nextView) {
-  const templates = router[secret.config].templates
+  const template = router[secret.config].templates.get(nextView)
 
   while (router.firstChild) {
     router.firstChild.remove()
   }
-  const template = templates.get(nextView)
   if (template) {
     router.appendChild(document.importNode(template, true))
   }
