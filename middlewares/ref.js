@@ -26,8 +26,7 @@ function irefAttribute (path, elem) {
   const config = elem[secret.config]
   config.path = path
 
-  const query = elem.href ? elem.href.search : ''
-  const href = path + query
+  const href = path + (elem.search || '')
   elem.setAttribute('href', href)
 
   elem.addEventListener('click', onClick, true)
@@ -38,8 +37,7 @@ function irefParamsAttribute (params, elem) {
   const config = elem[secret.config]
   config.params = params
 
-  const path = elem.href ? elem.href.pathname : ''
-  const href = path + paramsToQuery(params)
+  const href = (elem.pathname || '') + paramsToQuery(params)
   elem.setAttribute('href', href)
 
   elem.addEventListener('click', onClick, true)
