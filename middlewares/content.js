@@ -15,6 +15,7 @@ module.exports = function content (node, state) {
   node.$insertContent = $insertContent
   node.$removeContent = $removeContent
   node.$replaceContent = $replaceContent
+  node.$moveContent = $moveContent
   node.$mutateContext = $mutateContext
 }
 
@@ -45,8 +46,10 @@ function $insertContent (index, contextState) {
   content.appendChild(separator)
 
   if (contextState) {
-    contextState = Object.assign(Object.create(this[exposed.state]), contextState)
+    //contextState = Object.assign(Object.create(this[exposed.state]), contextState)
+    // it is important to keep it in this order!!
     contextState = observer.observable(contextState)
+    Object.setPrototypeOf(contextState, this[exposed.state])
 
     let node = content.firstChild
     while (node) {
@@ -79,14 +82,35 @@ function $removeContent (index) {
 
 function $replaceContent (index, contextState) {
   index = index || 0
-  if (typeof index !== 'number') {
-    throw new TypeError('first argument must be a number')
-  }
-  if (contextState !== undefined && typeof contextState !== 'object') {
-    throw new TypeError('second argument must be an object or undefined')
-  }
   this.$removeContent(index)
   this.$insertContent(index, contextState)
+}
+
+function $moveContent (fromIndex, toIndex) {
+  fromIndex = fromIndex || 0
+  toIndex = toIndex || 0
+  if (!this[secret.template]) {
+    throw new Error('you must extract a template with $extractContent before removing')
+  }
+  let fromNode = findContentStartAtIndex(this, fromIndex)
+
+  let toNode = findContentStartAtIndex(this, toIndex)
+  let fromNext
+  while (fromNode && !isSeparator(fromNode)) {
+    fromNext = fromNode.nextSibling
+    this.insertBefore(fromNode, toNode)
+    fromNode = fromNext
+  }
+  this.insertBefore(fromNode, toNode)
+  const separators = this[secret.separators]
+  separators.splice(toIndex, 0, separators.splice(fromIndex, 1)[0])
+
+  if (fromNode) {
+    const contextState = fromNode[exposed.contextState]
+    if (contextState) {
+      contextState.$index = toIndex
+    }
+  }
 }
 
 function $mutateContext (index, extraContext) {

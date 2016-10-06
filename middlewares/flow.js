@@ -41,21 +41,31 @@ function repeatAttribute (array, elem) {
   const repeatValue = elem.getAttribute('repeat-value') || '$value'
   const repeatIndex = elem.getAttribute('repeat-index') || '$index'
 
-  for (let i = 0; i < Math.max(array.length, prevArray.length); i++) {
-    if (prevArray[i] !== array[i]) {
-      if (array[i] === undefined || array[i] === prevArray[i+1]) {
-        elem.$removeContent(i)
-        prevArray.splice(i, 1)
-        i--
-      } else if (prevArray[i] === undefined || prevArray[i] === array[i+1]) {
-        elem.$insertContent(i, {[repeatValue]: array[i], [repeatIndex]: i})
-        prevArray.splice(i, 0, array[i])
-      } else {
-        elem.$replaceContent(i, {[repeatValue]: array[i], [repeatIndex]: i})
-        prevArray[i] = array[i]
+  for (let i = 0; i < array.length; i++) {
+    const item = array[i]
+    let found = false
+
+    for (let j = i; j < prevArray.length; j++) {
+      const prevItem = prevArray[j]
+      if (item === prevItem) {
+        if (i === j) {
+          elem.$mutateContext(i, { [repeatIndex]: i })
+        } else {
+          prevArray.splice(i, 0, prevArray.splice(j, 1)[0])
+          elem.$moveContent(j, i)
+        }
+        found = true
+        break
       }
-    } else {
-      elem.$mutateContext(i, { [repeatIndex]: i })
     }
+    if (!found) {
+      prevArray.splice(i, 0, item)
+      elem.$insertContent(i, {[repeatValue]: array[i], [repeatIndex]: i})
+    }
+  }
+
+  while (array.length < prevArray.length) {
+    prevArray.splice(array.length, 1)
+    elem.$removeContent(array.length)
   }
 }

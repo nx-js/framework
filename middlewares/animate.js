@@ -3,6 +3,7 @@
 const exposed = require('../core/symbols')
 const secret = {
   entering: Symbol('during entering animation'),
+  entered: Symbol('after entering animation'),
   leaving: Symbol('during leaving animation'),
   moving: Symbol('during moving animation'),
   moveTransition: Symbol('move transition'),
@@ -22,6 +23,7 @@ function onAnimationEnd (ev) {
   if (elem[secret.entering]) {
     elem.style.animation = ''
     elem[secret.entering] = false
+    elem[secret.entered] = true
   }
 }
 
@@ -47,7 +49,7 @@ module.exports = function animate (elem, state) {
 }
 
 function enterAttribute (animation, elem) {
-  if (shouldAnimate(elem)) {
+  if (!elem[secret.entered]) {
     elem[secret.entering] = true
     if (typeof animation === 'object' && animation !== null) {
       setAnimation(elem, animation)
@@ -63,17 +65,15 @@ function leaveAttribute (animation, elem) {
   watchedNodes.add(elem)
   elem.$cleanup(unwatch)
   elem.$cleanup(() => {
-    if (shouldAnimate(parent)) {
-      elem[secret.leaving] = true
-      if (typeof animation === 'object' && animation !== null) {
-        setAnimation(elem, animation)
-      } else if (typeof animation === 'string') {
-        elem.style.animation = animation
-      }
-      setAnimationDefaults(elem)
-      toAbsolutePosition(elem)
-      parent.appendChild(elem)
+    elem[secret.leaving] = true
+    if (typeof animation === 'object' && animation !== null) {
+      setAnimation(elem, animation)
+    } else if (typeof animation === 'string') {
+      elem.style.animation = animation
     }
+    setAnimationDefaults(elem)
+    toAbsolutePosition(elem)
+    parent.appendChild(elem)
   })
 }
 
@@ -107,7 +107,7 @@ function checkWatchedNodes () {
 
     const xDiff = prevPosition.left - position.left || 0
     const yDiff = prevPosition.top - position.top || 0
-    if (elem[secret.moveTransition] && shouldAnimate(elem) && (xDiff || yDiff)) {
+    if (elem[secret.moveTransition] && (xDiff || yDiff)) {
       onMove(elem, xDiff, yDiff)
     }
   }
@@ -174,23 +174,10 @@ function toAbsolutePosition (elem) {
   if (position && style.position !== 'fixed' && style.position !== 'absolute') {
     style.left = `${position.left}px`
     style.top = `${position.top}px`
-    style.width = `${position.width}px`
-    style.height = `${position.height}px`
+    style.width = `${position.width + 1}px` // rounding
+    style.height = `${position.height + 1}px` // rounding
     style.position = 'absolute'
   }
-}
-
-function shouldAnimate (elem) {
-  while (elem) {
-    if (elem[secret.leaving] || elem[secret.entering] || elem[secret.moving]) {
-      return false
-    }
-    if (elem[exposed.root]) {
-      break
-    }
-    elem = elem.parentNode
-  }
-  return true
 }
 
 function timeToString (time) {
