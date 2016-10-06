@@ -7,6 +7,7 @@ const secret = {
   leaving: Symbol('during leaving animation'),
   moving: Symbol('during moving animation'),
   moveTransition: Symbol('move transition'),
+  display: Symbol('original display'),
   position: Symbol('animated element position')
 }
 const watchedNodes = new Set()
@@ -24,6 +25,7 @@ function onAnimationEnd (ev) {
     elem.style.animation = ''
     elem[secret.entering] = false
     elem[secret.entered] = true
+    elem.style.display = elem[secret.display]
   }
 }
 
@@ -32,6 +34,7 @@ function onTransitionEnd (ev) {
   if (elem[secret.moving]) {
     elem.style.transition = ''
     elem[secret.moving] = false
+    elem.style.display = elem[secret.display]
   }
 }
 
@@ -57,6 +60,7 @@ function enterAttribute (animation, elem) {
       elem.style.animation = animation
     }
     setAnimationDefaults(elem)
+    toBlockDisplay(elem)
   }
 }
 
@@ -128,6 +132,7 @@ function onMove (elem, xDiff, yDiff) {
       elem.style.transition = 'transform'
     }
     elem.style.transform = ''
+    toBlockDisplay(elem)
     setTransitionDefaults(elem)
   })
 }
@@ -177,6 +182,15 @@ function toAbsolutePosition (elem) {
     style.width = `${position.width + 1}px` // rounding
     style.height = `${position.height + 1}px` // rounding
     style.position = 'absolute'
+  }
+}
+
+function toBlockDisplay (elem) {
+  const style = window.getComputedStyle(elem)
+  console.log(style)
+  elem[secret.display] = elem.style.display
+  if (!style.display || style.display === 'initial' || style.display === 'inline') {
+    elem.style.display = 'inline-block'
   }
 }
 
