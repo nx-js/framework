@@ -5,9 +5,9 @@ const secret = {
   entering: Symbol('during entering animation'),
   entered: Symbol('after entering animation'),
   leaving: Symbol('during leaving animation'),
-  moving: Symbol('during moving animation'),
-  moveTransition: Symbol('move transition'),
-  display: Symbol('original display'),
+  resizing: Symbol('during resize animation'),
+  moveTransition: Symbol('watch move transition'),
+  sizeTransition: Symbol('watch size transition'),
   position: Symbol('animated element position')
 }
 const watchedNodes = new Set()
@@ -22,19 +22,18 @@ function onAnimationEnd (ev) {
     elem.remove()
   }
   if (elem[secret.entering]) {
-    elem.style.animation = ''
     elem[secret.entering] = false
     elem[secret.entered] = true
-    elem.style.display = elem[secret.display]
+    elem.style.animation = ''
   }
 }
 
 function onTransitionEnd (ev) {
   const elem = ev.target
-  if (elem[secret.moving]) {
-    elem.style.transition = ''
-    elem[secret.moving] = false
-    elem.style.display = elem[secret.display]
+  if (elem[secret.resizing]) {
+    elem.style.width = ''
+    elem.style.height = ''
+    elem[secret.resizing] = false
   }
 }
 
@@ -46,13 +45,15 @@ module.exports = function animate (elem, state) {
   elem.$attribute('enter-animation', enterAttribute)
   elem.$attribute('leave-animation', leaveAttribute)
   elem.$attribute('move-animation', moveAttribute)
+  elem.$attribute('size-animation', sizeAttribute)
 
   queueCheck()
   elem.$cleanup(queueCheck)
 }
 
 function enterAttribute (animation, elem) {
-  if (!elem[secret.entered]) {
+  toBlockDisplay(elem)
+  if (!elem[secret.entered] && shouldAnimate(elem.parentNode)) {
     elem[secret.entering] = true
     if (typeof animation === 'object' && animation !== null) {
       setAnimation(elem, animation)
@@ -60,7 +61,6 @@ function enterAttribute (animation, elem) {
       elem.style.animation = animation
     }
     setAnimationDefaults(elem)
-    toBlockDisplay(elem)
   }
 }
 
@@ -69,22 +69,50 @@ function leaveAttribute (animation, elem) {
   watchedNodes.add(elem)
   elem.$cleanup(unwatch)
   elem.$cleanup(() => {
-    elem[secret.leaving] = true
-    if (typeof animation === 'object' && animation !== null) {
-      setAnimation(elem, animation)
-    } else if (typeof animation === 'string') {
-      elem.style.animation = animation
+    if (shouldAnimate(parent)) {
+      elem[secret.leaving] = true
+      if (typeof animation === 'object' && animation !== null) {
+        setAnimation(elem, animation)
+      } else if (typeof animation === 'string') {
+        elem.style.animation = animation
+      }
+      setAnimationDefaults(elem)
+      toAbsolutePosition(elem)
+      parent.appendChild(elem)
     }
-    setAnimationDefaults(elem)
-    toAbsolutePosition(elem)
-    parent.appendChild(elem)
   })
 }
 
 function moveAttribute (transition, elem) {
+  elem[secret.moveTransition] = true
   watchedNodes.add(elem)
   elem.$cleanup(unwatch)
-  elem[secret.moveTransition] = transition || true
+  if (typeof transition === 'object' && transition !== null) {
+    elem.style.transitionProperty = 'transform'
+    setTransition(elem, transition)
+  } else if (typeof transition === 'string') {
+    elem.style.transition = 'transform ' + transition
+  } else if (transition) {
+    elem.style.transition = 'transform 1s'
+  }
+  setTransitionDefaults(elem)
+  toBlockDisplay(elem)
+}
+
+function sizeAttribute (transition, elem) {
+  elem[secret.sizeTransition] = true
+  watchedNodes.add(elem)
+  elem.$cleanup(unwatch)
+  if (typeof transition === 'object' && transition !== null) {
+    elem.style.transitionProperty = 'width, height'
+    setTransition(elem, transition)
+  } else if (typeof transition === 'string') {
+    elem.style.transition = `width ${transition}, height ${transition}`
+  } else if (transition) {
+    elem.style.transition = 'width 1s, height 1s'
+  }
+  setTransitionDefaults(elem)
+  toBorderBox(elem)
 }
 
 function unwatch (elem) {
@@ -100,40 +128,57 @@ function queueCheck () {
 
 function checkWatchedNodes () {
   for (let elem of watchedNodes) {
+    const rect = elem.getBoundingClientRect() || {}
+    const parentRect = elem.offsetParent ? elem.offsetParent.getBoundingClientRect() : {}
     const position = {
       left: elem.offsetLeft,
       top: elem.offsetTop,
-      width: elem.offsetWidth,
-      height: elem.offsetHeight
+      width: Math.ceil(rect.width),
+      height: Math.ceil(rect.height),
+      scrollWidth: elem.scrollWidth,
+      scrollHeight: elem.scrollHeight
     }
+    // problem with translateX, seems to be bugged!!
+    position.translateX = position.left - Math.round(rect.left) + Math.round(parentRect.left) || 0
+    position.translateY = position.top - Math.round(rect.top) + Math.round(parentRect.top) || 0
+
+    console.log(position.translateX, position.translateY)
+
     const prevPosition = elem[secret.position] || {}
     elem[secret.position] = position
 
-    const xDiff = prevPosition.left - position.left || 0
-    const yDiff = prevPosition.top - position.top || 0
-    if (elem[secret.moveTransition] && (xDiff || yDiff)) {
+    const xDiff = prevPosition.left - position.left - position.translateX || 0 // translateX is bugged
+    const yDiff = prevPosition.top - position.top - position.translateY || 0
+    const widthDiff = position.scrollWidth - prevPosition.scrollWidth || 0
+    const heightDiff = position.scrollHeight - prevPosition.scrollHeight || 0
+
+    if (elem[secret.moveTransition] && shouldAnimate(elem) && (xDiff || yDiff)) {
       onMove(elem, xDiff, yDiff)
+    }
+    if (elem[secret.sizeTransition] && shouldAnimate(elem) && (widthDiff || heightDiff)) {
+      onResize(elem, prevPosition.scrollWidth, position.scrollWidth, prevPosition.scrollHeight, position.scrollHeight)
     }
   }
   checkQueued = false
 }
 
 function onMove (elem, xDiff, yDiff) {
-  elem[secret.moving] = true
+  const prevTransitionValue = elem.style.transition
+  elem.style.transition = ''
   elem.style.transform = `translate3d(${xDiff}px, ${yDiff}px, 0)`
   requestAnimationFrame(() => {
-    const transition = elem[secret.moveTransition]
-    if (typeof transition === 'object' && transition !== null) {
-      elem.style.transitionProperty = 'transform'
-      setTransition(elem, transition)
-    } else if (typeof transition === 'string') {
-      elem.style.transition = 'transform ' + transition
-    } else if (transition) {
-      elem.style.transition = 'transform'
-    }
+    elem.style.transition = prevTransitionValue
     elem.style.transform = ''
-    toBlockDisplay(elem)
-    setTransitionDefaults(elem)
+  })
+}
+
+function onResize (elem, prevWidth, width, prevHeight, height) {
+  elem[secret.resizing] = true
+  elem.style.width = prevWidth + 4 + 'px'
+  elem.style.height = prevHeight + 4 + 'px'
+  requestAnimationFrame(() => {
+    elem.style.width = width + 4 + 'px'
+    elem.style.height = height + 4 + 'px'
   })
 }
 
@@ -176,22 +221,39 @@ function setTransitionDefaults (elem) {
 function toAbsolutePosition (elem) {
   const style = elem.style
   const position = elem[secret.position]
-  if (position && style.position !== 'fixed' && style.position !== 'absolute') {
-    style.left = `${position.left}px`
-    style.top = `${position.top}px`
-    style.width = `${position.width + 1}px` // rounding
-    style.height = `${position.height + 1}px` // rounding
-    style.position = 'absolute'
-  }
+  style.left = `${position.left}px`
+  style.top = `${position.top}px`
+  style.width = `${position.width + 1}px`
+  style.height = `${position.height + 1}px`
+  style.position = style.position || 'absolute'
 }
 
 function toBlockDisplay (elem) {
-  const style = window.getComputedStyle(elem)
-  console.log(style)
-  elem[secret.display] = elem.style.display
+  let style = elem.style
+  if (style.display && style.display !== 'initial' && style.display !== 'inline') {
+    return
+  }
+  style = window.getComputedStyle(elem)
   if (!style.display || style.display === 'initial' || style.display === 'inline') {
     elem.style.display = 'inline-block'
   }
+}
+
+function toBorderBox (elem) {
+  elem.style.boxSizing = 'border-box'
+}
+
+function shouldAnimate (elem) {
+  while (elem) {
+    if (elem[secret.entering] || elem[secret.leaving]) {
+      return false
+    }
+    if (elem[exposed.root]) {
+      break
+    }
+    elem = elem.parentNode
+  }
+  return true
 }
 
 function timeToString (time) {
