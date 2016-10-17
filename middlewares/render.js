@@ -1,5 +1,7 @@
 'use strict'
 
+const exposed = require('../core/symbols')
+
 module.exports = function render (config) {
   config = validateAndCloneConfig(config)
   if (config.cache) {
@@ -37,7 +39,11 @@ function composeContentWithTemplate (elem, state, template) {
       const slotFillers = elem.querySelectorAll(`[slot=${slot.getAttribute('name')}]`)
       if (slotFillers.length) {
         clearContent(slot)
-        Array.prototype.forEach.call(slotFillers, (slotFiller) => slot.appendChild(slotFiller))
+        for (let i = 0; i < slotFillers.length; i++) {
+          const slotFiller = slotFillers[i]
+          slotFiller[exposed.contextState] = elem[exposed.contextState]
+          slot.appendChild(slotFiller)
+        }
       }
     } else if (slot.hasAttribute('name')) {
       defaultSlot = slot
@@ -47,6 +53,7 @@ function composeContentWithTemplate (elem, state, template) {
   if (defaultSlot && elem.childNodes.length) {
     clearContent(defaultSlot)
     while (elem.firstChild) {
+      elem.firstChild[exposed.contextState] = elem[exposed.contextState]
       defaultSlot.appendChild(elem.firstChild)
     }
   }
