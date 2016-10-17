@@ -38,6 +38,7 @@ function repeatAttribute (array, elem) {
   elem[secret.prevArray] = elem[secret.prevArray] || []
   const prevArray = elem[secret.prevArray]
 
+  const repeatKey = elem.getAttribute('repeat-key')
   const repeatValue = elem.getAttribute('repeat-value') || '$value'
   const repeatIndex = elem.getAttribute('repeat-index') || '$index'
 
@@ -47,7 +48,7 @@ function repeatAttribute (array, elem) {
 
     for (let j = i; j < prevArray.length; j++) {
       const prevItem = prevArray[j]
-      if (item === prevItem) {
+      if (isSame(item, prevItem, repeatKey)) {
         if (i === j) {
           elem.$mutateContext(i, { [repeatIndex]: i })
         } else {
@@ -67,5 +68,14 @@ function repeatAttribute (array, elem) {
   while (array.length < prevArray.length) {
     prevArray.splice(array.length, 1)
     elem.$removeContent(array.length)
+  }
+}
+
+function isSame (item1, item2, key) {
+  if (item1 === item2) {
+    return true
+  }
+  if (key && typeof item1 === 'object' && item1 !== null && typeof item2 === 'object' && item2 !== null) {
+    return (item1[key] === item2[key])
   }
 }
