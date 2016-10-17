@@ -97,9 +97,7 @@ function checkWatchedNodes () {
     const rect = elem.getBoundingClientRect() || {}
     const position = {
       left: elem.offsetLeft,
-      top: elem.offsetTop,
-      width: Math.round(rect.width),
-      height: Math.round(rect.height)
+      top: elem.offsetTop
     }
     const prevPosition = elem[secret.position] || {}
     elem[secret.position] = position
@@ -126,7 +124,7 @@ function onMove (elem, xDiff, yDiff) {
 function animationObjectToString (animation) {
   return [
     animation.name,
-    timeToString(animation.duration),
+    timeToString(animation.duration) || '1s',
     animation.timingFunction,
     timeToString(animation.delay),
     animation.iterationCount,
@@ -146,17 +144,17 @@ function transitionObjectToString (transition) {
 
 function setAnimationDefaults (elem) {
   const style = elem.style
-  if (style.animationDuration === 'initial') {
+  if (style.animationDuration === 'initial' || style.animationDuration === '') {
     elem.style.animationDuration = '1s'
   }
-  if (style.animationFillMode === 'initial') {
+  if (style.animationFillMode === 'initial' || style.animationFillMode === '') {
     style.animationFillMode = 'both'
   }
 }
 
 function setTransitionDefaults (elem) {
   const style = elem.style
-  if (style.transitionDuration === 'initial') {
+  if (style.transitionDuration === 'initial' || style.transitionDuration === '') {
     style.transitionDuration = '1s'
   }
 }
@@ -179,8 +177,9 @@ function toAbsolutePosition (elem) {
   const position = elem[secret.position]
   style.left = `${position.left}px`
   style.top = `${position.top}px`
-  style.width = `${elem.offsetWidth}px`
-  style.height = `${elem.offsetHeight}px`
+  style.width = `${elem.offsetWidth + 1}px` // it always rounds downwards
+  style.height = `${elem.offsetHeight + 1}px` // it always rounds downwards
+  style.margin = '0'
   style.boxSizing = 'border-box'
   style.position = 'absolute'
 }
