@@ -1,6 +1,13 @@
 # NX
 
-NX is a next generation client side framework. For more information please visit the [home page](http://nx-framework.com/)
+NX is a next generation client side framework. For more information please visit the [home page](http://nx-framework.com/).
+
+## Resources
+
+- [NX Docs](http://nx-framework.com/docs)
+- [Hacker News in NX](https://github.com/nx-hacker-news/nx-hacker-news.github.io)
+- [NX TodoMVC](https://github.com/tastejs/todomvc/pull/1679/files)
+- [Article series about writing NX](https://blog.risingstack.com/writing-a-javascript-framework-project-structuring/)
 
 ## Installation
 
