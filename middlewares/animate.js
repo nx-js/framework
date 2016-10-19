@@ -147,7 +147,7 @@ function setAnimationDefaults (elem) {
   if (style.animationDuration === 'initial' || style.animationDuration === '') {
     elem.style.animationDuration = '1s'
   }
-  if (style.animationFillMode === 'initial' || style.animationFillMode === '') {
+  if (style.animationFillMode === 'initial' || style.animationFillMode === '' || style.animationFillMode === 'none') {
     style.animationFillMode = 'both'
   }
 }

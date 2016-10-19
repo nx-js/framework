@@ -48,27 +48,29 @@ function register (name) {
 }
 
 function attachedCallback () {
-  if (typeof this[secret.config].state === 'object') {
-    this[symbols.state] = this[secret.config].state
-  } else if (this[secret.config].state === true) {
-    this[symbols.state] = observer.observable()
-  }
-  if (this[secret.config].state === 'inherit') {
-    this[symbols.inheritState] = true
-  }
+  if (!this[symbols.registered]) {
+    if (typeof this[secret.config].state === 'object') {
+      this[symbols.state] = this[secret.config].state
+    } else if (this[secret.config].state === true) {
+      this[symbols.state] = observer.observable()
+    }
+    if (this[secret.config].state === 'inherit') {
+      this[symbols.inheritState] = true
+    }
 
-  this[symbols.isolate] = this[secret.config].isolate
-  this[symbols.contentMiddlewares] = this[secret.config].contentMiddlewares.slice()
-  this[symbols.middlewares] = this[secret.config].middlewares.slice()
-  this[symbols.root] = this[secret.config].root
-  this[symbols.registered] = true
+    this[symbols.isolate] = this[secret.config].isolate
+    this[symbols.contentMiddlewares] = this[secret.config].contentMiddlewares.slice()
+    this[symbols.middlewares] = this[secret.config].middlewares.slice()
+    this[symbols.root] = this[secret.config].root
+    this[symbols.registered] = true
 
-  if (this[symbols.root]) {
-    this[secret.contentWatcher] = new MutationObserver(onMutations)
-    this[secret.contentWatcher].observe(this, contentWatcherConfig)
+    if (this[symbols.root]) {
+      this[secret.contentWatcher] = new MutationObserver(onMutations)
+      this[secret.contentWatcher].observe(this, contentWatcherConfig)
+    }
+    // it might be synchronous -> doesn't belong here -> should add it to the queue
+    onNodeAdded(this)
   }
-  // it might be synchronous -> doesn't belong here -> should add it to the queue
-  onNodeAdded(this)
 }
 
 function detachedCallback () {
