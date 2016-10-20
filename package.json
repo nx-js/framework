@@ -30,7 +30,7 @@
   ],
   "dependencies": {
     "@risingstack/nx-compile": "^3.0.0",
-    "@risingstack/nx-observe": "^1.1.0",
+    "@risingstack/nx-observe": "^1.1.1",
     "keycode": "^2.1.4"
   },
   "devDependencies": {

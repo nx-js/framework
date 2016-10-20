@@ -76,8 +76,8 @@ function attachedCallback () {
 function detachedCallback () {
   if (this[secret.contentWatcher]) {
     this[secret.contentWatcher].disconnect()
-    onNodeRemoved(this)
   }
+  onNodeRemoved(this)
 }
 
 function onMutations (mutations, contentWatcher) {
@@ -85,7 +85,6 @@ function onMutations (mutations, contentWatcher) {
     Array.prototype.forEach.call(mutation.removedNodes, onNodeRemoved)
     Array.prototype.forEach.call(mutation.addedNodes, onNodeAdded)
   }
-
   mutations = contentWatcher.takeRecords()
   if (mutations.length) {
     onMutations(mutations, contentWatcher)

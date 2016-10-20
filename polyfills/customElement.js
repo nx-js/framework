@@ -15,6 +15,10 @@ if (!document.registerElement) {
       Array.prototype.forEach.call(mutation.addedNodes, onNodeAdded)
       Array.prototype.forEach.call(mutation.removedNodes, onNodeRemoved)
     }
+    mutations = observer.takeRecords()
+    if (mutations.length) {
+      onMutations(mutations)
+    }
   }
 
   function onNodeAdded (node) {
