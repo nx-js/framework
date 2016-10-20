@@ -1,6 +1,6 @@
 {
   "name": "@risingstack/nx-framework",
-  "version": "1.0.0-alpha.3.0.0",
+  "version": "1.0.0-alpha.3.0.1",
   "description": "Next generation client side framework",
   "main": "index.js",
   "author": {
