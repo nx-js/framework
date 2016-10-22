@@ -4,19 +4,22 @@ const setupNode = require('./setupNode')
 const symbols = require('./symbols')
 
 module.exports = function onNodeAdded (node) {
-  const context = getContext(node)
-  setupNodeAndChildren(node, context.state, context.contentMiddlewares, context.hasRoot)
+  if ((node.parentNode && node.parentNode[symbols.lifecycleStage] === 'attached') || node[symbols.root]) {
+    const context = getContext(node)
+    if (node[symbols.root] && context.hasRoot) {
+      throw new Error(`Nested root component: ${node.tagName}`)
+    }
+    if (node[symbols.root] || context.hasRoot) {
+      setupNodeAndChildren(node, context.state, context.contentMiddlewares)
+    }
+  }
 }
 
-function setupNodeAndChildren (node, state, contentMiddlewares, hasRoot) {
-  if (!shouldProcess(node, hasRoot)) return
+function setupNodeAndChildren (node, state, contentMiddlewares) {
+  if (!shouldProcess(node)) return
 
   node[symbols.lifecycleStage] = 'attached'
   setupNode(node)
-
-  if (node[symbols.root]) {
-    hasRoot = true
-  }
 
   if (node[symbols.contextState]) {
     state = node[symbols.contextState]
@@ -35,7 +38,7 @@ function setupNodeAndChildren (node, state, contentMiddlewares, hasRoot) {
   }
 
   composeAndRunMiddlewares(node, state, contentMiddlewares.concat(node[symbols.middlewares]))
-  setupChildren(node, state, contentMiddlewares, hasRoot)
+  setupChildren(node, state, contentMiddlewares)
 }
 
 function composeAndRunMiddlewares (node, state, middlewares) {
@@ -48,7 +51,7 @@ function composeAndRunMiddlewares (node, state, middlewares) {
   })()
 }
 
-function setupChildren (node, state, contentMiddlewares, hasRoot) {
+function setupChildren (node, state, contentMiddlewares) {
   if (node[symbols.isolate] === true) {
     return
   } else if (node[symbols.isolate] === 'middlewares') {
@@ -57,20 +60,21 @@ function setupChildren (node, state, contentMiddlewares, hasRoot) {
     contentMiddlewares = contentMiddlewares.concat(node[symbols.contentMiddlewares])
   }
   for (let i = 0; i < node.childNodes.length; i++) {
-    setupNodeAndChildren(node.childNodes[i], state, contentMiddlewares, hasRoot)
+    setupNodeAndChildren(node.childNodes[i], state, contentMiddlewares)
   }
 }
 
-function shouldProcess (node, hasRoot) {
-  if (hasRoot && node[symbols.root]) {
-    throw new Error(`Nested root component: ${node.tagName}`)
+function shouldProcess (node) {
+  if (node[symbols.lifecycleStage] !== undefined) {
+    return false
   }
-  const validRoot = (hasRoot || node[symbols.root])
-  const validStage = (node[symbols.lifecycleStage] === undefined)
-  const validParent = ((node.parentNode && node.parentNode[symbols.lifecycleStage] === 'attached') || node[symbols.root])
-  const registered = (node[symbols.registered] || !(node instanceof Element) || (node.tagName.indexOf('-') === -1 && !node.hasAttribute('is')))
-
-  return (validRoot && validStage && validParent && registered)
+  if (node instanceof Element) {
+    return (node[symbols.registered] || (node.tagName.indexOf('-') === -1 && !node.hasAttribute('is')))
+  }
+  if (node instanceof Text) {
+    // remove textNode instead
+    return Boolean(node.nodeValue.trim())
+  }
 }
 
 function getContext (node) {
