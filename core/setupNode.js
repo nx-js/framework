@@ -15,40 +15,20 @@ module.exports = function setupNode (node) {
   node.$unobserve = $unobserve
 }
 
-function $using (...middlewareNames) {
-  const duplicateMiddlewareNames = []
-
-  for (let middlewareName of middlewareNames) {
-    if (this[symbols.usedMiddlewareNames].has(middlewareName)) {
-      duplicateMiddlewareNames.push(middlewareName)
-    } else {
-      this[symbols.usedMiddlewareNames].add(middlewareName)
-    }
+function $using (middlewareName) {
+  if (this[symbols.usedMiddlewareNames].has(middlewareName)) {
+    throw new Error(`duplicate middlewares: ${middlewareName}`)
   }
-  if (duplicateMiddlewareNames.length) {
-    throw new Error(`duplicate middlewares in ${this}: ${duplicateMiddlewareNames}`)
-  }
+  this[symbols.usedMiddlewareNames].add(middlewareName)
 }
 
-function $isUsing (...middlewareNames) {
-  for (let middlewareName of middlewareNames) {
-    if (!this[symbols.usedMiddlewareNames].has(middlewareName)) {
-      return false
-    }
-  }
-  return true
+function $isUsing (middlewareName) {
+  return this[symbols.usedMiddlewareNames].has(middlewareName)
 }
 
-function $require (...middlewareNames) {
-  const missingMiddlewareNames = []
-
-  for (let middlewareName of middlewareNames) {
-    if (!this[symbols.usedMiddlewareNames].has(middlewareName)) {
-      missingMiddlewareNames.push(middlewareName)
-    }
-  }
-  if (missingMiddlewareNames.length) {
-    throw new Error(`missing required middlewares in ${this}: ${missingMiddlewareNames}`)
+function $require (middlewareName) {
+  if (!this[symbols.usedMiddlewareNames].has(middlewareName)) {
+    throw new Error(`missing required middleware: ${middlewareName}`)
   }
 }
 

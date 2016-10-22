@@ -3,7 +3,7 @@
 module.exports = function bind (elem, state) {
   if (!isInput(elem)) return
   elem.$require('bindable')
-  elem.$isUsing('bind')
+  elem.$using('bind')
 
   elem.$bindable({
     mode: 'two-way',
