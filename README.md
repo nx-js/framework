@@ -1,9 +1,8 @@
 # NX
 
-Home page: http://nx-framework.com
-Docs: http://nx-framework.com/docs
+[Home page](http://nx-framework.com), [Docs](http://nx-framework.com/docs)
 
-NX is a next generation client side framework, built with ES6 and Web Components.
+### NX is a next generation client side framework, built with ES6 and Web Components.
 
 The NX core is a tiny library, responsible for one thing only. It allows you to create and combine components and middlewares. A component executes its middlewares when it is attached to the DOM and gains all the added functionalities from them. NX comes with some core middlewares out of the box, which you can find listed below.
 
@@ -25,7 +24,8 @@ to avoid boilerplate code.
 
 ## Example app
 
-The NX Hacker News demo features client-side routing, real-time updates and animations.
+The [NX Hacker News demo](https://github.com/nx-hacker-news/nx-hacker-news.github.io)
+features client-side routing, real-time updates and animations.
 
 - The code: https://github.com/nx-hacker-news/nx-hacker-news.github.io
 - The live demo: https://nx-hacker-news.github.io/?type=top&page=0
@@ -44,7 +44,7 @@ If you would like to get it from npm instead, use the `npm install @risingstack/
 
 ## Contributing
 
-[List of contributors so far.](/contributors.md)
+[List of contributors](/contributors.md)
 
 If you have a new feature idea, just open a new issue or PR.
 Bug fixes and tests are always welcome. Thanks!
