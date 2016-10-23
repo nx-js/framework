@@ -9,8 +9,7 @@ module.exports = function onNodeAdded (node) {
     throw new Error(`Nested root component: ${node.tagName}`)
   }
   if (validParent || node[symbols.root]) {
-    const context = getContext(node)
-    setupNodeAndChildren(node, context.state, context.contentMiddlewares)
+    setupNodeAndChildren(node, this.state, this.contentMiddlewares)
   }
 }
 
@@ -74,30 +73,4 @@ function shouldProcess (node) {
     // TODO: remove textNode instead
     return Boolean(node.nodeValue.trim())
   }
-}
-
-function getContext (node) {
-  const context = {contentMiddlewares: []}
-  let isolate = false
-
-  node = node.parentNode
-  while (node) {
-    if (!context.state && node[symbols.state]) {
-      context.state = node[symbols.state]
-    }
-    if (!context.state && node[symbols.contextState]) {
-      context.state = node[symbols.contextState]
-    }
-    if (isolate !== true && isolate !== 'middlewares') {
-      isolate = node[symbols.isolate]
-    } else if (isolate === true) {
-      context.isolate = true
-      return context
-    }
-    if (node[symbols.contentMiddlewares] && !isolate) {
-      context.contentMiddlewares.unshift(...node[symbols.contentMiddlewares])
-    }
-    node = node.parentNode
-  }
-  return context
 }

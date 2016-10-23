@@ -2,6 +2,7 @@
 
 const observer = require('@risingstack/nx-observe')
 const validateConfig = require('./validateConfig')
+const getContext = require('./getContext')
 const onNodeAdded = require('./onNodeAdded')
 const onNodeRemoved = require('./onNodeRemoved')
 const symbols = require('./symbols')
@@ -69,7 +70,8 @@ function attachedCallback () {
       this[secret.contentWatcher].observe(this, contentWatcherConfig)
     }
     // it might be synchronous -> doesn't belong here -> should add it to the queue
-    onNodeAdded(this)
+    const context = getContext(this.parentNode)
+    onNodeAdded.call(context, this)
   }
 }
 
@@ -82,8 +84,9 @@ function detachedCallback () {
 
 function onMutations (mutations, contentWatcher) {
   for (let mutation of mutations) {
+    const context = getContext(mutation.target)
     Array.prototype.forEach.call(mutation.removedNodes, onNodeRemoved)
-    Array.prototype.forEach.call(mutation.addedNodes, onNodeAdded)
+    Array.prototype.forEach.call(mutation.addedNodes, onNodeAdded, context)
   }
   mutations = contentWatcher.takeRecords()
   if (mutations.length) {
