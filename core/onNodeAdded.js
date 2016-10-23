@@ -4,14 +4,13 @@ const setupNode = require('./setupNode')
 const symbols = require('./symbols')
 
 module.exports = function onNodeAdded (node) {
-  if ((node.parentNode && node.parentNode[symbols.lifecycleStage] === 'attached') || node[symbols.root]) {
+  const validParent = (node.parentNode && node.parentNode[symbols.lifecycleStage] === 'attached')
+  if (validParent && node[symbols.root]) {
+    throw new Error(`Nested root component: ${node.tagName}`)
+  }
+  if (validParent || node[symbols.root]) {
     const context = getContext(node)
-    if (node[symbols.root] && context.hasRoot) {
-      throw new Error(`Nested root component: ${node.tagName}`)
-    }
-    if (node[symbols.root] || context.hasRoot) {
-      setupNodeAndChildren(node, context.state, context.contentMiddlewares)
-    }
+    setupNodeAndChildren(node, context.state, context.contentMiddlewares)
   }
 }
 
@@ -72,7 +71,7 @@ function shouldProcess (node) {
     return (node[symbols.registered] || (node.tagName.indexOf('-') === -1 && !node.hasAttribute('is')))
   }
   if (node instanceof Text) {
-    // remove textNode instead
+    // TODO: remove textNode instead
     return Boolean(node.nodeValue.trim())
   }
 }
@@ -97,9 +96,6 @@ function getContext (node) {
     }
     if (node[symbols.contentMiddlewares] && !isolate) {
       context.contentMiddlewares.unshift(...node[symbols.contentMiddlewares])
-    }
-    if (node[symbols.root]) {
-      context.hasRoot = true
     }
     node = node.parentNode
   }
