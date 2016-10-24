@@ -6,13 +6,12 @@ const secret = {
   handlers: Symbol('event handlers')
 }
 
-module.exports = function events (elem, state, next) {
+module.exports = function events (elem, state) {
   if (!(elem instanceof Element)) return
   elem.$require('code')
   elem.$using('events')
 
   elem[secret.handlers] = new Map()
-  next()
 
   const attributes = elem.attributes
   for (let i = attributes.length; i--;) {
