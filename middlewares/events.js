@@ -1,7 +1,7 @@
 'use strict'
 
 const compiler = require('@risingstack/nx-compile')
-
+window.counter = 0
 const secret = {
   handlers: Symbol('event handlers')
 }
@@ -11,29 +11,26 @@ module.exports = function events (elem, state, next) {
   elem.$require('code')
   elem.$using('events')
 
+  elem[secret.handlers] = new Map()
   next()
 
-  for (let i = 0; i < elem.attributes.length; i++) {
-    const attribute = elem.attributes[i]
+  Array.prototype.forEach.call(elem.attributes, setupHandlers, elem)
+}
 
-    if (attribute.name[0] === '#') {
-      const handler = elem.$compileCode(attribute.value)
-
-      if (!elem[secret.handlers]) {
-        elem[secret.handlers] = new Map()
+function setupHandlers (attribute) {
+  if (attribute.name[0] === '#') {
+    const handler = this.$compileCode(attribute.value)
+    const names = attribute.name.slice(1).split(',')
+    for (let name of names) {
+      let handlers = this[secret.handlers].get(name)
+      if (!handlers) {
+        handlers = new Set()
+        this[secret.handlers].set(name, handlers)
       }
-
-      const names = attribute.name.slice(1).split(',')
-      for (let name of names) {
-        let handlers = elem[secret.handlers].get(name)
-        if (!handlers) {
-          handlers = new Set()
-          elem[secret.handlers].set(name, handlers)
-        }
-        handlers.add(handler)
-        elem.addEventListener(name, listener, true)
-      }
+      handlers.add(handler)
+      this.addEventListener(name, listener, true)
     }
+    this.removeAttribute(attribute.name)
   }
 }
 
