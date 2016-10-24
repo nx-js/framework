@@ -24,8 +24,8 @@ function classAttribute (classes, elem) {
       }
     }
     classes = classList.join(' ')
+    elem.setAttribute('class', classes)
   }
-  elem.setAttribute('class', classes)
 }
 
 function styleAttribute (styles, elem) {
@@ -37,6 +37,6 @@ function styleAttribute (styles, elem) {
       styleList.push(`${styleName}: ${styles[styleName]};`)
     }
     styles = styleList.join(' ')
+    elem.setAttribute('style', styles)
   }
-  elem.setAttribute('style', styles)
 }
