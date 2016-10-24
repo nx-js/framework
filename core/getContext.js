@@ -4,7 +4,6 @@ const symbols = require('./symbols')
 
 module.exports = function getContext (node) {
   const context = {contentMiddlewares: []}
-  let isolate = false
 
   while (node) {
     if (!context.state && node[symbols.state]) {
@@ -13,14 +12,11 @@ module.exports = function getContext (node) {
     if (!context.state && node[symbols.contextState]) {
       context.state = node[symbols.contextState]
     }
-    if (isolate !== true && isolate !== 'middlewares') {
-      isolate = node[symbols.isolate]
-    } else if (isolate === true) {
-      context.isolate = true
-      return context
-    }
-    if (node[symbols.contentMiddlewares] && !isolate) {
+    if (node[symbols.contentMiddlewares] && !context.isolate) {
       context.contentMiddlewares = node[symbols.contentMiddlewares].concat(context.contentMiddlewares)
+    }
+    if (context.isolate !== true && context.isolate !== 'middlewares') {
+      context.isolate = node[symbols.isolate]
     }
     if (node[symbols.root]) {
       return context

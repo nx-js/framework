@@ -8,7 +8,7 @@ module.exports = function onNodeAdded (node, context) {
   if (validParent && node[symbols.root]) {
     throw new Error(`Nested root component: ${node.tagName}`)
   }
-  if ((validParent || node[symbols.root]) && !context.isolate) {
+  if ((validParent || node[symbols.root]) && context.isolate !== true) {
     setupNodeAndChildren(node, context.state, context.contentMiddlewares)
   }
 }
