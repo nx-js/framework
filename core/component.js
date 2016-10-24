@@ -71,7 +71,7 @@ function attachedCallback () {
     }
     // it might be synchronous -> doesn't belong here -> should add it to the queue
     const context = getContext(this.parentNode)
-    onNodeAdded.call(context, this)
+    onNodeAdded(this, context)
   }
 }
 
@@ -90,11 +90,11 @@ function onMutations (mutations, contentWatcher) {
       context = getContext(mutation.target)
       prevTarget = mutation.target
     }
-    Array.prototype.forEach.call(mutation.removedNodes, onNodeRemoved)
-    Array.prototype.forEach.call(mutation.addedNodes, onNodeAdded, context)
-  }
-  mutations = contentWatcher.takeRecords()
-  if (mutations.length) {
-    onMutations(mutations, contentWatcher)
+    for (let i = mutation.removedNodes.length; i--;) {
+      onNodeRemoved(mutation.removedNodes[i])
+    }
+    for (let i = mutation.addedNodes.length; i--;) {
+      onNodeAdded(mutation.addedNodes[i], context)
+    }
   }
 }

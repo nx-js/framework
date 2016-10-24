@@ -3,13 +3,13 @@
 const setupNode = require('./setupNode')
 const symbols = require('./symbols')
 
-module.exports = function onNodeAdded (node) {
+module.exports = function onNodeAdded (node, context) {
   const validParent = (node.parentNode && node.parentNode[symbols.lifecycleStage] === 'attached')
   if (validParent && node[symbols.root]) {
     throw new Error(`Nested root component: ${node.tagName}`)
   }
   if (validParent || node[symbols.root]) {
-    setupNodeAndChildren(node, this.state, this.contentMiddlewares)
+    setupNodeAndChildren(node, context.state, context.contentMiddlewares)
   }
 }
 
