@@ -83,8 +83,13 @@ function detachedCallback () {
 }
 
 function onMutations (mutations, contentWatcher) {
+  let context
+  let prevTarget
   for (let mutation of mutations) {
-    const context = getContext(mutation.target)
+    if (prevTarget !== mutation.target) {
+      context = getContext(mutation.target)
+      prevTarget = mutation.target
+    }
     Array.prototype.forEach.call(mutation.removedNodes, onNodeRemoved)
     Array.prototype.forEach.call(mutation.addedNodes, onNodeAdded, context)
   }
