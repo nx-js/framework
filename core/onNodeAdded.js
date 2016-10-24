@@ -68,13 +68,13 @@ function setupChildren (node, state, contentMiddlewares) {
 }
 
 function shouldProcess (node) {
-  if (node[symbols.lifecycleStage] !== undefined) {
+  if (node[symbols.lifecycleStage]) {
     return false
   }
-  if (node instanceof Element) {
-    return (node[symbols.registered] || (node.tagName.indexOf('-') === -1 && !node.hasAttribute('is')))
+  if (node.nodeType === 1) {
+    return ((!node.hasAttribute('is') && node.tagName.indexOf('-') === -1) || node[symbols.registered])
   }
-  if (node instanceof Text) {
-    return Boolean(node.nodeValue.trim())
+  if (node.nodeType === 3) {
+    return node.nodeValue.trim()
   }
 }
