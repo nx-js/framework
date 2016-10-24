@@ -11,7 +11,6 @@ module.exports = function attributes (elem, state, next) {
 
   elem[secret.handlers] = []
   elem.$attribute = $attribute
-
   next()
 
   processAttributesWithoutHandler(elem)
