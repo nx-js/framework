@@ -45,21 +45,18 @@ function $attribute (name, handler) {
 
 function processAttributesWithoutHandler (elem) {
   const attributes = elem.attributes
-
-  for (let i = 0; i < attributes.length; i++) {
+  for (let i = attributes.length; i--;) {
     const attribute = attributes[i]
     if (attribute.name[0] === '$') {
       const name = attribute.name.slice(1)
       const expression = elem.$compileExpression(attribute.value || name)
       defaultHandler(elem, name, expression)
       elem.removeAttribute(attribute.name)
-      i--
     } else if (attribute.name[0] === '@') {
       const name = attribute.name.slice(1)
       const expression = elem.$compileExpression(attribute.value || name)
       elem.$observe(() => defaultHandler(elem, name, expression))
       elem.removeAttribute(attribute.name)
-      i--
     }
   }
 }
