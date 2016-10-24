@@ -35,14 +35,15 @@ function setupNodeAndChildren (node, state, contentMiddlewares) {
     node[symbols.state] = state
   }
 
-  composeAndRunMiddlewares(node, state, contentMiddlewares.concat(node[symbols.middlewares]))
+  composeAndRunMiddlewares(node, state, contentMiddlewares, node[symbols.middlewares] || [])
   setupChildren(node, state, contentMiddlewares)
 }
 
-function composeAndRunMiddlewares (node, state, middlewares) {
+function composeAndRunMiddlewares (node, state, contentMiddlewares, middlewares) {
   let i = 0
   function next () {
-    const middleware = middlewares[i++]
+    const middleware = contentMiddlewares[i] || middlewares[i]
+    i++
     if (middleware) {
       middleware(node, state, next)
       next()
