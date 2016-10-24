@@ -1,7 +1,5 @@
 'use strict'
 
-const compiler = require('@risingstack/nx-compile')
-window.counter = 0
 const secret = {
   handlers: Symbol('event handlers')
 }

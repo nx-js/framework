@@ -11,7 +11,8 @@ module.exports = function interpolate (node, state, next) {
 function interpolateValue (node, state) {
   const tokens = parseValue(node.nodeValue)
 
-  tokens.forEach((token) => {
+  for (let i = tokens.length; i--;) {
+    const token = tokens[i]
     if (typeof token === 'object') {
       const expression = node.$compileExpression(token.expression)
       if (token.observed) {
@@ -20,7 +21,7 @@ function interpolateValue (node, state) {
         interpolateToken(token, expression(), tokens, node)
       }
     }
-  })
+  }
 }
 
 function interpolateToken (token, value, tokens, node) {
