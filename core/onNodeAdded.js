@@ -57,7 +57,8 @@ function composeAndRunMiddlewares (node, state, contentMiddlewares, middlewares)
 function setupChildren (node, state, contentMiddlewares) {
   if (node[symbols.isolate] === true) {
     return
-  } else if (node[symbols.isolate] === 'middlewares') {
+  }
+  if (node[symbols.isolate] === 'middlewares') {
     contentMiddlewares = node[symbols.contentMiddlewares]
   } else if (node[symbols.contentMiddlewares]) {
     contentMiddlewares = contentMiddlewares.concat(node[symbols.contentMiddlewares])
