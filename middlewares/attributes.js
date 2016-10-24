@@ -9,7 +9,7 @@ module.exports = function attributes (elem, state, next) {
   elem.$require('expression')
   elem.$using('attributes')
 
-  elem[secret.handlers] = new Set()
+  elem[secret.handlers] = []
   elem.$attribute = $attribute
 
   next()
@@ -29,17 +29,23 @@ function $attribute (name, handler) {
     return
   }
   const handlers = this[secret.handlers]
-  const onceName = '$' + name
-  const observedName = '@' + name
 
+  if (this.hasAttribute(name)) {
+    handlers.push({type: 'normal', value: this.getAttribute(name), name, handler})
+    return
+  }
+
+  const onceName = '$' + name
   if (this.hasAttribute(onceName)) {
-    handlers.add({type: 'once', value: this.getAttribute(onceName), name, handler})
+    handlers.push({type: 'once', value: this.getAttribute(onceName), name, handler})
     this.removeAttribute(onceName)
-  } else if (this.hasAttribute(observedName)) {
-    handlers.add({type: 'observed', value: this.getAttribute(observedName), name, handler})
+    return
+  }
+
+  const observedName = '@' + name
+  if (this.hasAttribute(observedName)) {
+    handlers.push({type: 'observed', value: this.getAttribute(observedName), name, handler})
     this.removeAttribute(observedName)
-  } else if (this.hasAttribute(name)) {
-    handlers.add({type: 'normal', value: this.getAttribute(name), name, handler})
   }
 }
 

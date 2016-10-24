@@ -41,8 +41,9 @@ function setupNodeAndChildren (node, state, contentMiddlewares) {
 
 function composeAndRunMiddlewares (node, state, contentMiddlewares, middlewares) {
   let i = 0
-  let j = 0
-  function next () {
+  let j = 0;
+
+  (function next () {
     if (i < contentMiddlewares.length) {
       contentMiddlewares[i++](node, state, next)
       next()
@@ -50,8 +51,7 @@ function composeAndRunMiddlewares (node, state, contentMiddlewares, middlewares)
       middlewares[j++](node, state, next)
       next()
     }
-  }
-  next()
+  })()
 }
 
 function setupChildren (node, state, contentMiddlewares) {
