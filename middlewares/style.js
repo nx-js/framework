@@ -16,7 +16,9 @@ module.exports = function style (elem, state) {
 function classAttribute (classes, elem) {
   if (typeof classes === 'object') {
     const classList = []
-    for (let className in classes) {
+    const classNames = Object.getOwnPropertyNames(classes)
+    for (let i = classNames.length; i--;) {
+      const className = classNames[i]
       if (classes[className]) {
         classList.push(className)
       }
@@ -29,7 +31,9 @@ function classAttribute (classes, elem) {
 function styleAttribute (styles, elem) {
   if (typeof styles === 'object') {
     const styleList = []
-    for (let styleName in styles) {
+    const styleNames = Object.getOwnPropertyNames(styles)
+    for (let i = styleNames.length; i--;) {
+      const styleName = styleNames[i]
       styleList.push(`${styleName}: ${styles[styleName]};`)
     }
     styles = styleList.join(' ')
