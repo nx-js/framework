@@ -16,10 +16,11 @@ module.exports = function setupNode (node) {
 }
 
 function $using (middlewareName) {
-  if (this[symbols.usedMiddlewareNames].has(middlewareName)) {
-    throw new Error(`duplicate middlewares: ${middlewareName}`)
+  const usedMiddlewareNames = this[symbols.usedMiddlewareNames]
+  if (usedMiddlewareNames.has(middlewareName)) {
+    throw new Error(`duplicate middleware: ${middlewareName}`)
   }
-  this[symbols.usedMiddlewareNames].add(middlewareName)
+  usedMiddlewareNames.add(middlewareName)
 }
 
 function $isUsing (middlewareName) {
