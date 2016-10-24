@@ -1,6 +1,8 @@
 'use strict'
 
 const secret = {
+  hasIf: Symbol('has if flow'),
+  hasRepeat: Symbol('has repeat flow'),
   showing: Symbol('flow showing'),
   prevArray: Symbol('flow prevArray')
 }
@@ -11,18 +13,14 @@ module.exports = function flow (elem, state, next) {
   elem.$require('attributes')
   elem.$using('flow')
 
-  if (elem.$hasAttribute('if') && elem.hasAttribute('repeat')) {
-    throw new Error('cant use if and repeat on the same node')
-  }
-  if (elem.$hasAttribute('if') || elem.$hasAttribute('repeat')) {
-    elem.$normalizeContent()
-    elem.$extractContent()
-  }
   elem.$attribute('if', ifAttribute)
   elem.$attribute('repeat', repeatAttribute)
 }
 
 function ifAttribute (show, elem) {
+  setupFlow(elem)
+  elem[secret.hasIf] = true
+
   if (show && !elem[secret.showing]) {
     elem.$insertContent()
     elem[secret.showing] = true
@@ -33,6 +31,9 @@ function ifAttribute (show, elem) {
 }
 
 function repeatAttribute (array, elem) {
+  setupFlow(elem)
+  elem[secret.hasRepeat] = true
+  
   if (array === undefined) {
     return
   }
@@ -79,5 +80,14 @@ function isSame (item1, item2, key) {
   }
   if (key && typeof item1 === 'object' && item1 !== null && typeof item2 === 'object' && item2 !== null) {
     return (item1[key] === item2[key])
+  }
+}
+
+function setupFlow (elem) {
+  if (elem[secret.hasIf] && elem[secret.hasRepeat]) {
+    throw new Error('It is forbidden to use the if and repeat attribute on the same element.')
+  } else if (!elem[secret.hasIf] && !elem[secret.hasRepeat]) {
+    elem.$normalizeContent()
+    elem.$extractContent()
   }
 }
