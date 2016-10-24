@@ -9,6 +9,7 @@ module.exports = function attributes (elem, state, next) {
   elem.$require('expression')
   elem.$using('attributes')
 
+  elem[secret.handlers] = new Set()
   elem.$hasAttribute = $hasAttribute
   elem.$attribute = $attribute
 
@@ -29,66 +30,67 @@ function $attribute (name, handler) {
   if (typeof handler !== 'function') {
     throw new TypeError('second argument must be a function')
   }
-  if (!this[secret.handlers]) {
-    this[secret.handlers] = new Map()
+  const handlers = this[secret.handlers]
+
+  if (this.hasAttribute(name)) {
+    handlers.add({type: 'normal', value: this.getAttribute(name), name, handler})
+    return
   }
-  this[secret.handlers].set(name, handler)
+
+  const onceName = '$' + name
+  if (this.hasAttribute(onceName)) {
+    handlers.add({type: 'once', value: this.getAttribute(onceName), name, handler})
+    this.removeAttribute(onceName)
+    return
+  }
+
+  const observedName = '@' + name
+  if (this.hasAttribute(observedName)) {
+    handlers.add({type: 'observed', value: this.getAttribute(observedName), name, handler})
+    this.removeAttribute(observedName)
+  }
 }
 
 function processAttributesWithoutHandler (elem) {
-  const attributesToRemove = []
+  const attributes = elem.attributes
 
-  Array.prototype.forEach.call(elem.attributes, (attribute) => {
+  for (let i = 0; i < attributes.length; i++) {
+    const attribute = attributes[i]
     if (attribute.name[0] === '$') {
       const name = attribute.name.slice(1)
-      if (!elem[secret.handlers] || !elem[secret.handlers].has(name)) {
-        const expression = elem.$compileExpression(attribute.value || name)
-        const value = expression()
-        if (value) elem.setAttribute(name, value)
-        else elem.removeAttribute(name)
-        attributesToRemove.push(attribute.name)
-      }
+      const expression = elem.$compileExpression(attribute.value || name)
+      defaultHandler(elem, name, expression)
+      elem.removeAttribute(attribute.name)
+      i--
     } else if (attribute.name[0] === '@') {
       const name = attribute.name.slice(1)
-      if (!elem[secret.handlers] || !elem[secret.handlers].has(name)) {
-        const expression = elem.$compileExpression(attribute.value || name)
-        elem.$observe(() => {
-          const value = expression()
-          if (value) elem.setAttribute(name, value)
-          else elem.removeAttribute(name)
-        })
-        attributesToRemove.push(attribute.name)
-      }
+      const expression = elem.$compileExpression(attribute.value || name)
+      elem.$observe(() => defaultHandler(elem, name, expression))
+      elem.removeAttribute(attribute.name)
+      i--
     }
-  })
+  }
+}
 
-  for (let attribute of attributesToRemove) {
-    elem.removeAttribute(attribute)
+function defaultHandler (elem, name, expression) {
+  const value = expression()
+  if (value) {
+    elem.setAttribute(name, value)
+  } else {
+    elem.removeAttribute(name)
   }
 }
 
 function processAttributesWithHandler (elem) {
-  if (!elem[secret.handlers]) return
-  const attributesToRemove = []
-
-  elem[secret.handlers].forEach((handler, name) => {
-    const onceName = '$' + name
-    const observedName = '@' + name
-
-    if (elem.hasAttribute(onceName)) {
-      const expression = elem.$compileExpression(elem.getAttribute(onceName) || name)
-      handler(expression(), elem)
-      attributesToRemove.push(onceName)
-    } else if (elem.hasAttribute(observedName)) {
-      const expression = elem.$compileExpression(elem.getAttribute(observedName) || name)
-      elem.$observe(() => handler(expression(), elem))
-      attributesToRemove.push(observedName)
-    } else if (elem.hasAttribute(name)) {
-      handler(elem.getAttribute(name), elem)
+  for (let handler of elem[secret.handlers]) {
+    if (handler.type === 'normal') {
+      handler.handler(handler.value, elem)
+    } else if (handler.type === 'once') {
+      const expression = elem.$compileExpression(handler.value || handler.name)
+      handler.handler(expression(), elem)
+    } else if (handler.type === 'observed') {
+      const expression = elem.$compileExpression(handler.value || handler.name)
+      elem.$observe(() => handler.handler(expression(), elem))
     }
-  })
-
-  for (let attribute of attributesToRemove) {
-    elem.removeAttribute(attribute)
   }
 }

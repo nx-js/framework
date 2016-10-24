@@ -21,15 +21,16 @@ module.exports = function content (node, state) {
 }
 
 function $normalizeContent () {
-  Array.prototype.forEach.call(this.childNodes, normalize)
-}
-
-function normalize (node) {
-  if (node instanceof Text && !node.nodeValue.trim()) {
-    node.remove()
-  }
-  if (node instanceof Element) {
-    $normalizeContent.call(node)
+  const childNodes = this.childNodes
+  for (let i = 0; i < childNodes.length; i++) {
+    const node = childNodes[i]
+    if (node instanceof Text && !node.nodeValue.trim()) {
+      node.remove()
+      i--
+    }
+    if (node instanceof Element) {
+      $normalizeContent.call(node)
+    }
   }
 }
 
