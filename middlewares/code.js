@@ -49,8 +49,8 @@ function parseCode (node, rawCode) {
     limiters: []
   }
 
-  for (let limiterToken of tokens) {
-    limiterToken = limiterToken.match(argsRegex) || []
+  for (let i = tokens.length; i--;) {
+    const limiterToken = tokens[i].match(argsRegex) || []
     const limiterName = limiterToken.shift()
     if (!node[exposed.limiters] || !node[exposed.limiters].has(limiterName)) {
       throw new Error(`there is no limiter named ${limiterName} on ${node}`)

@@ -34,8 +34,8 @@ function parseExpression (node, rawExpression) {
     filters: []
   }
 
-  for (let filterToken of tokens) {
-    filterToken = filterToken.match(argsRegex) || []
+  for (let i = tokens.length; i--;) {
+    const filterToken = tokens[i].match(argsRegex) || []
     const filterName = filterToken.shift()
     if (!node[exposed.filters] || !node[exposed.filters].has(filterName)) {
       throw new Error(`there is no filter named ${filterName} on ${node}`)
