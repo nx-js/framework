@@ -8,7 +8,7 @@ module.exports = function onNodeAdded (node, context) {
   if (validParent && node[symbols.root]) {
     throw new Error(`Nested root component: ${node.tagName}`)
   }
-  if (validParent || node[symbols.root]) {
+  if ((validParent || node[symbols.root]) && !context.isolate) {
     setupNodeAndChildren(node, context.state, context.contentMiddlewares)
   }
 }
@@ -75,7 +75,6 @@ function shouldProcess (node) {
     return (node[symbols.registered] || (node.tagName.indexOf('-') === -1 && !node.hasAttribute('is')))
   }
   if (node instanceof Text) {
-    // TODO: remove textNode instead
     return Boolean(node.nodeValue.trim())
   }
 }

@@ -20,7 +20,7 @@ module.exports = function getContext (node) {
       return context
     }
     if (node[symbols.contentMiddlewares] && !isolate) {
-      context.contentMiddlewares.unshift(...node[symbols.contentMiddlewares])
+      context.contentMiddlewares = node[symbols.contentMiddlewares].concat(context.contentMiddlewares)
     }
     if (node[symbols.root]) {
       return context
