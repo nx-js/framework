@@ -35,17 +35,19 @@ function setupNodeAndChildren (node, state, contentMiddlewares) {
     node[symbols.state] = state
   }
 
-  composeAndRunMiddlewares(node, state, contentMiddlewares, node[symbols.middlewares] || [])
+  composeAndRunMiddlewares(node, state, contentMiddlewares, node[symbols.middlewares])
   setupChildren(node, state, contentMiddlewares)
 }
 
 function composeAndRunMiddlewares (node, state, contentMiddlewares, middlewares) {
   let i = 0
+  let j = 0
   function next () {
-    const middleware = contentMiddlewares[i] || middlewares[i]
-    i++
-    if (middleware) {
-      middleware(node, state, next)
+    if (i < contentMiddlewares.length) {
+      contentMiddlewares[i++](node, state, next)
+      next()
+    } else if (middlewares && j < middlewares.length) {
+      middlewares[j++](node, state, next)
       next()
     }
   }
@@ -56,11 +58,11 @@ function setupChildren (node, state, contentMiddlewares) {
   if (node[symbols.isolate] === true) {
     return
   } else if (node[symbols.isolate] === 'middlewares') {
-    contentMiddlewares = node[symbols.contentMiddlewares].slice()
+    contentMiddlewares = node[symbols.contentMiddlewares]
   } else if (node[symbols.contentMiddlewares]) {
     contentMiddlewares = contentMiddlewares.concat(node[symbols.contentMiddlewares])
   }
-  for (let i = 0; i < node.childNodes.length; i++) {
+  for (let i = node.childNodes.length; i--;) {
     setupNodeAndChildren(node.childNodes[i], state, contentMiddlewares)
   }
 }
