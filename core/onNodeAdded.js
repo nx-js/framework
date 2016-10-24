@@ -40,13 +40,15 @@ function setupNodeAndChildren (node, state, contentMiddlewares) {
 }
 
 function composeAndRunMiddlewares (node, state, middlewares) {
-  (function next () {
-    const middleware = middlewares.shift()
+  let i = 0
+  function next () {
+    const middleware = middlewares[i++]
     if (middleware) {
       middleware(node, state, next)
       next()
     }
-  })()
+  }
+  next()
 }
 
 function setupChildren (node, state, contentMiddlewares) {
