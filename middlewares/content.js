@@ -8,7 +8,7 @@ const secret = {
 }
 
 module.exports = function content (node, state) {
-  if (!(node instanceof Element)) return
+  if (node.nodeType !== 1) return
   node.$using('content')
 
   node.$normalizeContent = $normalizeContent

@@ -24,7 +24,7 @@ function onAnimationEnd (ev) {
 }
 
 module.exports = function animate (elem, state) {
-  if (!(elem instanceof Element)) return
+  if (elem.nodeType !== 1) return
   elem.$require('attributes')
   elem.$using('animate')
 

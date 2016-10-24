@@ -5,7 +5,7 @@ const secret = {
 }
 
 module.exports = function attributes (elem, state, next) {
-  if (!(elem instanceof Element)) return
+  if (elem.nodeType !== 1) return
   elem.$require('expression')
   elem.$using('attributes')
 

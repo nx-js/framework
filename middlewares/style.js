@@ -5,7 +5,7 @@ const secret = {
 }
 
 module.exports = function style (elem, state) {
-  if (!(elem instanceof HTMLElement)) return
+  if (elem.nodeType !== 1) return
   elem.$require('attributes')
   elem.$using('style')
 

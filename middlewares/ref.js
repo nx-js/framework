@@ -8,7 +8,7 @@ const secret = {
 updateHistory(pathToRoute(location.pathname), queryToParams(location.search), {history: false})
 
 module.exports = function ref (elem, state) {
-  if (!(elem instanceof Element)) return
+  if (elem.nodeType !== 1) return
   elem.$require('attributes')
   elem.$using('ref')
 

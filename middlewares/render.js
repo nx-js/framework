@@ -15,7 +15,7 @@ module.exports = function render (config) {
   }
 
   return function renderMiddleware (elem, state) {
-    if (!(elem instanceof Element)) {
+    if (elem.nodeType !== 1) {
       throw new Error('render only works with element nodes')
     }
     elem.$using('render')

@@ -1,7 +1,7 @@
 'use strict'
 
 module.exports = function interpolate (node, state, next) {
-  if (node.nodeType !== Node.TEXT_NODE) return
+  if (node.nodeType !== 3) return
   node.$require('expression')
   node.$using('interpolate')
   next()

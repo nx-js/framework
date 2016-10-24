@@ -15,7 +15,7 @@ function onPopState (ev) {
 }
 
 module.exports = function router (router, state) {
-  if (!(router instanceof Element)) {
+  if (router.nodeType !== 1) {
     throw new Error('router only works with element nodes')
   }
   router.$using('router')

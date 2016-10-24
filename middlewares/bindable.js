@@ -24,7 +24,7 @@ function onSubmit (ev) {
 }
 
 module.exports = function bindable (elem, state, next) {
-  if (!(elem instanceof Element)) return
+  if (elem.nodeType !== 1) return
   elem.$require('attributes')
   elem.$using('bindable')
 
