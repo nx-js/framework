@@ -15,6 +15,7 @@ module.exports = function flow (elem, state, next) {
     throw new Error('cant use if and repeat on the same node')
   }
   if (elem.$hasAttribute('if') || elem.$hasAttribute('repeat')) {
+    elem.$normalizeContent()
     elem.$extractContent()
   }
   elem.$attribute('if', ifAttribute)

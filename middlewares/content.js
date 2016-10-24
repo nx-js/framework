@@ -11,12 +11,26 @@ module.exports = function content (node, state) {
   if (!(node instanceof Element)) return
   node.$using('content')
 
+  node.$normalizeContent = $normalizeContent
   node.$extractContent = $extractContent
   node.$insertContent = $insertContent
   node.$removeContent = $removeContent
   node.$replaceContent = $replaceContent
   node.$moveContent = $moveContent
   node.$mutateContext = $mutateContext
+}
+
+function $normalizeContent () {
+  Array.prototype.forEach.call(this.childNodes, normalize)
+}
+
+function normalize (node) {
+  if (node instanceof Text && !node.nodeValue.trim()) {
+    node.remove()
+  }
+  if (node instanceof Element) {
+    $normalizeContent.call(node)
+  }
 }
 
 function $extractContent () {
