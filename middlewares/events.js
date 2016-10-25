@@ -10,27 +10,23 @@ module.exports = function events (elem) {
   elem.$using('events')
 
   elem[secret.handlers] = new Map()
-  processEventAttributes(elem)
+  Array.prototype.forEach.call(elem.attributes, processEventAttribute, elem)
 }
 
-function processEventAttributes (elem) {
-  const attributes = elem.attributes
-  for (let i = attributes.length; i--;) {
-    const attribute = attributes[i]
-    if (attribute.name[0] === '#') {
-      const handler = elem.$compileCode(attribute.value)
-      const names = attribute.name.slice(1).split(',')
-      for (let name of names) {
-        let handlers = elem[secret.handlers].get(name)
-        if (!handlers) {
-          handlers = new Set()
-          elem[secret.handlers].set(name, handlers)
-        }
-        handlers.add(handler)
-        elem.addEventListener(name, listener, true)
+function processEventAttribute (attribute) {
+  if (attribute.name[0] === '#') {
+    const handler = this.$compileCode(attribute.value)
+    const names = attribute.name.slice(1).split(',')
+    for (let name of names) {
+      let handlers = this[secret.handlers].get(name)
+      if (!handlers) {
+        handlers = new Set()
+        this[secret.handlers].set(name, handlers)
       }
-      elem.removeAttribute(attribute.name)
+      handlers.add(handler)
+      this.addEventListener(name, listener, true)
     }
+    this.removeAttribute(attribute.name)
   }
 }
 

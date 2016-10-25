@@ -13,8 +13,8 @@ module.exports = function attributes (elem, state, next) {
   elem.$attribute = $attribute
   next()
 
-  processAttributesWithoutHandler(elem)
-  processAttributesWithHandler(elem)
+  Array.prototype.forEach.call(elem.attributes, processAttributeWithoutHandler, elem)
+  elem[secret.handlers].forEach(processAttributeWithHandler, elem)
 }
 
 function $attribute (name, handler) {
@@ -47,21 +47,17 @@ function $attribute (name, handler) {
   }
 }
 
-function processAttributesWithoutHandler (elem) {
-  const attributes = elem.attributes
-  for (let i = attributes.length; i--;) {
-    const attribute = attributes[i]
-    if (attribute.name[0] === '$') {
-      const name = attribute.name.slice(1)
-      const expression = elem.$compileExpression(attribute.value || name)
-      defaultHandler(elem, name, expression)
-      elem.removeAttribute(attribute.name)
-    } else if (attribute.name[0] === '@') {
-      const name = attribute.name.slice(1)
-      const expression = elem.$compileExpression(attribute.value || name)
-      elem.$observe(() => defaultHandler(elem, name, expression))
-      elem.removeAttribute(attribute.name)
-    }
+function processAttributeWithoutHandler (attribute) {
+  if (attribute.name[0] === '$') {
+    const name = attribute.name.slice(1)
+    const expression = this.$compileExpression(attribute.value || name)
+    defaultHandler(this, name, expression)
+    this.removeAttribute(attribute.name)
+  } else if (attribute.name[0] === '@') {
+    const name = attribute.name.slice(1)
+    const expression = this.$compileExpression(attribute.value || name)
+    this.$observe(() => defaultHandler(this, name, expression))
+    this.removeAttribute(attribute.name)
   }
 }
 
@@ -74,16 +70,14 @@ function defaultHandler (elem, name, expression) {
   }
 }
 
-function processAttributesWithHandler (elem) {
-  for (let handler of elem[secret.handlers]) {
-    if (handler.type === 'normal') {
-      handler.handler(handler.value, elem)
-    } else if (handler.type === 'once') {
-      const expression = elem.$compileExpression(handler.value || handler.name)
-      handler.handler(expression(), elem)
-    } else if (handler.type === 'observed') {
-      const expression = elem.$compileExpression(handler.value || handler.name)
-      elem.$observe(() => handler.handler(expression(), elem))
-    }
+function processAttributeWithHandler (handler) {
+  if (handler.type === 'normal') {
+    handler.handler(handler.value, this)
+  } else if (handler.type === 'once') {
+    const expression = this.$compileExpression(handler.value || handler.name)
+    handler.handler(expression(), this)
+  } else if (handler.type === 'observed') {
+    const expression = this.$compileExpression(handler.value || handler.name)
+    this.$observe(() => handler.handler(expression(), this))
   }
 }

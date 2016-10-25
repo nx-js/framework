@@ -1,25 +1,25 @@
 'use strict'
 
-module.exports = function interpolate (node, state, next) {
+const secret = {
+  tokens: Symbol('interpolate tokens')
+}
+
+module.exports = function interpolate (node) {
   if (node.nodeType !== 3) return
   node.$require('expression')
   node.$using('interpolate')
-  next()
-  interpolateValue(node, state)
+
+  node[secret.tokens] = parseValue(node.nodeValue)
+  node[secret.tokens].forEach(processToken, node)
 }
 
-function interpolateValue (node, state) {
-  const tokens = parseValue(node.nodeValue)
-
-  for (let i = tokens.length; i--;) {
-    const token = tokens[i]
-    if (typeof token === 'object') {
-      const expression = node.$compileExpression(token.expression)
-      if (token.observed) {
-        node.$observe(() => interpolateToken(token, expression(), tokens, node))
-      } else {
-        interpolateToken(token, expression(), tokens, node)
-      }
+function processToken (token, index, tokens) {
+  if (typeof token === 'object') {
+    const expression = this.$compileExpression(token.expression)
+    if (token.observed) {
+      this.$observe(() => interpolateToken(token, expression(), tokens, this))
+    } else {
+      interpolateToken(token, expression(), tokens, this)
     }
   }
 }
