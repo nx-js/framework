@@ -24,26 +24,25 @@ function $attribute (name, handler) {
   if (typeof handler !== 'function') {
     throw new TypeError('second argument must be a function')
   }
-  if (!this.hasAttributes()) {
-    return
-  }
-  const handlers = this[secret.handlers]
 
-  if (this.hasAttribute(name)) {
-    handlers.push({type: 'normal', value: this.getAttribute(name), name, handler})
+  let value = this.getAttribute(name)
+  if (value !== null) {
+    this[secret.handlers].push({type: 'normal', value, name, handler})
     return
   }
 
   const onceName = '$' + name
-  if (this.hasAttribute(onceName)) {
-    handlers.push({type: 'once', value: this.getAttribute(onceName), name, handler})
+  value = this.getAttribute(onceName)
+  if (value !== null) {
+    this[secret.handlers].push({type: 'once', value, name, handler})
     this.removeAttribute(onceName)
     return
   }
 
   const observedName = '@' + name
-  if (this.hasAttribute(observedName)) {
-    handlers.push({type: 'observed', value: this.getAttribute(observedName), name, handler})
+  value = this.getAttribute(observedName)
+  if (value !== null) {
+    this[secret.handlers].push({type: 'observed', value, name, handler})
     this.removeAttribute(observedName)
   }
 }
