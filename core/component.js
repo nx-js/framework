@@ -70,6 +70,7 @@ function attachedCallback () {
       this[secret.contentWatcher].observe(this, contentWatcherConfig)
     }
     // it might be synchronous -> doesn't belong here -> should add it to the queue
+    // double processing is not fun -> improve this
     const context = getContext(this.parentNode)
     onNodeAdded(this, context)
   }

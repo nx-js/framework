@@ -12,11 +12,11 @@ module.exports = function getContext (node) {
     if (!context.state && node[symbols.contextState]) {
       context.state = node[symbols.contextState]
     }
-    if (node[symbols.contentMiddlewares] && !context.isolate) {
-      context.contentMiddlewares = node[symbols.contentMiddlewares].concat(context.contentMiddlewares)
-    }
     if (context.isolate !== true && context.isolate !== 'middlewares') {
       context.isolate = node[symbols.isolate]
+    }
+    if (node[symbols.contentMiddlewares] && !context.isolate) {
+      context.contentMiddlewares = node[symbols.contentMiddlewares].concat(context.contentMiddlewares)
     }
     if (node[symbols.root]) {
       return context

@@ -34,8 +34,17 @@ function setupNodeAndChildren (node, state, contentMiddlewares) {
   } else {
     node[symbols.state] = state
   }
+
+  if (node[symbols.isolate] === 'middlewares') {
+    contentMiddlewares = node[symbols.contentMiddlewares] || []
+  } else if (node[symbols.contentMiddlewares]) {
+    contentMiddlewares = contentMiddlewares.concat(node[symbols.contentMiddlewares])
+  }
   composeAndRunMiddlewares(node, state, contentMiddlewares, node[symbols.middlewares])
-  setupChildren(node, state, contentMiddlewares)
+
+  for (let i = node.childNodes.length; i--;) {
+    setupNodeAndChildren(node.childNodes[i], state, contentMiddlewares)
+  }
 }
 
 function composeAndRunMiddlewares (node, state, contentMiddlewares, middlewares) {
@@ -53,22 +62,8 @@ function composeAndRunMiddlewares (node, state, contentMiddlewares, middlewares)
   })()
 }
 
-function setupChildren (node, state, contentMiddlewares) {
-  if (node[symbols.isolate] === true) {
-    return
-  }
-  if (node[symbols.isolate] === 'middlewares') {
-    contentMiddlewares = node[symbols.contentMiddlewares]
-  } else if (node[symbols.contentMiddlewares]) {
-    contentMiddlewares = contentMiddlewares.concat(node[symbols.contentMiddlewares])
-  }
-  for (let i = node.childNodes.length; i--;) {
-    setupNodeAndChildren(node.childNodes[i], state, contentMiddlewares)
-  }
-}
-
 function shouldProcess (node) {
-  if (node[symbols.lifecycleStage]) {
+  if (node[symbols.lifecycleStage] || node[symbols.isolate] === true) {
     return false
   }
   if (node.nodeType === 1) {
