@@ -49,30 +49,31 @@ function register (name) {
 }
 
 function attachedCallback () {
+  const config = this[secret.config]
   if (!this[symbols.registered]) {
-    if (typeof this[secret.config].state === 'object') {
-      this[symbols.state] = this[secret.config].state
-    } else if (this[secret.config].state === true) {
+    if (typeof config.state === 'object') {
+      this[symbols.state] = config.state
+    } else if (config.state) {
       this[symbols.state] = observer.observable()
-    }
-    if (this[secret.config].state === 'inherit') {
+    } else if (config.state === 'inherit') {
+      this[symbols.state] = observer.observable()
       this[symbols.inheritState] = true
     }
 
-    this[symbols.isolate] = this[secret.config].isolate
-    this[symbols.contentMiddlewares] = this[secret.config].contentMiddlewares.slice()
-    this[symbols.middlewares] = this[secret.config].middlewares.slice()
-    this[symbols.root] = this[secret.config].root
+    this[symbols.isolate] = config.isolate
+    this[symbols.contentMiddlewares] = config.contentMiddlewares
+    this[symbols.middlewares] = config.middlewares
+    this[symbols.root] = config.root
     this[symbols.registered] = true
 
-    if (this[symbols.root]) {
+    if (config.root) {
       this[secret.contentWatcher] = new MutationObserver(onMutations)
       this[secret.contentWatcher].observe(this, contentWatcherConfig)
     }
     // it might be synchronous -> doesn't belong here -> should add it to the queue
-    // double processing is not fun -> improve this
-    const context = getContext(this.parentNode)
-    onNodeAdded(this, context)
+    if (!this[symbols.lifecycleStage]) {
+      onNodeAdded(this, getContext(this.parentNode))
+    }
   }
 }
 
