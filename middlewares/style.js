@@ -1,9 +1,5 @@
 'use strict'
 
-const secret = {
-  display: Symbol('style display')
-}
-
 module.exports = function style (elem, state) {
   if (elem.nodeType !== 1) return
   elem.$require('attributes')
@@ -15,9 +11,7 @@ module.exports = function style (elem, state) {
 
 function classAttribute (classes, elem) {
   if (typeof classes === 'object') {
-    const classNames = Object.getOwnPropertyNames(classes)
-    for (let i = classNames.length; i--;) {
-      const className = classNames[i]
+    for (let className in classes) {
       if (classes[className]) {
         elem.classList.add(className)
       } else {
@@ -29,7 +23,6 @@ function classAttribute (classes, elem) {
 
 function styleAttribute (styles, elem) {
   if (typeof styles === 'object') {
-    elem.style.cssText = ''
     Object.assign(elem.style, styles)
   }
 }
