@@ -34,7 +34,6 @@ function setupNodeAndChildren (node, state, contentMiddlewares) {
   } else {
     node[symbols.state] = state
   }
-
   composeAndRunMiddlewares(node, state, contentMiddlewares, node[symbols.middlewares])
   setupChildren(node, state, contentMiddlewares)
 }

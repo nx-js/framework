@@ -31,19 +31,19 @@ function $attribute (name, handler) {
     return
   }
 
+  const observedName = '@' + name
+  value = this.getAttribute(observedName)
+  if (value !== null) {
+    this[secret.handlers].push({type: 'observed', value, name, handler})
+    this.removeAttribute(observedName)
+  }
+  
   const onceName = '$' + name
   value = this.getAttribute(onceName)
   if (value !== null) {
     this[secret.handlers].push({type: 'once', value, name, handler})
     this.removeAttribute(onceName)
     return
-  }
-
-  const observedName = '@' + name
-  value = this.getAttribute(observedName)
-  if (value !== null) {
-    this[secret.handlers].push({type: 'observed', value, name, handler})
-    this.removeAttribute(observedName)
   }
 }
 

@@ -1,16 +1,12 @@
 'use strict'
 
-const secret = {
-  tokens: Symbol('interpolate tokens')
-}
-
 module.exports = function interpolate (node) {
   if (node.nodeType !== 3) return
   node.$require('expression')
   node.$using('interpolate')
 
-  node[secret.tokens] = parseValue(node.nodeValue)
-  node[secret.tokens].forEach(processToken, node)
+  const tokens = parseValue(node.nodeValue)
+  tokens.forEach(processToken, node)
 }
 
 function processToken (token, index, tokens) {
@@ -28,12 +24,8 @@ function interpolateToken (token, value, tokens, node) {
   if (value === undefined) value = ''
   if (token.value !== value) {
     token.value = value
-    node.nodeValue = tokens.map(tokenToString).join('')
+    node.nodeValue = tokens.join('')
   }
-}
-
-function tokenToString (token) {
-  return (typeof token === 'object') ? token.value : token
 }
 
 function parseValue (string) {
@@ -41,11 +33,10 @@ function parseValue (string) {
   let expression = false
   let anchor = 0
   let depth = 0
-  let char
   let token
 
   for (let i = 0; i < string.length; i++) {
-    char = string.charAt(i)
+    const char = string.charAt(i)
 
     if (expression) {
       if (char === '{') {
@@ -56,6 +47,7 @@ function parseValue (string) {
 
       if (depth === 0) {
         token.expression = string.slice(anchor, i)
+        token.toString = tokenToString
         tokens.push(token)
         anchor = i + 1
         expression = false
@@ -73,4 +65,8 @@ function parseValue (string) {
     }
   }
   return tokens
+}
+
+function tokenToString () {
+  return this.value
 }
