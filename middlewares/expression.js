@@ -29,18 +29,19 @@ function $compileExpression (rawExpression) {
 
 function parseExpression (node, rawExpression) {
   const tokens = rawExpression.match(filterRegex)
+  const filters = node[exposed.filters]
   const expression = {
-    exec: compiler.compileExpression(tokens.shift(), node[exposed.contextState]),
+    exec: compiler.compileExpression(tokens[0], node[exposed.contextState]),
     filters: []
   }
 
-  for (let i = tokens.length; i--;) {
+  for (let i = 1; i < tokens.length; i++) {
     const filterToken = tokens[i].match(argsRegex) || []
     const filterName = filterToken.shift()
-    if (!node[exposed.filters] || !node[exposed.filters].has(filterName)) {
+    if (!filters || !filters.has(filterName)) {
       throw new Error(`there is no filter named ${filterName} on ${node}`)
     }
-    const effect = node[exposed.filters].get(filterName)
+    const effect = filters.get(filterName)
     const argExpressions = filterToken.map(compileArgExpression, node)
     expression.filters.push({effect, argExpressions})
   }

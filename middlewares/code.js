@@ -44,18 +44,19 @@ function $compileCode (rawCode) {
 
 function parseCode (node, rawCode) {
   const tokens = rawCode.match(limiterRegex)
+  const limiters = node[exposed.limiters]
   const code = {
-    exec: compiler.compileCode(tokens.shift(), node[exposed.contextState]),
+    exec: compiler.compileCode(tokens[0], node[exposed.contextState]),
     limiters: []
   }
 
-  for (let i = tokens.length; i--;) {
+  for (let i = 1; i < tokens.length; i++) {
     const limiterToken = tokens[i].match(argsRegex) || []
     const limiterName = limiterToken.shift()
-    if (!node[exposed.limiters] || !node[exposed.limiters].has(limiterName)) {
+    if (!limiters || !limiters.has(limiterName)) {
       throw new Error(`there is no limiter named ${limiterName} on ${node}`)
     }
-    const effect = node[exposed.limiters].get(limiterName)
+    const effect = limiters.get(limiterName)
     const argExpressions = limiterToken.map(compileArgExpression, node)
     code.limiters.push({effect, argExpressions})
   }
