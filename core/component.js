@@ -15,6 +15,7 @@ const contentWatcherConfig = {
   childList: true,
   subtree: true
 }
+let addedNodes = new Set()
 
 module.exports = function component (rawConfig) {
   return {use, useOnContent, register, [secret.config]: validateConfig(rawConfig)}
@@ -69,10 +70,9 @@ function attachedCallback () {
     if (config.root) {
       this[secret.contentWatcher] = new MutationObserver(onMutations)
       this[secret.contentWatcher].observe(this, contentWatcherConfig)
-    }
-    // it might be synchronous -> doesn't belong here -> should add it to the queue
-    if (!this[symbols.lifecycleStage]) {
       onNodeAdded(this, getContext(this.parentNode))
+    } else {
+      addedNodes.add(this)
     }
   }
 }
@@ -80,23 +80,33 @@ function attachedCallback () {
 function detachedCallback () {
   if (this[secret.contentWatcher]) {
     this[secret.contentWatcher].disconnect()
+    onNodeRemoved(this)
   }
-  onNodeRemoved(this)
 }
 
 function onMutations (mutations, contentWatcher) {
-  let context
-  let prevTarget
   for (let mutation of mutations) {
-    if (prevTarget !== mutation.target) {
-      context = getContext(mutation.target)
-      prevTarget = mutation.target
-    }
     for (let i = mutation.removedNodes.length; i--;) {
       onNodeRemoved(mutation.removedNodes[i])
     }
     for (let i = mutation.addedNodes.length; i--;) {
-      onNodeAdded(mutation.addedNodes[i], context)
+      addedNodes.add(mutation.addedNodes[i])
     }
+  }
+
+  let context
+  let prevParent
+  for (let addedNode of addedNodes) {
+    if (prevParent !== addedNode.parentNode) {
+      prevParent = addedNode.parentNode
+      context = getContext(prevParent)
+    }
+    onNodeAdded(addedNode, context)
+  }
+  addedNodes = new Set()
+
+  mutations = contentWatcher.takeRecords()
+  if (mutations.length) {
+    onMutations(mutations, contentWatcher)
   }
 }
