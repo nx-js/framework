@@ -50,14 +50,16 @@ function setupNodeAndChildren (node, state, contentMiddlewares) {
 }
 
 function composeAndRunMiddlewares (node, state, contentMiddlewares, middlewares) {
+  const contentMiddlewaresLength = contentMiddlewares.length
+  const middlewaresLength = middlewares ? middlewares.length : 0
   let i = 0
   let j = 0;
 
   (function next () {
-    if (i < contentMiddlewares.length) {
+    if (i < contentMiddlewaresLength) {
       contentMiddlewares[i++](node, state, next)
       next()
-    } else if (middlewares && j < middlewares.length) {
+    } else if (j < middlewaresLength) {
       middlewares[j++](node, state, next)
       next()
     }
