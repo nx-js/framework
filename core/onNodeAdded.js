@@ -42,8 +42,10 @@ function setupNodeAndChildren (node, state, contentMiddlewares) {
   }
   composeAndRunMiddlewares(node, state, contentMiddlewares, node[symbols.middlewares])
 
-  for (let i = node.childNodes.length; i--;) {
-    setupNodeAndChildren(node.childNodes[i], state, contentMiddlewares)
+  let child = node.firstChild
+  while (child) {
+    setupNodeAndChildren(child, state, contentMiddlewares)
+    child = child.nextSibling
   }
 }
 

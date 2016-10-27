@@ -7,16 +7,18 @@ module.exports = function onNodeRemoved (node) {
   node[symbols.lifecycleStage] = 'detached'
 
   const cleanupFunctions = node[symbols.cleanupFunctions]
-  if (cleanupFunctions) {
-    for (let cleanupFunction of cleanupFunctions) {
-      cleanupFunction(node)
-    }
+  for (let cleanupFunction of cleanupFunctions) {
+    cleanupFunction(node)
   }
-  Array.prototype.forEach.call(node.childNodes, onNodeRemoved)
+
+  let child = node.firstChild
+  while (child) {
+    onNodeRemoved(child)
+    child = child.nextSibling
+  }
 }
 
 function shouldProcess (node) {
-  const validStage = (node[symbols.lifecycleStage] === 'attached')
-  const validParent = (!node.parentNode || node.parentNode[symbols.lifecycleStage] === 'detached')
-  return (validStage && validParent)
+  const parent = node.parentNode
+  return (node[symbols.lifecycleStage] === 'attached' && (!parent || parent[symbols.lifecycleStage] === 'detached'))
 }
