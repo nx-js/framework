@@ -56,7 +56,9 @@ function parseValue (string) {
       if (i === string.length - 1) {
         tokens.push(string.slice(anchor, i + 1))
       } else if ((char === '$' || char === '@') && string.charAt(i + 1) === '{') {
-        tokens.push(string.slice(anchor, i))
+        if (i !== anchor) {
+          tokens.push(string.slice(anchor, i))
+        }
         token = {observed: (char === '@')}
         anchor = i + 2
         depth = 0
