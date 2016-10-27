@@ -24,7 +24,7 @@ function $normalizeContent () {
   const childNodes = this.childNodes
   for (let i = 0; i < childNodes.length; i++) {
     const node = childNodes[i]
-    if (node instanceof Text && !node.nodeValue.trim()) {
+    if (node instanceof Text && !node.textContent.trim()) {
       node.remove()
       i--
     }

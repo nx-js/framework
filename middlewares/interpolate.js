@@ -5,7 +5,7 @@ module.exports = function interpolate (node) {
   node.$require('expression')
   node.$using('interpolate')
 
-  const tokens = parseValue(node.nodeValue)
+  const tokens = parseValue(node.textContent)
   tokens.forEach(processToken, node)
 }
 
@@ -24,7 +24,7 @@ function interpolateToken (token, value, tokens, node) {
   if (value === undefined) value = ''
   if (token.value !== value) {
     token.value = value
-    node.nodeValue = tokens.join('')
+    node.textContent = tokens.join('')
   }
 }
 

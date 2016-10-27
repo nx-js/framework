@@ -70,6 +70,6 @@ function shouldProcess (node) {
     return ((!node.hasAttribute('is') && node.tagName.indexOf('-') === -1) || node[symbols.registered])
   }
   if (node.nodeType === 3) {
-    return node.nodeValue.trim()
+    return node.textContent.trim()
   }
 }
