@@ -5,9 +5,12 @@ const exposed = require('../core/symbols')
 
 const filterRegex = /(?:[^\|]|\|\|)+/g
 const argsRegex = /\S+/g
+const tokenCache = new Map()
 
 module.exports = function expression (node, state) {
   node.$using('expression')
+
+  node[exposed.filters] = new Map()
   node.$compileExpression = $compileExpression
 }
 
@@ -28,22 +31,24 @@ function $compileExpression (rawExpression) {
 }
 
 function parseExpression (node, rawExpression) {
-  const tokens = rawExpression.match(filterRegex)
-  const filters = node[exposed.filters]
+  let tokens = tokenCache.get(rawExpression)
+  if (!tokens) {
+    tokens = rawExpression.match(filterRegex)
+    tokenCache.set(rawExpression, tokens)
+  }
   const expression = {
     exec: compiler.compileExpression(tokens[0], node[exposed.contextState]),
     filters: []
   }
 
   for (let i = 1; i < tokens.length; i++) {
-    const filterToken = tokens[i].match(argsRegex) || []
-    const filterName = filterToken.shift()
-    if (!filters || !filters.has(filterName)) {
+    let filterTokens = tokens[i].match(argsRegex) || []
+    const filterName = filterTokens.shift()
+    const effect = node[exposed.filters].get(filterName)
+    if (!effect) {
       throw new Error(`there is no filter named ${filterName} on ${node}`)
     }
-    const effect = filters.get(filterName)
-    const argExpressions = filterToken.map(compileArgExpression, node)
-    expression.filters.push({effect, argExpressions})
+    expression.filters.push({effect, argExpressions: filterTokens.map(compileArgExpression, node)})
   }
   return expression
 }

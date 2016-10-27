@@ -5,9 +5,12 @@ const exposed = require('../core/symbols')
 
 const limiterRegex = /(?:[^\&]|\&\&)+/g
 const argsRegex = /\S+/g
+const tokenCache = new Map()
 
 module.exports = function code (node, state) {
   node.$using('code')
+
+  node[exposed.limiters] = new Map()
   node.$compileCode = $compileCode
 }
 
@@ -43,22 +46,24 @@ function $compileCode (rawCode) {
 }
 
 function parseCode (node, rawCode) {
-  const tokens = rawCode.match(limiterRegex)
-  const limiters = node[exposed.limiters]
+  let tokens = tokenCache.get(rawCode)
+  if (!tokens) {
+    tokens = rawCode.match(limiterRegex)
+    tokenCache.set(rawCode, tokens)
+  }
   const code = {
     exec: compiler.compileCode(tokens[0], node[exposed.contextState]),
     limiters: []
   }
 
   for (let i = 1; i < tokens.length; i++) {
-    const limiterToken = tokens[i].match(argsRegex) || []
-    const limiterName = limiterToken.shift()
-    if (!limiters || !limiters.has(limiterName)) {
+    const limiterTokens = tokens[i].match(argsRegex) || []
+    const limiterName = limiterTokens.shift()
+    const effect = node[exposed.limiters].get(limiterName)
+    if (!effect) {
       throw new Error(`there is no limiter named ${limiterName} on ${node}`)
     }
-    const effect = limiters.get(limiterName)
-    const argExpressions = limiterToken.map(compileArgExpression, node)
-    code.limiters.push({effect, argExpressions})
+    code.limiters.push({effect, argExpressions: limiterTokens.map(compileArgExpression, node)})
   }
   return code
 }
