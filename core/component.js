@@ -90,7 +90,10 @@ function onMutations (mutations, contentWatcher) {
       onNodeRemoved(mutation.removedNodes[i])
     }
     for (let i = mutation.addedNodes.length; i--;) {
-      addedNodes.add(mutation.addedNodes[i])
+      const addedNode = mutation.addedNodes[i]
+      if (addedNode.nodeType < 4) {
+        addedNodes.add(addedNode)
+      }
     }
   }
 
