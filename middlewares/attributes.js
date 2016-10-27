@@ -13,7 +13,7 @@ module.exports = function attributes (elem, state, next) {
   elem.$attribute = $attribute
   next()
 
-  Array.prototype.forEach.call(elem.attributes, processAttributeWithoutHandler, elem)
+  processAttributesWithoutHandler(elem)
   elem[secret.handlers].forEach(processAttributeWithHandler, elem)
 }
 
@@ -37,7 +37,7 @@ function $attribute (name, handler) {
     this[secret.handlers].push({type: 'observed', value, name, handler})
     this.removeAttribute(observedName)
   }
-  
+
   const onceName = '$' + name
   value = this.getAttribute(onceName)
   if (value !== null) {
@@ -47,17 +47,21 @@ function $attribute (name, handler) {
   }
 }
 
-function processAttributeWithoutHandler (attribute) {
-  if (attribute.name[0] === '$') {
-    const name = attribute.name.slice(1)
-    const expression = this.$compileExpression(attribute.value || name)
-    defaultHandler(this, name, expression)
-    this.removeAttribute(attribute.name)
-  } else if (attribute.name[0] === '@') {
-    const name = attribute.name.slice(1)
-    const expression = this.$compileExpression(attribute.value || name)
-    this.$observe(() => defaultHandler(this, name, expression))
-    this.removeAttribute(attribute.name)
+function processAttributesWithoutHandler (elem) {
+  const attributes = elem.attributes
+  for (let i = attributes.length; i--;) {
+    const attribute = attributes[i]
+    if (attribute.name[0] === '$') {
+      const name = attribute.name.slice(1)
+      const expression = elem.$compileExpression(attribute.value || name)
+      defaultHandler(elem, name, expression)
+      elem.removeAttribute(attribute.name)
+    } else if (attribute.name[0] === '@') {
+      const name = attribute.name.slice(1)
+      const expression = elem.$compileExpression(attribute.value || name)
+      elem.$observe(() => defaultHandler(this, name, expression))
+      elem.removeAttribute(attribute.name)
+    }
   }
 }
 
