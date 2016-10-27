@@ -54,7 +54,7 @@ function attachedCallback () {
   if (!this[symbols.registered]) {
     if (typeof config.state === 'object') {
       this[symbols.state] = config.state
-    } else if (config.state) {
+    } else if (config.state === true) {
       this[symbols.state] = observer.observable()
     } else if (config.state === 'inherit') {
       this[symbols.state] = observer.observable()
@@ -64,10 +64,10 @@ function attachedCallback () {
     this[symbols.isolate] = config.isolate
     this[symbols.contentMiddlewares] = config.contentMiddlewares
     this[symbols.middlewares] = config.middlewares
-    this[symbols.root] = config.root
     this[symbols.registered] = true
 
     if (config.root) {
+      this[symbols.root] =  true
       this[secret.contentWatcher] = new MutationObserver(onMutations)
       this[secret.contentWatcher].observe(this, contentWatcherConfig)
       onNodeAdded(this, getContext(this.parentNode))

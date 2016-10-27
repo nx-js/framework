@@ -30,13 +30,14 @@ function interpolateToken (token, value, tokens, node) {
 
 function parseValue (string) {
   const tokens = []
+  const length = string.length
   let expression = false
   let anchor = 0
   let depth = 0
   let token
 
-  for (let i = 0; i < string.length; i++) {
-    const char = string.charAt(i)
+  for (let i = 0; i < length; i++) {
+    const char = string[i]
 
     if (expression) {
       if (char === '{') {
@@ -53,7 +54,7 @@ function parseValue (string) {
         expression = false
       }
     } else {
-      if (i === string.length - 1) {
+      if (i === length - 1) {
         tokens.push(string.slice(anchor, i + 1))
       } else if ((char === '$' || char === '@') && string.charAt(i + 1) === '{') {
         if (i !== anchor) {

@@ -8,7 +8,6 @@ module.exports = function setupNode (node) {
   node[symbols.usedMiddlewareNames] = new Set()
 
   node.$using = $using
-  node.$isUsing = $isUsing
   node.$require = $require
   node.$cleanup = $cleanup
   node.$observe = $observe
@@ -21,10 +20,6 @@ function $using (middlewareName) {
     throw new Error(`duplicate middleware: ${middlewareName}`)
   }
   usedMiddlewareNames.add(middlewareName)
-}
-
-function $isUsing (middlewareName) {
-  return this[symbols.usedMiddlewareNames].has(middlewareName)
 }
 
 function $require (middlewareName) {
