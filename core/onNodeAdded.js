@@ -13,7 +13,7 @@ module.exports = function onNodeAdded (node, context) {
   }
 }
 
-function setupNodeAndChildren (node, state, contentMiddlewares) {
+function setupNodeAndChildren (node, state, contentMiddlewares, contentMiddlewareNames) {
   if (!shouldProcess(node)) return
 
   node[symbols.lifecycleStage] = 'attached'
@@ -40,6 +40,9 @@ function setupNodeAndChildren (node, state, contentMiddlewares) {
   } else if (node[symbols.contentMiddlewares]) {
     contentMiddlewares = contentMiddlewares.concat(node[symbols.contentMiddlewares])
   }
+  if (node[symbols.contentMiddlewares] || node[symbols.middlewares]) {
+    validateMiddlewares(contentMiddlewares.concat(node[symbols.middlewares] || []))
+  }
   composeAndRunMiddlewares(node, state, contentMiddlewares, node[symbols.middlewares])
 
   let child = node.firstChild
@@ -64,6 +67,38 @@ function composeAndRunMiddlewares (node, state, contentMiddlewares, middlewares)
       next()
     }
   })()
+}
+
+function validateMiddlewares (middlewares) {
+  const middlewareNames = new Set()
+  let duplicates
+  let missing
+
+  for (let middleware of middlewares) {
+    const name = middleware.$name
+    const require = middleware.$require
+    if (name) {
+      if (middlewareNames.has(name)) {
+        duplicates = duplicates || new Set()
+        duplicates.add(name)
+      }
+      middlewareNames.add(name)
+    }
+    if (require) {
+      for (let dependency of require) {
+        if (!middlewareNames.has(dependency)) {
+          missing = missing || new Set()
+          missing.add(dependency)
+        }
+      }
+    }
+  }
+  if (duplicates) {
+    throw new Error(`duplicate middlewares: ${Array.from(duplicates).join(', ')}`)
+  }
+  if (missing) {
+    throw new Error(`missing middlewares: ${Array.from(missing).join(', ')}`)
+  }
 }
 
 function shouldProcess (node) {

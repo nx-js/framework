@@ -1,9 +1,7 @@
 'use strict'
 
-module.exports = function bind (elem, state) {
+function bind (elem, state) {
   if (!isInput(elem)) return
-  elem.$require('bindable')
-  elem.$using('bind')
 
   elem.$bindable({
     mode: 'two-way',
@@ -11,6 +9,9 @@ module.exports = function bind (elem, state) {
     type: getType(elem)
   })
 }
+bind.$name = 'bind'
+bind.$require = ['bindable']
+module.exports = bind
 
 function isInput (elem) {
   if (elem instanceof HTMLInputElement) return true

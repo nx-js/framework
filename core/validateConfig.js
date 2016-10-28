@@ -50,8 +50,5 @@ module.exports = function validateConfig (rawConfig) {
   } else if (rawConfig.element !== undefined) {
     throw new Error(`invalid element config: ${rawConfig.element}, must be the name of a native element`)
   }
-
-  resultConfig.contentMiddlewares = []
-  resultConfig.middlewares = []
   return resultConfig
 }

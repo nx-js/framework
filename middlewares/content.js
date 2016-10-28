@@ -7,9 +7,8 @@ const secret = {
   separators: Symbol('content separators')
 }
 
-module.exports = function content (node, state) {
+function content (node, state) {
   if (node.nodeType !== 1) return
-  node.$using('content')
 
   node.$normalizeContent = $normalizeContent
   node.$extractContent = $extractContent
@@ -19,6 +18,8 @@ module.exports = function content (node, state) {
   node.$moveContent = $moveContent
   node.$mutateContext = $mutateContext
 }
+content.$name = 'content'
+module.exports = content
 
 function $normalizeContent () {
   const childNodes = this.childNodes

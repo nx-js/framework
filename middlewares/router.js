@@ -14,16 +14,16 @@ function onPopState (ev) {
   }
 }
 
-module.exports = function router (router, state) {
+function router (router, state) {
   if (router.nodeType !== 1) {
     throw new Error('router only works with element nodes')
   }
-  router.$using('router')
-
   setupRouter(router)
   extractViews(router)
   routeRouterAndChildren(router, absoluteToRelativeRoute(router, history.state.route))
 }
+router.$name = 'router'
+module.exports = router
 
 function setupRouter (router) {
   router[secret.config] = {

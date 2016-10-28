@@ -1,13 +1,14 @@
 'use strict'
 
-module.exports = function style (elem, state) {
+function style (elem, state) {
   if (elem.nodeType !== 1) return
-  elem.$require('attributes')
-  elem.$using('style')
 
   elem.$attribute('class', classAttribute)
   elem.$attribute('style', styleAttribute)
 }
+style.$name = 'style'
+style.$require = ['attributes']
+module.exports = style
 
 function classAttribute (classes, elem) {
   if (typeof classes === 'object') {

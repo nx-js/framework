@@ -2,7 +2,7 @@
 
 const exposed = require('../core/symbols')
 
-module.exports = function render (config) {
+module.exports = function renderFactory (config) {
   config = validateAndCloneConfig(config)
   if (config.cache) {
     config.template = cacheTemplate(config.template)
@@ -14,11 +14,10 @@ module.exports = function render (config) {
     document.head.appendChild(styleContainer)
   }
 
-  return function renderMiddleware (elem, state) {
+  function render (elem, state) {
     if (elem.nodeType !== 1) {
       throw new Error('render only works with element nodes')
     }
-    elem.$using('render')
 
     let template
     if (config.cache) {
@@ -29,6 +28,8 @@ module.exports = function render (config) {
     composeContentWithTemplate(elem, state, template)
     elem.appendChild(template)
   }
+  render.$name = 'render'
+  return render
 }
 
 function composeContentWithTemplate (elem, state, template) {

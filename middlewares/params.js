@@ -19,10 +19,8 @@ function onPopState (ev) {
   }
 }
 
-module.exports = function params (config) {
-  return function paramsMiddleware (node, state, next) {
-    node.$using('params')
-
+module.exports = function paramsFactory (config) {
+  function params (node, state, next) {
     node[secret.config] = config
     nodesToSync.add(node)
     node.$cleanup(() => nodesToSync.delete(node))
@@ -34,6 +32,8 @@ module.exports = function params (config) {
     syncParamsWithState(history.state.params, state, config, false)
     node.$observe(() => syncParamsWithState(history.state.params, state, config, true))
   }
+  params.$name = 'params'
+  return params
 }
 
 function syncStateWithParams (state, params, config) {

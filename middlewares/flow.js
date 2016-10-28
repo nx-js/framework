@@ -7,15 +7,15 @@ const secret = {
   prevArray: Symbol('flow prevArray')
 }
 
-module.exports = function flow (elem, state, next) {
+function flow (elem, state, next) {
   if (elem.nodeType !== 1) return
-  elem.$require('content')
-  elem.$require('attributes')
-  elem.$using('flow')
 
   elem.$attribute('if', ifAttribute)
   elem.$attribute('repeat', repeatAttribute)
 }
+flow.$name = 'flow'
+flow.$require = ['content', 'attributes']
+module.exports = flow
 
 function ifAttribute (show, elem) {
   setupFlow(elem)

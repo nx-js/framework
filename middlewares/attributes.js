@@ -4,10 +4,8 @@ const secret = {
   handlers: Symbol('attribute handlers')
 }
 
-module.exports = function attributes (elem, state, next) {
+function attributes (elem, state, next) {
   if (elem.nodeType !== 1) return
-  elem.$require('expression')
-  elem.$using('attributes')
 
   elem[secret.handlers] = []
   elem.$attribute = $attribute
@@ -16,6 +14,9 @@ module.exports = function attributes (elem, state, next) {
   processAttributesWithoutHandler(elem)
   elem[secret.handlers].forEach(processAttributeWithHandler, elem)
 }
+attributes.$name = 'attributes'
+attributes.$require = ['expression']
+module.exports = attributes
 
 function $attribute (name, handler) {
   if (typeof name !== 'string') {

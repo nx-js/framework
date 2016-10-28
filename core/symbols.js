@@ -7,7 +7,6 @@ module.exports = {
   isolate: Symbol('isolate'),
   middlewares: Symbol('middlewares'),
   contentMiddlewares: Symbol('content middlewares'),
-  usedMiddlewareNames: Symbol('used middleware names'),
   cleanupFunctions: Symbol('cleanup functions'),
   lifecycleStage: Symbol('lifecycle stage'),
   root: Symbol('root component'),

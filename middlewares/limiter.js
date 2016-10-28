@@ -10,8 +10,9 @@ module.exports = function limiterFactory (name, handler) {
     throw new TypeError('second argument must be a function')
   }
 
-  return function limiter (node) {
-    node.$require('code')
+  function limiter (node) {
     node[exposed.limiters].set(name, handler)
   }
+  limiter.$require = ['code']
+  return limiter
 }

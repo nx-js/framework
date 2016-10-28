@@ -4,14 +4,15 @@ const secret = {
   handlers: Symbol('event handlers')
 }
 
-module.exports = function events (elem) {
+function events (elem) {
   if (elem.nodeType !== 1) return
-  elem.$require('code')
-  elem.$using('events')
 
   elem[secret.handlers] = new Map()
   processEventAttributes(elem)
 }
+events.$name = 'events'
+events.$require = ['code']
+module.exports = events
 
 function processEventAttributes (elem) {
   const attributes = elem.attributes

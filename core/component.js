@@ -25,7 +25,9 @@ function use (middleware) {
   if (typeof middleware !== 'function') {
     throw new TypeError('first argument must be a function')
   }
-  this[secret.config].middlewares.push(middleware)
+  const config = this[secret.config]
+  config.middlewares = config.middlewares || []
+  config.middlewares.push(middleware)
   return this
 }
 
@@ -33,7 +35,9 @@ function useOnContent (contentMiddleware) {
   if (typeof contentMiddleware !== 'function') {
     throw new TypeError('first argument must be a function')
   }
-  this[secret.config].contentMiddlewares.push(contentMiddleware)
+  const config =  this[secret.config]
+  config.contentMiddlewares = config.contentMiddlewares || []
+  config.contentMiddlewares.push(contentMiddleware)
   return this
 }
 

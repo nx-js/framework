@@ -1,13 +1,14 @@
 'use strict'
 
-module.exports = function interpolate (node) {
+function interpolate (node) {
   if (node.nodeType !== 3) return
-  node.$require('expression')
-  node.$using('interpolate')
 
   const tokens = parseValue(node.textContent)
   tokens.forEach(processToken, node)
 }
+interpolate.$name = 'interpolate'
+interpolate.$require = ['expression']
+module.exports = interpolate
 
 function processToken (token, index, tokens) {
   if (typeof token === 'object') {

@@ -7,19 +7,19 @@ const secret = {
 
 updateHistory(pathToRoute(location.pathname), queryToParams(location.search), {history: false})
 
-module.exports = function ref (elem, state) {
+function ref (elem) {
   if (elem.nodeType !== 1) return
-  elem.$require('attributes')
-  elem.$using('ref')
 
   elem.$route = $route
-
   if (elem instanceof HTMLAnchorElement) {
     elem.$attribute('iref', irefAttribute)
     elem.$attribute('iref-params', irefParamsAttribute)
     elem.$attribute('iref-options', irefOptionsAttribute)
   }
 }
+ref.$name = 'ref'
+ref.$require = ['attributes']
+module.exports = ref
 
 function irefAttribute (path, elem) {
   elem[secret.config] = elem[secret.config] || {}
@@ -28,7 +28,6 @@ function irefAttribute (path, elem) {
 
   const href = path + (elem.search || '')
   elem.setAttribute('href', href)
-
   elem.addEventListener('click', onClick, true)
 }
 
@@ -39,7 +38,6 @@ function irefParamsAttribute (params, elem) {
 
   const href = (elem.pathname || '') + paramsToQuery(params)
   elem.setAttribute('href', href)
-
   elem.addEventListener('click', onClick, true)
 }
 
@@ -63,7 +61,6 @@ function $route (path, params, options) {
   if (options === undefined) {
     options = {}
   }
-
   let route = pathToRoute(path)
   if (route.some(filterRelativeTokens)) {
     route = relativeToAbsoluteRoute(this, route)

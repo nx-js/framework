@@ -23,10 +23,8 @@ function onSubmit (ev) {
   ev.preventDefault()
 }
 
-module.exports = function bindable (elem, state, next) {
+function bindable (elem, state, next) {
   if (elem.nodeType !== 1) return
-  elem.$require('attributes')
-  elem.$using('bindable')
 
   elem.$bindable = $bindable
   next()
@@ -36,6 +34,9 @@ module.exports = function bindable (elem, state, next) {
     elem.$attribute('bind', bindAttribute)
   }
 }
+bindable.$name = 'bindable'
+bindable.$require = ['attributes']
+module.exports = bindable
 
 function $bindable (params) {
   if (typeof params !== 'object') params = {}

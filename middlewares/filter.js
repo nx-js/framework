@@ -10,8 +10,9 @@ module.exports = function filterFactory (name, handler) {
     throw new TypeError('second argument must be a function')
   }
 
-  return function filter (node) {
-    node.$require('expression')
+  function filter (node) {
     node[exposed.filters].set(name, handler)
   }
+  filter.$require = ['expression']
+  return filter
 }

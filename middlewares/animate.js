@@ -23,10 +23,8 @@ function onAnimationEnd (ev) {
   }
 }
 
-module.exports = function animate (elem, state) {
+function animate (elem, state) {
   if (elem.nodeType !== 1) return
-  elem.$require('attributes')
-  elem.$using('animate')
 
   elem.$attribute('enter-animation', enterAttribute)
   elem.$attribute('leave-animation', leaveAttribute)
@@ -35,6 +33,9 @@ module.exports = function animate (elem, state) {
   queueCheck()
   elem.$cleanup(queueCheck)
 }
+animate.$name = 'animate'
+animate.$require = ['attributes']
+module.exports = animate
 
 function enterAttribute (animation, elem) {
   if (elem[secret.entering] !== false) {

@@ -7,12 +7,12 @@ const filterRegex = /(?:[^\|]|\|\|)+/g
 const argsRegex = /\S+/g
 const tokenCache = new Map()
 
-module.exports = function expression (node, state) {
-  node.$using('expression')
-
+function expression (node, state) {
   node[exposed.filters] = new Map()
   node.$compileExpression = $compileExpression
 }
+expression.$name = 'expression'
+module.exports = expression
 
 function $compileExpression (rawExpression) {
   if (typeof rawExpression !== 'string') {

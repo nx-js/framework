@@ -7,12 +7,12 @@ const limiterRegex = /(?:[^\&]|\&\&)+/g
 const argsRegex = /\S+/g
 const tokenCache = new Map()
 
-module.exports = function code (node, state) {
-  node.$using('code')
-
+function code (node, state) {
   node[exposed.limiters] = new Map()
   node.$compileCode = $compileCode
 }
+code.$name = 'code'
+module.exports = code
 
 function $compileCode (rawCode) {
   if (typeof rawCode !== 'string') {
