@@ -1,9 +1,15 @@
 'use strict'
 
+const tokenCache = new Map()
+
 function interpolate (node) {
   if (node.nodeType !== 3) return
-
-  const tokens = parseValue(node.textContent)
+  const textContent = node.textContent
+  let tokens = tokenCache.get(textContent)
+  if (!tokens) {
+    tokens = parseValue(node.textContent)
+    tokenCache.set(textContent, tokens)
+  }
   tokens.forEach(processToken, node)
 }
 interpolate.$name = 'interpolate'

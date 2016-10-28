@@ -110,7 +110,7 @@ function onMutations (mutations, contentWatcher) {
     }
     onNodeAdded(addedNode, context)
   }
-  addedNodes = new Set()
+  addedNodes.clear()
 
   mutations = contentWatcher.takeRecords()
   if (mutations.length) {

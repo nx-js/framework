@@ -7,8 +7,7 @@ const limiterRegex = /(?:[^\&]|\&\&)+/g
 const argsRegex = /\S+/g
 const tokenCache = new Map()
 
-function code (node, state) {
-  node[exposed.limiters] = new Map()
+function code (node) {
   node.$compileCode = $compileCode
 }
 code.$name = 'code'
@@ -56,10 +55,14 @@ function parseCode (node, rawCode) {
     limiters: []
   }
 
+  const limiters = node[exposed.limiters]
   for (let i = 1; i < tokens.length; i++) {
     const limiterTokens = tokens[i].match(argsRegex) || []
     const limiterName = limiterTokens.shift()
-    const effect = node[exposed.limiters].get(limiterName)
+    if (!limiters) {
+      throw new Error(`there is no limiter named ${limiterName} on ${node}`)
+    }
+    const effect = limiters.get(limiterName)
     if (!effect) {
       throw new Error(`there is no limiter named ${limiterName} on ${node}`)
     }

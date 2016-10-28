@@ -11,7 +11,11 @@ module.exports = function limiterFactory (name, handler) {
   }
 
   function limiter (node) {
-    node[exposed.limiters].set(name, handler)
+    let limiters = node[exposed.limiters]
+    if (!limiters) {
+      limiters = node[exposed.limiters] = new Map()
+    }
+    limiters.set(name, handler)
   }
   limiter.$require = ['code']
   return limiter

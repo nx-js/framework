@@ -11,7 +11,11 @@ module.exports = function filterFactory (name, handler) {
   }
 
   function filter (node) {
-    node[exposed.filters].set(name, handler)
+    let filters = node[exposed.filters]
+    if (!filters) {
+      filters = node[exposed.filters] = new Map()
+    }
+    filters.set(name, handler)
   }
   filter.$require = ['expression']
   return filter

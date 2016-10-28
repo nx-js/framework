@@ -1,13 +1,11 @@
 'use strict'
 
 const secret = {
-  handlers: Symbol('event handlers')
+  events: Symbol('event type')
 }
 
 function events (elem) {
   if (elem.nodeType !== 1) return
-
-  elem[secret.handlers] = new Map()
   processEventAttributes(elem)
 }
 events.$name = 'events'
@@ -21,11 +19,15 @@ function processEventAttributes (elem) {
     if (attribute.name[0] === '#') {
       const handler = elem.$compileCode(attribute.value)
       const names = attribute.name.slice(1).split(',')
+      let events = elem[secret.events]
+      if (!events) {
+        events = elem[secret.events] = new Map()
+      }
       for (let name of names) {
-        let handlers = elem[secret.handlers].get(name)
+        let handlers = events.get(name)
         if (!handlers) {
           handlers = new Set()
-          elem[secret.handlers].set(name, handlers)
+          events.set(name, handlers)
         }
         handlers.add(handler)
         elem.addEventListener(name, listener, true)
@@ -36,7 +38,7 @@ function processEventAttributes (elem) {
 }
 
 function listener (event) {
-  const handlers = this[secret.handlers].get(event.type)
+  const handlers = this[secret.events].get(event.type)
   for (let handler of handlers) {
     handler({ $event: event })
   }

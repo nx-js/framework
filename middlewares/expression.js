@@ -7,8 +7,7 @@ const filterRegex = /(?:[^\|]|\|\|)+/g
 const argsRegex = /\S+/g
 const tokenCache = new Map()
 
-function expression (node, state) {
-  node[exposed.filters] = new Map()
+function expression (node) {
   node.$compileExpression = $compileExpression
 }
 expression.$name = 'expression'
@@ -41,10 +40,14 @@ function parseExpression (node, rawExpression) {
     filters: []
   }
 
+  const filters = node[exposed.filters]
   for (let i = 1; i < tokens.length; i++) {
     let filterTokens = tokens[i].match(argsRegex) || []
     const filterName = filterTokens.shift()
-    const effect = node[exposed.filters].get(filterName)
+    if (!filters) {
+      throw new Error(`there is no filter named ${filterName} on ${node}`)
+    }
+    const effect = filters.get(filterName)
     if (!effect) {
       throw new Error(`there is no filter named ${filterName} on ${node}`)
     }
