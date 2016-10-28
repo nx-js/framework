@@ -2,8 +2,6 @@
 
 const core = require('../core')
 const middlewares = require('../middlewares')
-const filters = require('../filters')
-const limiters = require('../limiters')
 
 module.exports = function app (config) {
   config = Object.assign({root: true}, config)
@@ -21,18 +19,4 @@ module.exports = function app (config) {
     .useOnContent(middlewares.bindable)
     .useOnContent(middlewares.bind)
     .useOnContent(middlewares.events)
-    .useOnContent(middlewares.filter('capitalize', filters.capitalize))
-    .useOnContent(middlewares.filter('lowercase', filters.lowercase))
-    .useOnContent(middlewares.filter('uppercase', filters.uppercase))
-    .useOnContent(middlewares.filter('unit', filters.unit))
-    .useOnContent(middlewares.filter('slice', filters.slice))
-    .useOnContent(middlewares.filter('json', filters.json))
-    .useOnContent(middlewares.filter('date', filters.date))
-    .useOnContent(middlewares.filter('time', filters.time))
-    .useOnContent(middlewares.filter('datetime', filters.datetime))
-    .useOnContent(middlewares.limiter('if', limiters.if))
-    .useOnContent(middlewares.limiter('delay', limiters.delay))
-    .useOnContent(middlewares.limiter('debounce', limiters.debounce))
-    .useOnContent(middlewares.limiter('throttle', limiters.throttle))
-    .useOnContent(middlewares.limiter('key', limiters.key))
 }

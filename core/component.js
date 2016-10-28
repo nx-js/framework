@@ -1,6 +1,7 @@
 'use strict'
 
 const observer = require('@risingstack/nx-observe')
+const compiler = require('@risingstack/nx-compile')
 const validateConfig = require('./validateConfig')
 const getContext = require('./getContext')
 const onNodeAdded = require('./onNodeAdded')
@@ -35,7 +36,7 @@ function useOnContent (contentMiddleware) {
   if (typeof contentMiddleware !== 'function') {
     throw new TypeError('first argument must be a function')
   }
-  const config =  this[secret.config]
+  const config = this[secret.config]
   config.contentMiddlewares = config.contentMiddlewares || []
   config.contentMiddlewares.push(contentMiddleware)
   return this
@@ -57,11 +58,12 @@ function attachedCallback () {
   const config = this[secret.config]
   if (!this[symbols.registered]) {
     if (typeof config.state === 'object') {
+      // later maybe check if it is observable??
       this[symbols.state] = config.state
     } else if (config.state === true) {
-      this[symbols.state] = observer.observable()
+      this[symbols.state] = compiler.sandbox(observer.observable())
     } else if (config.state === 'inherit') {
-      this[symbols.state] = observer.observable()
+      this[symbols.state] = compiler.sandbox(observer.observable())
       this[symbols.inheritState] = true
     }
 

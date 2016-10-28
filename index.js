@@ -3,18 +3,17 @@
 require('./polyfills')
 const core = require('./core')
 
-const nx = {
-  component: core.component,
-  symbols: core.symbols,
-  middlewares: require('./middlewares'),
-  filters: require('./filters'),
-  limiters: require('./limiters'),
-  components: require('./components'),
-  observer: require('@risingstack/nx-observe'),
-  compiler: require('@risingstack/nx-compile')
-}
+window.nx = {}
+
+nx.component = core.component
+nx.symbols = core.symbols
+nx.observer = require('@risingstack/nx-observe')
+nx.compiler = require('@risingstack/nx-compile')
+nx.filters = require('./filters')
+nx.limiters = require('./limiters')
+nx.middlewares = require('./middlewares')
+nx.components = require('./components')
 
 if (module && module.exports) {
   module.exports = nx
 }
-window.nx = nx

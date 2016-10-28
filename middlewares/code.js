@@ -5,7 +5,22 @@ const exposed = require('../core/symbols')
 
 const limiterRegex = /(?:[^\&]|\&\&)+/g
 const argsRegex = /\S+/g
-const tokenCache = new Map()
+const codeCache = new Map()
+const limiters = new Map()
+
+nx.limiter = function limiter (name, handler) {
+  if (typeof name !== 'string') {
+    throw new TypeError('first argument must be a string')
+  }
+  if (typeof handler !== 'function') {
+    throw new TypeError('second argument must be a function')
+  }
+  if (limiters.has(name)) {
+    throw new Error(`a limiter named ${name} is already registered`)
+  }
+  limiters.set(name, handler)
+  return this
+}
 
 function code (node) {
   node.$compileCode = $compileCode
@@ -17,7 +32,11 @@ function $compileCode (rawCode) {
   if (typeof rawCode !== 'string') {
     throw new TypeError('first argument must be a string')
   }
-  const code = parseCode(this, rawCode)
+  let code = codeCache.get(rawCode)
+  if (!code) {
+    code = parseCode(rawCode)
+    codeCache.set(rawCode, code)
+  }
   const contextState = this[exposed.contextState]
   const context = {}
 
@@ -30,10 +49,10 @@ function $compileCode (rawCode) {
         Object.assign(context, expando)
         if (i < code.limiters.length) {
           const limiter = code.limiters[i++]
-          const args = limiter.argExpressions.map(evaluateArgExpression)
+          const args = limiter.argExpressions.map(evaluateArgExpression, contextState)
           limiter.effect(next, context, ...args)
         } else {
-          code.exec()
+          code.exec(contextState)
         }
       } finally {
         Object.assign(contextState, backup)
@@ -44,44 +63,35 @@ function $compileCode (rawCode) {
   }
 }
 
-function parseCode (node, rawCode) {
-  let tokens = tokenCache.get(rawCode)
-  if (!tokens) {
-    tokens = rawCode.match(limiterRegex)
-    tokenCache.set(rawCode, tokens)
-  }
+function parseCode (rawCode) {
+  const tokens = rawCode.match(limiterRegex)
   const code = {
-    exec: compiler.compileCode(tokens[0], node[exposed.contextState]),
+    exec: compiler.compileCode(tokens[0]),
     limiters: []
   }
 
-  const limiters = node[exposed.limiters]
   for (let i = 1; i < tokens.length; i++) {
     const limiterTokens = tokens[i].match(argsRegex) || []
     const limiterName = limiterTokens.shift()
-    if (!limiters) {
-      throw new Error(`there is no limiter named ${limiterName} on ${node}`)
-    }
     const effect = limiters.get(limiterName)
     if (!effect) {
-      throw new Error(`there is no limiter named ${limiterName} on ${node}`)
+      throw new Error(`there is no limiter named ${limiterName} on`)
     }
-    code.limiters.push({effect, argExpressions: limiterTokens.map(compileArgExpression, node)})
+    code.limiters.push({effect, argExpressions: limiterTokens.map(compileArgExpression)})
   }
   return code
 }
 
 function evaluateArgExpression (argExpression) {
-  return argExpression()
+  return argExpression(this)
 }
 
 function compileArgExpression (argExpression) {
-  return compiler.compileExpression(argExpression, this[exposed.contextState])
+  return compiler.compileExpression(argExpression)
 }
 
 function createBackup (state, expando) {
   if (!expando) return undefined
-
   const backup = {}
   for (let key in expando) {
     backup[key] = state[key]

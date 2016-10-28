@@ -11,8 +11,6 @@ module.exports = {
   lifecycleStage: Symbol('lifecycle stage'),
   root: Symbol('root component'),
   registered: Symbol('registered custom element'),
-  filters: Symbol('filters'),
-  limiters: Symbol('limiters'),
   routerLevel: Symbol('router level'),
   currentView: Symbol('current router view')
 }

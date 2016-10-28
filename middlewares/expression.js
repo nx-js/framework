@@ -5,7 +5,22 @@ const exposed = require('../core/symbols')
 
 const filterRegex = /(?:[^\|]|\|\|)+/g
 const argsRegex = /\S+/g
-const tokenCache = new Map()
+const expressionCache = new Map()
+const filters = new Map()
+
+nx.filter = function filter (name, handler) {
+  if (typeof name !== 'string') {
+    throw new TypeError('first argument must be a string')
+  }
+  if (typeof handler !== 'function') {
+    throw new TypeError('second argument must be a function')
+  }
+  if (filters.has(name)) {
+    throw new Error(`a filter named ${name} is already registered`)
+  }
+  filters.set(name, handler)
+  return this
+}
 
 function expression (node) {
   node.$compileExpression = $compileExpression
@@ -17,49 +32,46 @@ function $compileExpression (rawExpression) {
   if (typeof rawExpression !== 'string') {
     throw new TypeError('first argument must be a string')
   }
-  const expression = parseExpression(this, rawExpression)
+  const contextState = this[exposed.contextState]
+  let expression = expressionCache.get(rawExpression)
+  if (!expression) {
+    expression = parseExpression(rawExpression)
+    expressionCache.set(rawExpression, expression)
+  }
 
   return function evaluateExpression () {
-    let value = expression.exec()
+    let value = expression.exec(contextState)
     for (let filter of expression.filters) {
-      const args = filter.argExpressions.map(evaluateArgExpression)
+      const args = filter.argExpressions.map(evaluateArgExpression, contextState)
       value = filter.effect(value, ...args)
     }
     return value
   }
 }
 
-function parseExpression (node, rawExpression) {
-  let tokens = tokenCache.get(rawExpression)
-  if (!tokens) {
-    tokens = rawExpression.match(filterRegex)
-    tokenCache.set(rawExpression, tokens)
-  }
+function parseExpression (rawExpression) {
+  const tokens = rawExpression.match(filterRegex)
   const expression = {
-    exec: compiler.compileExpression(tokens[0], node[exposed.contextState]),
+    exec: compiler.compileExpression(tokens[0]),
     filters: []
   }
 
-  const filters = node[exposed.filters]
   for (let i = 1; i < tokens.length; i++) {
     let filterTokens = tokens[i].match(argsRegex) || []
     const filterName = filterTokens.shift()
-    if (!filters) {
-      throw new Error(`there is no filter named ${filterName} on ${node}`)
-    }
     const effect = filters.get(filterName)
     if (!effect) {
-      throw new Error(`there is no filter named ${filterName} on ${node}`)
+      throw new Error(`there is no filter named ${filterName}`)
     }
-    expression.filters.push({effect, argExpressions: filterTokens.map(compileArgExpression, node)})
+    expression.filters.push({effect, argExpressions: filterTokens.map(compileArgExpression)})
   }
   return expression
 }
 
 function evaluateArgExpression (argExpression) {
-  return argExpression()
+  return argExpression(this)
 }
 
 function compileArgExpression (argExpression) {
-  return compiler.compileExpression(argExpression, this[exposed.contextState])
+  return compiler.compileExpression(argExpression)
 }
