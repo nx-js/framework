@@ -32,12 +32,12 @@ function $compileExpression (rawExpression) {
   if (typeof rawExpression !== 'string') {
     throw new TypeError('first argument must be a string')
   }
-  const contextState = this[exposed.contextState]
   let expression = expressionCache.get(rawExpression)
   if (!expression) {
     expression = parseExpression(rawExpression)
     expressionCache.set(rawExpression, expression)
   }
+  const contextState = compiler.sandbox(this[exposed.contextState])
 
   return function evaluateExpression () {
     let value = expression.exec(contextState)

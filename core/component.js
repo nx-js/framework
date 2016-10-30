@@ -61,9 +61,9 @@ function attachedCallback () {
       // later maybe check if it is observable??
       this[symbols.state] = config.state
     } else if (config.state === true) {
-      this[symbols.state] = compiler.sandbox(observer.observable())
+      this[symbols.state] = observer.observable()
     } else if (config.state === 'inherit') {
-      this[symbols.state] = compiler.sandbox(observer.observable())
+      this[symbols.state] = observer.observable()
       this[symbols.inheritState] = true
     }
 

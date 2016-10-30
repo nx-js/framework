@@ -26,7 +26,6 @@ function setupNodeAndChildren (node, state, contentMiddlewares, contentMiddlewar
   }
 
   if (node[symbols.state]) {
-    node[symbols.state].$parent = state
     if (node[symbols.inheritState]) {
       Object.setPrototypeOf(node[symbols.state], state)
     }

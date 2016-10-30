@@ -37,7 +37,7 @@ function $compileCode (rawCode) {
     code = parseCode(rawCode)
     codeCache.set(rawCode, code)
   }
-  const contextState = this[exposed.contextState]
+  const contextState = compiler.sandbox(this[exposed.contextState])
   const context = {}
 
   return function evaluateCode (expando) {
