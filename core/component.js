@@ -1,7 +1,5 @@
 'use strict'
 
-const observer = require('@risingstack/nx-observe')
-const compiler = require('@risingstack/nx-compile')
 const validateConfig = require('./validateConfig')
 const getContext = require('./getContext')
 const onNodeAdded = require('./onNodeAdded')
@@ -61,9 +59,9 @@ function attachedCallback () {
       // later maybe check if it is observable??
       this[symbols.state] = config.state
     } else if (config.state === true) {
-      this[symbols.state] = observer.observable()
+      this[symbols.state] = {}
     } else if (config.state === 'inherit') {
-      this[symbols.state] = observer.observable()
+      this[symbols.state] = {}
       this[symbols.inheritState] = true
     }
 

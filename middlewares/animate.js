@@ -23,7 +23,7 @@ function onAnimationEnd (ev) {
   }
 }
 
-function animate (elem, state) {
+function animate (elem) {
   if (elem.nodeType !== 1) return
 
   elem.$attribute('enter-animation', enterAttribute)
@@ -34,7 +34,7 @@ function animate (elem, state) {
   elem.$cleanup(queueCheck)
 }
 animate.$name = 'animate'
-animate.$require = ['attributes']
+animate.$require = ['cleanup', 'attributes']
 module.exports = animate
 
 function enterAttribute (animation, elem) {

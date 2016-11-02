@@ -15,5 +15,7 @@ module.exports = {
   animate: require('./animate'),
   router: require('./router'),
   params: require('./params'),
-  ref: require('./ref')
+  ref: require('./ref'),
+  observe: require('./observe'),
+  cleanup: require('./cleanup')
 }

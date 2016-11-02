@@ -1,6 +1,6 @@
 'use strict'
 
-function bind (elem, state) {
+function bind (elem) {
   if (!isInput(elem)) return
 
   elem.$bindable({

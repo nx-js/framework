@@ -14,7 +14,7 @@ module.exports = function renderFactory (config) {
     document.head.appendChild(styleContainer)
   }
 
-  function render (elem, state) {
+  function render (elem) {
     if (elem.nodeType !== 1) {
       throw new Error('render only works with element nodes')
     }
@@ -25,14 +25,14 @@ module.exports = function renderFactory (config) {
     } else {
       template = cacheTemplate(config.template)
     }
-    composeContentWithTemplate(elem, state, template)
+    composeContentWithTemplate(elem, template)
     elem.appendChild(template)
   }
   render.$name = 'render'
   return render
 }
 
-function composeContentWithTemplate (elem, state, template) {
+function composeContentWithTemplate (elem, template) {
   let defaultSlot
 
   Array.prototype.forEach.call(template.querySelectorAll('slot'), (slot) => {

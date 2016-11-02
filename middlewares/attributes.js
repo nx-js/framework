@@ -15,7 +15,7 @@ function attributes (elem, state, next) {
   elem[secret.handlers].forEach(processAttributeWithHandler, elem)
 }
 attributes.$name = 'attributes'
-attributes.$require = ['expression']
+attributes.$require = ['observe', 'expression']
 module.exports = attributes
 
 function $attribute (name, handler) {

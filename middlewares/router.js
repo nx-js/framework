@@ -14,7 +14,7 @@ function onPopState (ev) {
   }
 }
 
-function router (router, state) {
+function router (router) {
   if (router.nodeType !== 1) {
     throw new Error('router only works with element nodes')
   }
@@ -23,6 +23,7 @@ function router (router, state) {
   routeRouterAndChildren(router, absoluteToRelativeRoute(router, history.state.route))
 }
 router.$name = 'router'
+router.$require = ['cleanup']
 module.exports = router
 
 function setupRouter (router) {

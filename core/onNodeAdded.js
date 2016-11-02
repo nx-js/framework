@@ -1,6 +1,5 @@
 'use strict'
 
-const setupNode = require('./setupNode')
 const symbols = require('./symbols')
 
 module.exports = function onNodeAdded (node, context) {
@@ -15,24 +14,10 @@ module.exports = function onNodeAdded (node, context) {
 
 function setupNodeAndChildren (node, state, contentMiddlewares, contentMiddlewareNames) {
   if (!shouldProcess(node)) return
-
   node[symbols.lifecycleStage] = 'attached'
-  setupNode(node)
 
-  if (node[symbols.contextState]) {
-    state = node[symbols.contextState]
-  } else {
-    node[symbols.contextState] = state
-  }
-
-  if (node[symbols.state]) {
-    if (node[symbols.inheritState]) {
-      Object.setPrototypeOf(node[symbols.state], state)
-    }
-    state = node[symbols.state]
-  } else {
-    node[symbols.state] = state
-  }
+  node[symbols.contextState] = node[symbols.contextState] || state
+  node[symbols.state] = node[symbols.state] || node[symbols.contextState]
 
   if (node[symbols.isolate] === 'middlewares') {
     contentMiddlewares = node[symbols.contentMiddlewares] || []
@@ -42,16 +27,16 @@ function setupNodeAndChildren (node, state, contentMiddlewares, contentMiddlewar
   if (node[symbols.contentMiddlewares] || node[symbols.middlewares]) {
     validateMiddlewares(contentMiddlewares.concat(node[symbols.middlewares] || []))
   }
-  composeAndRunMiddlewares(node, state, contentMiddlewares, node[symbols.middlewares])
+  composeAndRunMiddlewares(node, contentMiddlewares, node[symbols.middlewares])
 
   let child = node.firstChild
   while (child) {
-    setupNodeAndChildren(child, state, contentMiddlewares)
+    setupNodeAndChildren(child, node[symbols.state], contentMiddlewares)
     child = child.nextSibling
   }
 }
 
-function composeAndRunMiddlewares (node, state, contentMiddlewares, middlewares) {
+function composeAndRunMiddlewares (node, contentMiddlewares, middlewares) {
   const contentMiddlewaresLength = contentMiddlewares.length
   const middlewaresLength = middlewares ? middlewares.length : 0
   let i = 0
@@ -59,10 +44,10 @@ function composeAndRunMiddlewares (node, state, contentMiddlewares, middlewares)
 
   (function next () {
     if (i < contentMiddlewaresLength) {
-      contentMiddlewares[i++](node, state, next)
+      contentMiddlewares[i++](node, node[symbols.state], next)
       next()
     } else if (j < middlewaresLength) {
-      middlewares[j++](node, state, next)
+      middlewares[j++](node, node[symbols.state], next)
       next()
     }
   })()

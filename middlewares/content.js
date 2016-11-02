@@ -7,16 +7,16 @@ const secret = {
   separators: Symbol('content separators')
 }
 
-function content (node, state) {
-  if (node.nodeType !== 1) return
+function content (elem) {
+  if (elem.nodeType !== 1) return
 
-  node.$normalizeContent = $normalizeContent
-  node.$extractContent = $extractContent
-  node.$insertContent = $insertContent
-  node.$removeContent = $removeContent
-  node.$replaceContent = $replaceContent
-  node.$moveContent = $moveContent
-  node.$mutateContext = $mutateContext
+  elem.$normalizeContent = $normalizeContent
+  elem.$extractContent = $extractContent
+  elem.$insertContent = $insertContent
+  elem.$removeContent = $removeContent
+  elem.$replaceContent = $replaceContent
+  elem.$moveContent = $moveContent
+  elem.$mutateContext = $mutateContext
 }
 content.$name = 'content'
 module.exports = content

@@ -7,7 +7,7 @@ const secret = {
   prevArray: Symbol('flow prevArray')
 }
 
-function flow (elem, state, next) {
+function flow (elem) {
   if (elem.nodeType !== 1) return
 
   elem.$attribute('if', ifAttribute)

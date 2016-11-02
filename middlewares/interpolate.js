@@ -6,7 +6,7 @@ function interpolate (node) {
   tokens.forEach(processToken, node)
 }
 interpolate.$name = 'interpolate'
-interpolate.$require = ['expression']
+interpolate.$require = ['observe', 'expression']
 module.exports = interpolate
 
 function processToken (token, index, tokens) {

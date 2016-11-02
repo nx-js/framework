@@ -7,6 +7,8 @@ module.exports = function app (config) {
   config = Object.assign({root: true}, config)
 
   return core.component(config)
+    .useOnContent(middlewares.cleanup)
+    .useOnContent(middlewares.observe)
     .useOnContent(middlewares.code)
     .useOnContent(middlewares.expression)
     .useOnContent(middlewares.interpolate)

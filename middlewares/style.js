@@ -1,6 +1,6 @@
 'use strict'
 
-function style (elem, state) {
+function style (elem) {
   if (elem.nodeType !== 1) return
 
   elem.$attribute('class', classAttribute)
