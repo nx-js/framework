@@ -35,9 +35,14 @@ function repeatAttribute (array, elem) {
   elem[secret.hasRepeat] = true
 
   if (array === undefined) {
+    elem.innerHTML = ''
     return
   }
   array = Array.from(array)
+  if (!array.length) {
+    elem.innerHTML = ''
+    return
+  }
   elem[secret.prevArray] = elem[secret.prevArray] || []
   const prevArray = elem[secret.prevArray]
 
