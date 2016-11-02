@@ -3,22 +3,26 @@
 const symbols = require('./symbols')
 
 module.exports = function onNodeRemoved (node) {
-  if (!shouldProcess(node)) return
+  const parent = node.parentNode
+  if (!parent || parent[symbols.lifecycleStage] === 'detached') {
+    cleanupNodeAndChildren(node)
+  }
+}
+
+function cleanupNodeAndChildren (node) {
+  if (node[symbols.lifecycleStage] !== 'attached') return
   node[symbols.lifecycleStage] = 'detached'
 
   const cleanupFunctions = node[symbols.cleanupFunctions]
-  for (let cleanupFunction of cleanupFunctions) {
-    cleanupFunction(node)
+  if (cleanupFunctions) {
+    for (let cleanupFunction of cleanupFunctions) {
+      cleanupFunction(node)
+    }
   }
 
   let child = node.firstChild
   while (child) {
-    onNodeRemoved(child)
+    cleanupNodeAndChildren(child)
     child = child.nextSibling
   }
-}
-
-function shouldProcess (node) {
-  const parent = node.parentNode
-  return (node[symbols.lifecycleStage] === 'attached' && (!parent || parent[symbols.lifecycleStage] === 'detached'))
 }
