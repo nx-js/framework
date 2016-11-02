@@ -1,8 +1,10 @@
 'use strict'
 
+const exposed = require('../core/symbols')
 const secret = {
   events: Symbol('event type')
 }
+const handledEvents = new Set()
 
 function events (elem) {
   if (elem.nodeType !== 1) return
@@ -30,7 +32,10 @@ function processEventAttributes (elem) {
           events.set(name, handlers)
         }
         handlers.add(handler)
-        elem.addEventListener(name, listener, true)
+        if (!handledEvents.has(name)) {
+          document.addEventListener(name, listener, true)
+          handledEvents.add(name)
+        }
       }
       elem.removeAttribute(attribute.name)
     }
@@ -38,8 +43,25 @@ function processEventAttributes (elem) {
 }
 
 function listener (event) {
-  const handlers = this[secret.events].get(event.type)
-  for (let handler of handlers) {
-    handler({ $event: event })
+  const type = event.type
+  let node = event.target
+  while (node) {
+    runHandler(node, type)
+    if (node[exposed.root]) {
+      return
+    }
+    node = node.parentNode
+  }
+}
+
+function runHandler (node, type) {
+  const events = node[secret.events]
+  if (events) {
+    const handlers = events.get(type)
+    if (handlers) {
+      for (let handler of handlers) {
+        handler({ $event: event })
+      }
+    }
   }
 }
