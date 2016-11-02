@@ -2,7 +2,7 @@
 
 function interpolate (node) {
   if (node.nodeType !== 3) return
-  const tokens = parseValue(node.textContent)
+  const tokens = parseValue(node.nodeValue)
   tokens.forEach(processToken, node)
 }
 interpolate.$name = 'interpolate'
@@ -24,7 +24,7 @@ function interpolateToken (token, value, tokens, node) {
   if (value === undefined) value = ''
   if (token.value !== value) {
     token.value = value
-    node.textContent = tokens.join('')
+    node.nodeValue = tokens.join('')
   }
 }
 

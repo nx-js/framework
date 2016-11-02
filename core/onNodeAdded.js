@@ -108,6 +108,6 @@ function shouldProcess (node) {
     return ((!node.hasAttribute('is') && node.tagName.indexOf('-') === -1) || node[symbols.registered])
   }
   if (node.nodeType === 3) {
-    return node.textContent.trim()
+    return node.nodeValue.trim()
   }
 }
