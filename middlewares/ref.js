@@ -1,6 +1,5 @@
 'use strict'
 
-const symbols = require('../core/symbols')
 const secret = {
   config: Symbol('ref config')
 }
@@ -71,7 +70,7 @@ function $route (path, params, options) {
 
 function relativeToAbsoluteRoute (node, relativeRoute) {
   let router = findParentRouter(node)
-  let routerLevel = router ? router[symbols.routerLevel] : 0
+  let routerLevel = router ? router.$routerLevel : 0
 
   for (let token of relativeRoute) {
     if (token === '..') routerLevel--
@@ -82,7 +81,7 @@ function relativeToAbsoluteRoute (node, relativeRoute) {
 
   const currentRoute = []
   while (router) {
-    currentRoute.unshift(router[symbols.currentView])
+    currentRoute.unshift(router.$currentView)
     router = findParentRouter(router)
   }
   const route = relativeRoute.filter(filterAbsoluteTokens)
@@ -104,7 +103,7 @@ function filterEmptyTokens (token) {
 function findParentRouter (node) {
   while(node.parentNode) {
     node = node.parentNode
-    if (node[symbols.routerLevel] !== undefined) {
+    if (node.$routerLevel !== undefined) {
       return node
     }
   }

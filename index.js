@@ -1,12 +1,10 @@
 'use strict'
 
 require('./polyfills')
-const core = require('./core')
 
 window.nx = {}
 
-nx.component = core.component
-nx.symbols = core.symbols
+nx.component = require('./core')
 nx.observer = require('@risingstack/nx-observe')
 nx.compiler = require('@risingstack/nx-compile')
 nx.filters = require('./filters')

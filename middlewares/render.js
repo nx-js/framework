@@ -1,7 +1,5 @@
 'use strict'
 
-const exposed = require('../core/symbols')
-
 module.exports = function renderFactory (config) {
   config = validateAndCloneConfig(config)
   if (config.cache) {
@@ -42,7 +40,7 @@ function composeContentWithTemplate (elem, template) {
         clearContent(slot)
         for (let i = 0; i < slotFillers.length; i++) {
           const slotFiller = slotFillers[i]
-          slotFiller[exposed.contextState] = elem[exposed.contextState]
+          slotFiller.$contextState = elem.$contextState
           slot.appendChild(slotFiller)
         }
       }

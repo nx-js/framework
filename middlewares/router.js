@@ -1,6 +1,5 @@
 'use strict'
 
-const symbols = require('../core/symbols')
 const secret = {
   config: Symbol('router config')
 }
@@ -33,18 +32,18 @@ function setupRouter (router) {
   }
   const parentRouter = findParentRouter(router)
   if (parentRouter) {
-    router[symbols.routerLevel] = parentRouter[symbols.routerLevel] + 1
+    router.$routerLevel = parentRouter.$routerLevel + 1
     parentRouter[secret.config].children.add(router)
     router.$cleanup(() => parentRouter[secret.config].children.delete(router))
   } else {
-    router[symbols.routerLevel] = 1
+    router.$routerLevel = 1
     rootRouters.add(router)
     router.$cleanup(() => rootRouters.delete(router))
   }
 }
 
 function absoluteToRelativeRoute (router, route) {
-  return route.slice(router[symbols.routerLevel] - 1)
+  return route.slice(router.$routerLevel - 1)
 }
 
 function extractViews (router) {
@@ -64,7 +63,7 @@ function extractViews (router) {
 function findParentRouter (node) {
   while (node.parentNode) {
     node = node.parentNode
-    if (node[symbols.routerLevel] !== undefined) {
+    if (node.$routerLevel !== undefined) {
       return node
     }
   }
@@ -74,7 +73,7 @@ function routeRouterAndChildren (router, route) {
   route = route.slice()
   const templates = router[secret.config].templates
   const defaultView = router[secret.config].defaultView
-  const prevView = router[symbols.currentView]
+  const prevView = router.$currentView
   let nextView = route.shift()
 
   if (!templates.has(nextView) && templates.has(defaultView)) {
@@ -94,7 +93,7 @@ function routeRouterAndChildren (router, route) {
 
     if (!routeEvent.defaultPrevented) {
       routeRouter(router, nextView)
-      router[symbols.currentView] = nextView
+      router.$currentView = nextView
     }
   } else {
     routeChildren(router, route)

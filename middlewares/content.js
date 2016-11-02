@@ -1,7 +1,5 @@
 'use strict'
 
-const observer = require('@risingstack/nx-observe')
-const exposed = require('../core/symbols')
 const secret = {
   template: Symbol('content template'),
   separators: Symbol('content separators')
@@ -62,12 +60,11 @@ function $insertContent (index, contextState) {
   content.appendChild(separator)
 
   if (contextState) {
-    contextState = Object.assign(Object.create(this[exposed.state]), contextState)
-    contextState = observer.observable(contextState)
+    contextState = Object.assign(Object.create(this.$state), contextState)
 
     let node = content.firstChild
     while (node) {
-      node[exposed.contextState] = contextState
+      node.$contextState = contextState
       node = node.nextSibling
     }
   }
@@ -120,7 +117,7 @@ function $moveContent (fromIndex, toIndex) {
   separators.splice(toIndex, 0, separators.splice(fromIndex, 1)[0])
 
   if (fromNode) {
-    const contextState = fromNode[exposed.contextState]
+    const contextState = fromNode.$contextState
     if (contextState) {
       contextState.$index = toIndex
     }
@@ -137,7 +134,7 @@ function $mutateContext (index, extraContext) {
   }
   const startNode = findContentStartAtIndex(this, index)
   if (startNode) {
-    const contextState = startNode[exposed.contextState]
+    const contextState = startNode.$contextState
     if (contextState) {
       Object.assign(contextState, extraContext)
     }

@@ -1,24 +1,22 @@
 'use strict'
 
-const symbols = require('./symbols')
-
 module.exports = function getContext (node) {
   const context = {contentMiddlewares: []}
 
   while (node) {
-    if (!context.state && node[symbols.state]) {
-      context.state = node[symbols.state]
+    if (!context.state && node.$state) {
+      context.state = node.$state
     }
-    if (!context.state && node[symbols.contextState]) {
-      context.state = node[symbols.contextState]
+    if (!context.state && node.$contextState) {
+      context.state = node.$contextState
     }
     if (context.isolate !== true && context.isolate !== 'middlewares') {
-      context.isolate = node[symbols.isolate]
+      context.isolate = node.$isolate
     }
-    if (node[symbols.contentMiddlewares] && !context.isolate) {
-      context.contentMiddlewares = node[symbols.contentMiddlewares].concat(context.contentMiddlewares)
+    if (node.$contentMiddlewares && !context.isolate) {
+      context.contentMiddlewares = node.$contentMiddlewares.concat(context.contentMiddlewares)
     }
-    if (node[symbols.root]) {
+    if (node.$root) {
       return context
     }
     node = node.parentNode

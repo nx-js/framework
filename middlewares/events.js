@@ -1,6 +1,5 @@
 'use strict'
 
-const exposed = require('../core/symbols')
 const secret = {
   events: Symbol('event type')
 }
@@ -23,7 +22,8 @@ function processEventAttributes (elem) {
       const names = attribute.name.slice(1).split(',')
       let events = elem[secret.events]
       if (!events) {
-        events = elem[secret.events] = new Map()
+        events = new Map()
+        elem[secret.events] = events
       }
       for (let name of names) {
         let handlers = events.get(name)
@@ -47,7 +47,7 @@ function listener (event) {
   let node = event.target
   while (node) {
     runHandler(node, type)
-    if (node[exposed.root]) {
+    if (node.$root) {
       return
     }
     node = node.parentNode

@@ -1,37 +1,36 @@
 'use strict'
 
-const symbols = require('./symbols')
-
 module.exports = function onNodeAdded (node, context) {
-  const validParent = (node.parentNode && node.parentNode[symbols.lifecycleStage] === 'attached')
-  if (validParent && node[symbols.root]) {
+  const parent = node.parentNode
+  const validParent = (parent && parent.$lifecycleStage === 'attached')
+  if (validParent && node.$root) {
     throw new Error(`Nested root component: ${node.tagName}`)
   }
-  if ((validParent || node[symbols.root]) && context.isolate !== true) {
+  if ((validParent || node.$root) && context.isolate !== true) {
     setupNodeAndChildren(node, context.state, context.contentMiddlewares)
   }
 }
 
 function setupNodeAndChildren (node, state, contentMiddlewares, contentMiddlewareNames) {
   if (!shouldProcess(node)) return
-  node[symbols.lifecycleStage] = 'attached'
+  node.$lifecycleStage = 'attached'
 
-  node[symbols.contextState] = node[symbols.contextState] || state
-  node[symbols.state] = node[symbols.state] || node[symbols.contextState]
+  node.$contextState = node.$contextState || state
+  node.$state = node.$state || node.$contextState
 
-  if (node[symbols.isolate] === 'middlewares') {
-    contentMiddlewares = node[symbols.contentMiddlewares] || []
-  } else if (node[symbols.contentMiddlewares]) {
-    contentMiddlewares = contentMiddlewares.concat(node[symbols.contentMiddlewares])
+  if (node.$isolate === 'middlewares') {
+    contentMiddlewares = node.$contentMiddlewares || []
+  } else if (node.$contentMiddlewares) {
+    contentMiddlewares = contentMiddlewares.concat(node.$contentMiddlewares)
   }
-  if (node[symbols.contentMiddlewares] || node[symbols.middlewares]) {
-    validateMiddlewares(contentMiddlewares.concat(node[symbols.middlewares] || []))
+  if (node.$contentMiddlewares || node.$middlewares) {
+    validateMiddlewares(contentMiddlewares.concat(node.$middlewares || []))
   }
-  composeAndRunMiddlewares(node, contentMiddlewares, node[symbols.middlewares])
+  composeAndRunMiddlewares(node, contentMiddlewares, node.$middlewares)
 
   let child = node.firstChild
   while (child) {
-    setupNodeAndChildren(child, node[symbols.state], contentMiddlewares)
+    setupNodeAndChildren(child, node.$state, contentMiddlewares)
     child = child.nextSibling
   }
 }
@@ -44,10 +43,10 @@ function composeAndRunMiddlewares (node, contentMiddlewares, middlewares) {
 
   (function next () {
     if (i < contentMiddlewaresLength) {
-      contentMiddlewares[i++](node, node[symbols.state], next)
+      contentMiddlewares[i++](node, node.$state, next)
       next()
     } else if (j < middlewaresLength) {
-      middlewares[j++](node, node[symbols.state], next)
+      middlewares[j++](node, node.$state, next)
       next()
     }
   })()
@@ -86,11 +85,11 @@ function validateMiddlewares (middlewares) {
 }
 
 function shouldProcess (node) {
-  if (node[symbols.lifecycleStage] || node[symbols.isolate] === true) {
+  if (node.$lifecycleStage || node.$isolate === true) {
     return false
   }
   if (node.nodeType === 1) {
-    return ((!node.hasAttribute('is') && node.tagName.indexOf('-') === -1) || node[symbols.registered])
+    return ((!node.hasAttribute('is') && node.tagName.indexOf('-') === -1) || node.$registered)
   }
   if (node.nodeType === 3) {
     return node.nodeValue.trim()

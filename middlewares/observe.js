@@ -1,12 +1,11 @@
 'use strict'
 
 const observer = require('@risingstack/nx-observe')
-const exposed = require('../core/symbols')
 
 function observe (node) {
   // only do it when needed!!
-  node[exposed.state] = observer.observable(node[exposed.state])
-  node[exposed.contextState] = observer.observable(node[exposed.contextState])
+  node.$state = observer.observable(node.$state)
+  node.$contextState = observer.observable(node.$contextState)
 
   node.$observe = $observe
   node.$unobserve = $unobserve

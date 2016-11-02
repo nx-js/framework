@@ -1,12 +1,12 @@
 'use strict'
 
-const core = require('../core')
+const component = require('../core')
 const middlewares = require('../middlewares')
 
 module.exports = function app (config) {
   config = Object.assign({root: true}, config)
 
-  return core.component(config)
+  return component(config)
     .useOnContent(middlewares.cleanup)
     .useOnContent(middlewares.observe)
     .useOnContent(middlewares.code)

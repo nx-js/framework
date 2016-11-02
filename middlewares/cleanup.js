@@ -1,7 +1,5 @@
 'use strict'
 
-const exposed = require('../core/symbols')
-
 function cleanup (node) {
   node.$cleanup = $cleanup
 }
@@ -12,9 +10,9 @@ function $cleanup (fn) {
   if (typeof fn !== 'function') {
     throw new TypeError('first argument must be a function')
   }
-  let cleanupFunctions = this[exposed.cleanupFunctions]
+  let cleanupFunctions = this.$cleanupFunctions
   if (!cleanupFunctions) {
-    cleanupFunctions = this[exposed.cleanupFunctions] = []
+    cleanupFunctions = this.$cleanupFunctions = []
   }
   cleanupFunctions.push(fn)
 }

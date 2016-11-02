@@ -1,7 +1,6 @@
 'use strict'
 
 const compiler = require('@risingstack/nx-compile')
-const exposed = require('../core/symbols')
 
 const filterRegex = /(?:[^\|]|\|\|)+/g
 const argsRegex = /\S+/g
@@ -37,7 +36,7 @@ function $compileExpression (rawExpression) {
     expression = parseExpression(rawExpression)
     expressionCache.set(rawExpression, expression)
   }
-  const contextState = compiler.sandbox(this[exposed.contextState])
+  const contextState = compiler.sandbox(this.$contextState)
 
   return function evaluateExpression () {
     let value = expression.exec(contextState)

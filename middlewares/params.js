@@ -1,6 +1,5 @@
 'use strict'
 
-const exposed = require('../core/symbols')
 const secret = {
   config: Symbol('params sync config')
 }
@@ -11,7 +10,7 @@ window.addEventListener('popstate', onPopState)
 function onPopState (ev) {
   for (let node of nodesToSync) {
     if (document.body.contains(node)) { // TODO -> refine this a bit! I need a better check
-      const state = node[exposed.state]
+      const state = node.$state
       const config = node[secret.config]
       syncStateWithParams(state, history.state.params, config)
       syncParamsWithState(history.state.params, state, config, false)

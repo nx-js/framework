@@ -1,7 +1,6 @@
 'use strict'
 
 const compiler = require('@risingstack/nx-compile')
-const exposed = require('../core/symbols')
 
 const limiterRegex = /(?:[^\&]|\&\&)+/g
 const argsRegex = /\S+/g
@@ -37,7 +36,7 @@ function $compileCode (rawCode) {
     code = parseCode(rawCode)
     codeCache.set(rawCode, code)
   }
-  const contextState = compiler.sandbox(this[exposed.contextState])
+  const contextState = compiler.sandbox(this.$contextState)
   const context = {}
 
   return function evaluateCode (expando) {

@@ -1,9 +1,9 @@
 'use strict'
 
-const core = require('../core')
+const component = require('../core')
 const middlewares = require('../middlewares')
 
 module.exports = function routerComp (config) {
-  return core.component(config)
+  return component(config)
     .use(middlewares.router)
 }

@@ -4,7 +4,6 @@ const validateConfig = require('./validateConfig')
 const getContext = require('./getContext')
 const onNodeAdded = require('./onNodeAdded')
 const onNodeRemoved = require('./onNodeRemoved')
-const symbols = require('./symbols')
 
 const secret = {
   config: Symbol('component config'),
@@ -54,24 +53,24 @@ function register (name) {
 
 function attachedCallback () {
   const config = this[secret.config]
-  if (!this[symbols.registered]) {
+  if (!this.$registered) {
     if (typeof config.state === 'object') {
       // later maybe check if it is observable??
-      this[symbols.state] = config.state
+      this.$state = config.state
     } else if (config.state === true) {
-      this[symbols.state] = {}
+      this.$state = {}
     } else if (config.state === 'inherit') {
-      this[symbols.state] = {}
-      this[symbols.inheritState] = true
+      this.$state = {}
+      this.$inheritState = true
     }
 
-    this[symbols.isolate] = config.isolate
-    this[symbols.contentMiddlewares] = config.contentMiddlewares
-    this[symbols.middlewares] = config.middlewares
-    this[symbols.registered] = true
+    this.$isolate = config.isolate
+    this.$contentMiddlewares = config.contentMiddlewares
+    this.$middlewares = config.middlewares
+    this.$registered = true
 
     if (config.root) {
-      this[symbols.root] =  true
+      this.$root =  true
       this[secret.contentWatcher] = new MutationObserver(onMutations)
       this[secret.contentWatcher].observe(this, contentWatcherConfig)
       onNodeAdded(this, getContext(this.parentNode))

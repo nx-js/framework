@@ -1,19 +1,17 @@
 'use strict'
 
-const symbols = require('./symbols')
-
 module.exports = function onNodeRemoved (node) {
   const parent = node.parentNode
-  if (!parent || parent[symbols.lifecycleStage] === 'detached') {
+  if (!parent || parent.$lifecycleStage === 'detached') {
     cleanupNodeAndChildren(node)
   }
 }
 
 function cleanupNodeAndChildren (node) {
-  if (node[symbols.lifecycleStage] !== 'attached') return
-  node[symbols.lifecycleStage] = 'detached'
+  if (node.$lifecycleStage !== 'attached') return
+  node.$lifecycleStage = 'detached'
 
-  const cleanupFunctions = node[symbols.cleanupFunctions]
+  const cleanupFunctions = node.$cleanupFunctions
   if (cleanupFunctions) {
     for (let cleanupFunction of cleanupFunctions) {
       cleanupFunction(node)

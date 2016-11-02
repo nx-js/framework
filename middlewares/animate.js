@@ -1,6 +1,5 @@
 'use strict'
 
-const exposed = require('../core/symbols')
 const secret = {
   entering: Symbol('during entering animation'),
   leaving: Symbol('during leaving animation'),
@@ -166,7 +165,7 @@ function shouldAbsolutePosition (elem) {
     if (elem[secret.leaving]) {
       return false
     }
-    if (elem[exposed.root]) {
+    if (elem.$root) {
       return true
     }
   }
