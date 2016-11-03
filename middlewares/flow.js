@@ -35,11 +35,13 @@ function repeatAttribute (array, elem) {
   elem[secret.hasRepeat] = true
 
   if (array === undefined) {
+    elem[secret.prevArray] = []
     elem.innerHTML = ''
     return
   }
   array = Array.from(array)
   if (!array.length) {
+    elem[secret.prevArray] = []
     elem.innerHTML = ''
     return
   }
