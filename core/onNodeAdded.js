@@ -1,5 +1,6 @@
 'use strict'
 
+const validateMiddlewares = require('./validateMiddlewares')
 const runMiddlewares = require('./runMiddlewares')
 
 module.exports = function onNodeAdded (node, context) {
@@ -24,6 +25,9 @@ function setupNodeAndChildren (node, state, contentMiddlewares) {
     contentMiddlewares = node.$contentMiddlewares || []
   } else if (node.$contentMiddlewares) {
     contentMiddlewares = contentMiddlewares.concat(node.$contentMiddlewares)
+  }
+  if (node.$shouldValidate) {
+    validateMiddlewares(contentMiddlewares, node.$middlewares, true)
   }
   runMiddlewares(node, contentMiddlewares, node.$middlewares)
 

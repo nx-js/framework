@@ -10,11 +10,11 @@ module.exports = function getContext (node) {
     if (!context.state && node.$contextState) {
       context.state = node.$contextState
     }
-    if (context.isolate !== true && context.isolate !== 'middlewares') {
+    if (!context.isolate) {
       context.isolate = node.$isolate
-    }
-    if (node.$contentMiddlewares && !context.isolate) {
-      context.contentMiddlewares = node.$contentMiddlewares.concat(context.contentMiddlewares)
+      if (node.$contentMiddlewares) {
+        context.contentMiddlewares = node.$contentMiddlewares.concat(context.contentMiddlewares)
+      }
     }
     if (node.$root) {
       return context

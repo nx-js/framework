@@ -1,6 +1,7 @@
 'use strict'
 
 const validateConfig = require('./validateConfig')
+const validateMiddlewares = require('./validateMiddlewares')
 const getContext = require('./getContext')
 const onNodeAdded = require('./onNodeAdded')
 const onNodeRemoved = require('./onNodeRemoved')
@@ -43,12 +44,14 @@ function register (name) {
   if (typeof name !== 'string') {
     throw new TypeError('first argument must be a string')
   }
-  const parentProto = this[secret.config].element ? this[secret.config].elementProto : HTMLElement.prototype
+  const config = this[secret.config]
+  const parentProto = config.element ? config.elementProto : HTMLElement.prototype
   const proto = Object.create(parentProto)
-  proto[secret.config] = this[secret.config]
+  config.shouldValidate = validateMiddlewares(config.contentMiddlewares, config.middlewares)
+  proto[secret.config] = config
   proto.attachedCallback = attachedCallback
   proto.detachedCallback = detachedCallback
-  return document.registerElement(name, {prototype: proto, extends: this[secret.config].element})
+  return document.registerElement(name, {prototype: proto, extends: config.element})
 }
 
 function attachedCallback () {
@@ -66,6 +69,7 @@ function attachedCallback () {
     this.$isolate = config.isolate
     this.$contentMiddlewares = config.contentMiddlewares
     this.$middlewares = config.middlewares
+    this.$shouldValidate = config.shouldValidate
     this.$registered = true
 
     if (config.root) {
