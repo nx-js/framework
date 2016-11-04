@@ -25,47 +25,12 @@ function setupNodeAndChildren (node, state, contentMiddlewares, contentMiddlewar
   } else if (node.$contentMiddlewares) {
     contentMiddlewares = contentMiddlewares.concat(node.$contentMiddlewares)
   }
-  if (node.$contentMiddlewares || node.$middlewares) {
-    validateMiddlewares(contentMiddlewares.concat(node.$middlewares || []))
-  }
   runMiddlewares(node, contentMiddlewares, node.$middlewares)
 
   let child = node.firstChild
   while (child) {
     setupNodeAndChildren(child, node.$state, contentMiddlewares)
     child = child.nextSibling
-  }
-}
-
-function validateMiddlewares (middlewares) {
-  const middlewareNames = new Set()
-  let duplicates
-  let missing
-
-  for (let middleware of middlewares) {
-    const name = middleware.$name
-    const require = middleware.$require
-    if (name) {
-      if (middlewareNames.has(name)) {
-        duplicates = duplicates || new Set()
-        duplicates.add(name)
-      }
-      middlewareNames.add(name)
-    }
-    if (require) {
-      for (let dependency of require) {
-        if (!middlewareNames.has(dependency)) {
-          missing = missing || new Set()
-          missing.add(dependency)
-        }
-      }
-    }
-  }
-  if (duplicates) {
-    throw new Error(`duplicate middlewares: ${Array.from(duplicates).join(', ')}`)
-  }
-  if (missing) {
-    throw new Error(`missing middlewares: ${Array.from(missing).join(', ')}`)
   }
 }
 
