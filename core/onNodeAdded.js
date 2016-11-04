@@ -1,5 +1,7 @@
 'use strict'
 
+const runMiddlewares = require('./runMiddlewares')
+
 module.exports = function onNodeAdded (node, context) {
   const parent = node.parentNode
   const validParent = (parent && parent.$lifecycleStage === 'attached')
@@ -26,30 +28,13 @@ function setupNodeAndChildren (node, state, contentMiddlewares, contentMiddlewar
   if (node.$contentMiddlewares || node.$middlewares) {
     validateMiddlewares(contentMiddlewares.concat(node.$middlewares || []))
   }
-  composeAndRunMiddlewares(node, contentMiddlewares, node.$middlewares)
+  runMiddlewares(node, contentMiddlewares, node.$middlewares)
 
   let child = node.firstChild
   while (child) {
     setupNodeAndChildren(child, node.$state, contentMiddlewares)
     child = child.nextSibling
   }
-}
-
-function composeAndRunMiddlewares (node, contentMiddlewares, middlewares) {
-  const contentMiddlewaresLength = contentMiddlewares.length
-  const middlewaresLength = middlewares ? middlewares.length : 0
-  let i = 0
-  let j = 0;
-
-  (function next () {
-    if (i < contentMiddlewaresLength) {
-      contentMiddlewares[i++](node, node.$state, next)
-      next()
-    } else if (j < middlewaresLength) {
-      middlewares[j++](node, node.$state, next)
-      next()
-    }
-  })()
 }
 
 function validateMiddlewares (middlewares) {
