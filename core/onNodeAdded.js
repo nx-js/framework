@@ -13,7 +13,7 @@ module.exports = function onNodeAdded (node, context) {
   }
 }
 
-function setupNodeAndChildren (node, state, contentMiddlewares, contentMiddlewareNames) {
+function setupNodeAndChildren (node, state, contentMiddlewares) {
   if (!shouldProcess(node)) return
   node.$lifecycleStage = 'attached'
 

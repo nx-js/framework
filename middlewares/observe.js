@@ -1,11 +1,22 @@
 'use strict'
 
 const observer = require('@risingstack/nx-observe')
+const secret = {
+  observers: Symbol('observers')
+}
+let prevState, prevContextState
 
-function observe (node) {
-  // only do it when needed!!
-  node.$state = observer.observable(node.$state)
-  node.$contextState = observer.observable(node.$contextState)
+function observe (node, state) {
+  if (prevState !== state) {
+    node.$state = observer.observable(state)
+  }
+  prevState = state
+
+  const contextState = node.$contextState
+  if (prevContextState !==  contextState) {
+    node.$contextState = observer.observable(contextState)
+  }
+  prevContextState = contextState
 
   node.$observe = $observe
   node.$unobserve = $unobserve

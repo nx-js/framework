@@ -55,7 +55,6 @@ function attachedCallback () {
   const config = this[secret.config]
   if (!this.$registered) {
     if (typeof config.state === 'object') {
-      // later maybe check if it is observable??
       this.$state = config.state
     } else if (config.state === true) {
       this.$state = {}
