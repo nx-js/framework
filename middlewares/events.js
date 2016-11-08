@@ -46,7 +46,7 @@ function listener (event) {
   const type = event.type
   let node = event.target
   while (node) {
-    runHandler(node, type)
+    runHandler(node, event, type)
     if (node.$root) {
       return
     }
@@ -54,7 +54,7 @@ function listener (event) {
   }
 }
 
-function runHandler (node, type) {
+function runHandler (node, event, type) {
   const events = node[secret.events]
   if (events) {
     const handlers = events.get(type)

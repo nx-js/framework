@@ -74,7 +74,7 @@ function parseCode (rawCode) {
     const limiterName = limiterTokens.shift()
     const effect = limiters.get(limiterName)
     if (!effect) {
-      throw new Error(`there is no limiter named ${limiterName} on`)
+      throw new Error(`there is no limiter named ${limiterName}`)
     }
     code.limiters.push({effect, argExpressions: limiterTokens.map(compileArgExpression)})
   }

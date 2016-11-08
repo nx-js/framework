@@ -14,7 +14,7 @@ const contentWatcherConfig = {
   childList: true,
   subtree: true
 }
-let addedNodes = new Set()
+const addedNodes = new Set()
 
 module.exports = function component (rawConfig) {
   return {use, useOnContent, register, [secret.config]: validateConfig(rawConfig)}
@@ -73,11 +73,14 @@ function attachedCallback () {
     this.$registered = true
 
     if (config.root) {
-      this.$root =  true
+      this.$root = true
       this[secret.contentWatcher] = new MutationObserver(onMutations)
       this[secret.contentWatcher].observe(this, contentWatcherConfig)
       onNodeAdded(this, getContext(this.parentNode))
     } else {
+      if (addedNodes.size === 0) {
+        Promise.resolve().then(processAddedNodes)
+      }
       addedNodes.add(this)
     }
   }
@@ -102,7 +105,14 @@ function onMutations (mutations, contentWatcher) {
       }
     }
   }
+  processAddedNodes()
+  mutations = contentWatcher.takeRecords()
+  if (mutations.length) {
+    onMutations(mutations, contentWatcher)
+  }
+}
 
+function processAddedNodes () {
   let context
   let prevParent
   for (let addedNode of addedNodes) {
@@ -113,9 +123,4 @@ function onMutations (mutations, contentWatcher) {
     onNodeAdded(addedNode, context)
   }
   addedNodes.clear()
-
-  mutations = contentWatcher.takeRecords()
-  if (mutations.length) {
-    onMutations(mutations, contentWatcher)
-  }
 }

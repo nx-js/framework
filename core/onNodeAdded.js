@@ -20,6 +20,9 @@ function setupNodeAndChildren (node, state, contentMiddlewares) {
 
   node.$contextState = node.$contextState || state
   node.$state = node.$state || node.$contextState
+  if (node.$inheritState) {
+    Object.setPrototypeOf(node.$state, node.$contextState)
+  }
 
   if (node.$isolate === 'middlewares') {
     contentMiddlewares = node.$contentMiddlewares || []

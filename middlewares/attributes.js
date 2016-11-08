@@ -37,6 +37,7 @@ function $attribute (name, handler) {
   if (value !== null) {
     this[secret.handlers].push({type: 'observed', value, name, handler})
     this.removeAttribute(observedName)
+    return
   }
 
   const onceName = '$' + name
@@ -44,7 +45,6 @@ function $attribute (name, handler) {
   if (value !== null) {
     this[secret.handlers].push({type: 'once', value, name, handler})
     this.removeAttribute(onceName)
-    return
   }
 }
 
@@ -60,7 +60,7 @@ function processAttributesWithoutHandler (elem) {
     } else if (attribute.name[0] === '@') {
       const name = attribute.name.slice(1)
       const expression = elem.$compileExpression(attribute.value || name)
-      elem.$observe(() => defaultHandler(this, name, expression))
+      elem.$observe(() => defaultHandler(elem, name, expression))
       elem.removeAttribute(attribute.name)
     }
   }
