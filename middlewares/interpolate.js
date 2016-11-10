@@ -1,13 +1,34 @@
 'use strict'
 
+const tokenCache = new Map()
+
 function interpolate (node) {
   if (node.nodeType !== 3) return
-  const tokens = parseValue(node.nodeValue)
+
+  const nodeValue = node.nodeValue
+  let tokens = tokenCache.get(nodeValue)
+  if (!tokens) {
+    tokens = parseValue(node.nodeValue)
+    tokenCache.set(nodeValue, tokens)
+  } else {
+    tokens = tokens.map(cloneToken)
+  }
   tokens.forEach(processToken, node)
 }
 interpolate.$name = 'interpolate'
 interpolate.$require = ['observe', 'expression']
 module.exports = interpolate
+
+function cloneToken (token) {
+  if (typeof token === 'object') {
+    return {
+      value: token.value,
+      observed: token.observed,
+      expression: token.expression
+    }
+  }
+  return token
+}
 
 function processToken (token, index, tokens) {
   if (typeof token === 'object') {
