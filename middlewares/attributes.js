@@ -28,14 +28,14 @@ function $attribute (name, handler) {
 
   let value = this.getAttribute(name)
   if (value !== null) {
-    this[secret.handlers].push({type: 'normal', value, name, handler})
+    this[secret.handlers].push({type: '', value, name, handler})
     return
   }
 
   const observedName = '@' + name
   value = this.getAttribute(observedName)
   if (value !== null) {
-    this[secret.handlers].push({type: 'observed', value, name, handler})
+    this[secret.handlers].push({type: '@', value, name, handler})
     this.removeAttribute(observedName)
     return
   }
@@ -43,7 +43,7 @@ function $attribute (name, handler) {
   const onceName = '$' + name
   value = this.getAttribute(onceName)
   if (value !== null) {
-    this[secret.handlers].push({type: 'once', value, name, handler})
+    this[secret.handlers].push({type: '$', value, name, handler})
     this.removeAttribute(onceName)
   }
 }
@@ -77,12 +77,12 @@ function defaultHandler (elem, name, expression) {
 
 function processAttributeWithHandler (handler) {
   const contextState = this.$contextState
-  if (handler.type === 'normal') {
+  if (handler.type === '') {
     handler.handler(handler.value, this)
-  } else if (handler.type === 'once') {
+  } else if (handler.type === '$') {
     const expression = this.$compileExpression(handler.value || handler.name)
     handler.handler(expression(contextState), this)
-  } else if (handler.type === 'observed') {
+  } else if (handler.type === '@') {
     const expression = this.$compileExpression(handler.value || handler.name)
     this.$observe(() => handler.handler(expression(contextState), this))
   }

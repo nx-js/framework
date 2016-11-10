@@ -4,11 +4,11 @@ const secret = {
   template: Symbol('content template'),
   separators: Symbol('content separators')
 }
+let cloneId = 0
 
 function content (elem) {
   if (elem.nodeType !== 1) return
 
-  elem.$normalizeContent = $normalizeContent
   elem.$extractContent = $extractContent
   elem.$insertContent = $insertContent
   elem.$removeContent = $removeContent
@@ -19,29 +19,29 @@ function content (elem) {
 content.$name = 'content'
 module.exports = content
 
-function $normalizeContent () {
-  const childNodes = this.childNodes
-  for (let i = 0; i < childNodes.length; i++) {
-    const node = childNodes[i]
-    if (node.nodeType === 3 && !node.nodeValue.trim()) {
-      node.remove()
-      i--
-    }
-    if (node.nodeType === 1) {
-      $normalizeContent.call(node)
-    }
-  }
-}
-
 function $extractContent () {
   const template = document.createDocumentFragment()
   let node = this.firstChild
   while (node) {
+    processContent(node)
     template.appendChild(node)
     node = this.firstChild
   }
   this[secret.template] = template
   this[secret.separators] = []
+  return template
+}
+
+function processContent (node) {
+  if (node.nodeType === 1) {
+    node.setAttribute('clone-id', cloneId++)
+    const childNodes = node.childNodes
+    for (let i = childNodes.length; i--;) {
+      processContent(childNodes[i])
+    }
+  } else if (node.nodeType === 3 && !node.nodeValue.trim()) {
+    node.remove()
+  }
 }
 
 function $insertContent (index, contextState) {

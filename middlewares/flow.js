@@ -89,7 +89,6 @@ function setupFlow (elem) {
   if (hasIf && hasRepeat) {
     throw new Error('It is forbidden to use the if and repeat attribute on the same element.')
   } else if (hasIf || hasRepeat) {
-    elem.$normalizeContent()
     elem.$extractContent()
   }
 }
