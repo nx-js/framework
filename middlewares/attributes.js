@@ -67,7 +67,7 @@ function processAttributesWithoutHandler (elem) {
 }
 
 function defaultHandler (elem, name, expression) {
-  const value = expression()
+  const value = expression(elem.$contextState)
   if (value) {
     elem.setAttribute(name, value)
   } else {
@@ -76,13 +76,14 @@ function defaultHandler (elem, name, expression) {
 }
 
 function processAttributeWithHandler (handler) {
+  const contextState = this.$contextState
   if (handler.type === 'normal') {
     handler.handler(handler.value, this)
   } else if (handler.type === 'once') {
     const expression = this.$compileExpression(handler.value || handler.name)
-    handler.handler(expression(), this)
+    handler.handler(expression(contextState), this)
   } else if (handler.type === 'observed') {
     const expression = this.$compileExpression(handler.value || handler.name)
-    this.$observe(() => handler.handler(expression(), this))
+    this.$observe(() => handler.handler(expression(contextState), this))
   }
 }

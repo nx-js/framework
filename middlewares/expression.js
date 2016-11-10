@@ -36,9 +36,12 @@ function $compileExpression (rawExpression) {
     expression = parseExpression(rawExpression)
     expressionCache.set(rawExpression, expression)
   }
-  const contextState = compiler.sandbox(this.$contextState)
 
-  return function evaluateExpression () {
+  if (!expression.filters) {
+    return expression.exec
+  }
+
+  return function evaluateExpression (contextState) {
     let value = expression.exec(contextState)
     for (let filter of expression.filters) {
       const args = filter.argExpressions.map(evaluateArgExpression, contextState)
@@ -51,8 +54,7 @@ function $compileExpression (rawExpression) {
 function parseExpression (rawExpression) {
   const tokens = rawExpression.match(filterRegex)
   const expression = {
-    exec: compiler.compileExpression(tokens[0]),
-    filters: []
+    exec: compiler.compileExpression(tokens[0])
   }
 
   for (let i = 1; i < tokens.length; i++) {
@@ -62,6 +64,7 @@ function parseExpression (rawExpression) {
     if (!effect) {
       throw new Error(`there is no filter named ${filterName}`)
     }
+    expression.filters = expression.filters || []
     expression.filters.push({effect, argExpressions: filterTokens.map(compileArgExpression)})
   }
   return expression

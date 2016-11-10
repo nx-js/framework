@@ -36,10 +36,13 @@ function $compileCode (rawCode) {
     code = parseCode(rawCode)
     codeCache.set(rawCode, code)
   }
-  const contextState = compiler.sandbox(this.$contextState)
-  const context = {}
 
-  return function evaluateCode (expando) {
+  if (!code.limiters) {
+    return code.exec
+  }
+
+  const context = {}
+  return function evaluateCode (contextState, expando) {
     const backup = createBackup(contextState, expando)
     let i = 0
     function next () {
@@ -65,8 +68,7 @@ function $compileCode (rawCode) {
 function parseCode (rawCode) {
   const tokens = rawCode.match(limiterRegex)
   const code = {
-    exec: compiler.compileCode(tokens[0]),
-    limiters: []
+    exec: compiler.compileCode(tokens[0])
   }
 
   for (let i = 1; i < tokens.length; i++) {
@@ -76,6 +78,7 @@ function parseCode (rawCode) {
     if (!effect) {
       throw new Error(`there is no limiter named ${limiterName}`)
     }
+    code.limiters = code.limiters || []
     code.limiters.push({effect, argExpressions: limiterTokens.map(compileArgExpression)})
   }
   return code

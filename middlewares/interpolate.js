@@ -11,11 +11,12 @@ module.exports = interpolate
 
 function processToken (token, index, tokens) {
   if (typeof token === 'object') {
+    const state = this.$state
     const expression = this.$compileExpression(token.expression)
     if (token.observed) {
-      this.$observe(() => interpolateToken(token, expression(), tokens, this))
+      this.$observe(() => interpolateToken(token, expression(state), tokens, this))
     } else {
-      interpolateToken(token, expression(), tokens, this)
+      interpolateToken(token, expression(state), tokens, this)
     }
   }
 }

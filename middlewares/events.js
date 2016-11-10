@@ -60,7 +60,7 @@ function runHandler (node, event, type) {
     const handlers = events.get(type)
     if (handlers) {
       for (let handler of handlers) {
-        handler({ $event: event })
+        handler(node.$contextState, { $event: event })
       }
     }
   }
