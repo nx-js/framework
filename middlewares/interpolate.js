@@ -24,7 +24,7 @@ function interpolateToken (token, value, tokens, node) {
   if (value === undefined) value = ''
   if (token.value !== value) {
     token.value = value
-    node.nodeValue = (1 < tokens.length) ? tokens.join('') : String(token) 
+    node.nodeValue = (1 < tokens.length) ? tokens.join('') : value
   }
 }
 
