@@ -23,8 +23,8 @@ function $extractContent () {
   const template = document.createDocumentFragment()
   let node = this.firstChild
   while (node) {
-    processContent(node)
     template.appendChild(node)
+    processContent(node)
     node = this.firstChild
   }
   this[secret.template] = template

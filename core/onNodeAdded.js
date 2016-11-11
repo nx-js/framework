@@ -18,7 +18,7 @@ function setupNodeAndChildren (node, state, contentMiddlewares) {
   if (!shouldProcess(node)) return
   node.$lifecycleStage = 'attached'
 
-  node.$contextState = node.$contextState || state
+  node.$contextState = node.$contextState || state || node.$state
   node.$state = node.$state || node.$contextState
   if (node.$inheritState) {
     Object.setPrototypeOf(node.$state, node.$contextState)

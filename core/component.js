@@ -106,10 +106,6 @@ function onMutations (mutations, contentWatcher) {
     }
   }
   processAddedNodes()
-  mutations = contentWatcher.takeRecords()
-  if (mutations.length) {
-    onMutations(mutations, contentWatcher)
-  }
 }
 
 function processAddedNodes () {

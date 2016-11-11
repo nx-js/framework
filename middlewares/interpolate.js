@@ -24,7 +24,8 @@ function cloneToken (token) {
     return {
       value: token.value,
       observed: token.observed,
-      expression: token.expression
+      expression: token.expression,
+      toString: token.toString
     }
   }
   return token
