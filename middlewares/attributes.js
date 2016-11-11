@@ -1,18 +1,16 @@
 'use strict'
 
-const secret = {
-  handlers: Symbol('attribute handlers')
-}
+const handlers = new Map()
+const attributeCache = new Map()
 
 function attributes (elem, state, next) {
   if (elem.nodeType !== 1) return
 
-  elem[secret.handlers] = []
+  handlers.clear()
   elem.$attribute = $attribute
   next()
-
-  processAttributesWithoutHandler(elem)
-  elem[secret.handlers].forEach(processAttributeWithHandler, elem)
+  const attributes = getAttributes(elem)
+  handleAttributes(elem, attributes)
 }
 attributes.$name = 'attributes'
 attributes.$require = ['observe', 'expression']
@@ -25,49 +23,55 @@ function $attribute (name, handler) {
   if (typeof handler !== 'function') {
     throw new TypeError('second argument must be a function')
   }
-
-  let value = this.getAttribute(name)
-  if (value !== null) {
-    this[secret.handlers].push({type: '', value, name, handler})
-    return
-  }
-
-  const observedName = '@' + name
-  value = this.getAttribute(observedName)
-  if (value !== null) {
-    this[secret.handlers].push({type: '@', value, name, handler})
-    this.removeAttribute(observedName)
-    return
-  }
-
-  const onceName = '$' + name
-  value = this.getAttribute(onceName)
-  if (value !== null) {
-    this[secret.handlers].push({type: '$', value, name, handler})
-    this.removeAttribute(onceName)
-  }
+  handlers.set(name, handler)
 }
 
-function processAttributesWithoutHandler (elem) {
+function getAttributes (elem) {
+  const cloneId = elem.getAttribute('clone-id')
+  if (cloneId) {
+    let attributes = attributeCache.get(cloneId)
+    if (!attributes) {
+      attributes = cloneAttributes(elem)
+      attributeCache.set(cloneId, attributes)
+    }
+    return attributes
+  }
+  return elem.attributes
+}
+
+function cloneAttributes (elem) {
   const attributes = elem.attributes
+  const clonedAttributes = []
   for (let i = attributes.length; i--;) {
     const attribute = attributes[i]
-    if (attribute.name[0] === '$') {
-      const name = attribute.name.slice(1)
-      const expression = elem.$compileExpression(attribute.value || name)
-      defaultHandler(elem, name, expression)
-      elem.removeAttribute(attribute.name)
-    } else if (attribute.name[0] === '@') {
-      const name = attribute.name.slice(1)
-      const expression = elem.$compileExpression(attribute.value || name)
-      elem.$observe(() => defaultHandler(elem, name, expression))
-      elem.removeAttribute(attribute.name)
-    }
+    clonedAttributes.push({name: attribute.name, value: attribute.value})
   }
+  return clonedAttributes
 }
 
-function defaultHandler (elem, name, expression) {
-  const value = expression(elem.$contextState)
+function handleAttributes (elem, attributes) {
+  const contextState = elem.$contextState
+  const attributesToHandle = []
+
+  for (let i = attributes.length; i--;) {
+    const attribute = attributes[i]
+    attribute.type = attribute.name[0]
+    if (attribute.type === '$' || attribute.type === '@') {
+      attribute.$name = attribute.name.slice(1)
+      attribute.handler = handlers.get(attribute.$name) || defaultHandler
+    } else {
+      attribute.handler = handlers.get(attribute.name)
+    }
+    if (attribute.handler === defaultHandler) {
+      attributesToHandle.unshift(attribute)
+    } else if (attribute.handler) {
+      attributesToHandle.push(attribute)
+    }
+  }
+  attributesToHandle.forEach(handleAttribute, elem)
+}
+
+function defaultHandler (value, elem, name) {
   if (value) {
     elem.setAttribute(name, value)
   } else {
@@ -75,15 +79,14 @@ function defaultHandler (elem, name, expression) {
   }
 }
 
-function processAttributeWithHandler (handler) {
-  const contextState = this.$contextState
-  if (handler.type === '') {
-    handler.handler(handler.value, this)
-  } else if (handler.type === '$') {
-    const expression = this.$compileExpression(handler.value || handler.name)
-    handler.handler(expression(contextState), this)
-  } else if (handler.type === '@') {
-    const expression = this.$compileExpression(handler.value || handler.name)
-    this.$observe(() => handler.handler(expression(contextState), this))
+function handleAttribute (attribute) {
+  if (attribute.type === '$') {
+    const expression = this.$compileExpression(attribute.value || attribute.$name)
+    attribute.$handler(expression(this.$contextState), this, attribute.$name)
+  } else if (attribute.type === '@') {
+    const expression = this.$compileExpression(attribute.value || attribute.$name)
+    this.$observe(() => attribute.handler(expression(this.$contextState), this, attribute.$name))
+  } else {
+    attribute.handler(attribute.value, this, attribute.name)
   }
 }

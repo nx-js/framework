@@ -19,11 +19,15 @@ function classAttribute (classes, elem) {
         elem.classList.remove(className)
       }
     }
+  } else if (elem.className !== classes) {
+    elem.className = classes
   }
 }
 
 function styleAttribute (styles, elem) {
   if (typeof styles === 'object') {
     Object.assign(elem.style, styles)
+  } else if (elem.style.cssText !== styles) {
+    elem.style.cssText = styles
   }
 }

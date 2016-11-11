@@ -8,23 +8,24 @@ const handledEvents = new Set()
 
 function events (elem) {
   if (elem.nodeType !== 1) return
-
-  let handlers
-  const cloneId = elem.getAttribute('clone-id')
-  if (cloneId) {
-    handlers = handlerCache.get(cloneId)
-    if (handlers === undefined) {
-      handlers = createEventHandlers(elem)
-      handlerCache.set(cloneId, handlers)
-    }
-  } else {
-    handlers = createEventHandlers(elem)
-  }
-  elem[secret.handlers] = handlers
+  elem[secret.handlers] = getEventHandlers(elem)
 }
 events.$name = 'events'
 events.$require = ['code']
 module.exports = events
+
+function getEventHandlers (elem) {
+  const cloneId = elem.getAttribute('clone-id')
+  if (cloneId) {
+    let handlers = handlerCache.get(cloneId)
+    if (handlers === undefined) {
+      handlers = createEventHandlers(elem)
+      handlerCache.set(cloneId, handlers)
+    }
+    return handlers
+  }
+  return createEventHandlers(elem)
+}
 
 function createEventHandlers (elem) {
   const attributes = elem.attributes
