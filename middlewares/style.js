@@ -12,11 +12,11 @@ module.exports = style
 
 function classAttribute (classes, elem) {
   if (typeof classes === 'object') {
-    for (let className in classes) {
-      if (classes[className]) {
-        elem.classList.add(className)
-      } else {
-        elem.classList.remove(className)
+    for (let item in classes) {
+      if (classes[item]) {
+        elem.classList.add(item)
+      } else if (elem.className) {
+        elem.classList.remove(item)
       }
     }
   } else if (elem.className !== classes) {
