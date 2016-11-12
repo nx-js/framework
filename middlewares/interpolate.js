@@ -5,19 +5,23 @@ const tokenCache = new Map()
 function interpolate (node) {
   if (node.nodeType !== 3) return
 
-  const nodeValue = node.nodeValue
-  let tokens = tokenCache.get(nodeValue)
-  if (!tokens) {
-    tokens = parseValue(node.nodeValue)
-    tokenCache.set(nodeValue, tokens)
-  } else {
-    tokens = tokens.map(cloneToken)
-  }
+  const tokens = createTokens(node)
   tokens.forEach(processToken, node)
 }
 interpolate.$name = 'interpolate'
 interpolate.$require = ['observe', 'expression']
 module.exports = interpolate
+
+function createTokens (node) {
+  const nodeValue = node.nodeValue
+  let tokens = tokenCache.get(nodeValue)
+  if (!tokens) {
+    tokens = parseValue(node.nodeValue)
+    tokenCache.set(nodeValue, tokens)
+    return tokens
+  }
+  return tokens.map(cloneToken)
+}
 
 function cloneToken (token) {
   if (typeof token === 'object') {

@@ -55,23 +55,23 @@ function createEventHandlers (elem) {
 
 function listener (event) {
   const type = event.type
-  let node = event.target
-  while (node) {
-    runHandler(node, event, type)
-    if (node.$root) {
+  let elem = event.target
+  while (elem) {
+    runHandler(elem, event, type)
+    if (elem.$root) {
       return
     }
-    node = node.parentNode
+    elem = elem.parentNode
   }
 }
 
-function runHandler (node, event, type) {
-  const handlers = node[secret.handlers]
+function runHandler (elem, event, type) {
+  const handlers = elem[secret.handlers]
   if (handlers) {
     const typeHandlers = handlers.get(type)
     if (typeHandlers) {
       for (let handler of typeHandlers) {
-        handler(node.$contextState, { $event: event })
+        handler(elem.$contextState, { $event: event })
       }
     }
   }

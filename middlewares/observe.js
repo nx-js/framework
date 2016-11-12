@@ -9,7 +9,7 @@ let prevState
 function observe (node, state) {
   if (prevState !== state) {
     node.$state = observer.observable(state)
-    prevState = state
+    prevState = node.$state
   }
   if (prevState !== node.$contextState) {
     node.$contextState = observer.observable(node.$contextState)

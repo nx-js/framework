@@ -41,9 +41,11 @@ function repeatAttribute (array, elem) {
   elem[secret.prevArray] = elem[secret.prevArray] || []
   const prevArray = elem[secret.prevArray]
 
-  const repeatKey = elem.getAttribute('repeat-key')
-  const repeatValue = elem.getAttribute('repeat-value') || '$value'
-  const repeatIndex = elem.getAttribute('repeat-index') || '$index'
+  const trackBy = elem.getAttribute('track-by')
+  const value = elem.getAttribute('value')
+  if (!value) {
+    throw new Error('You must provide a "value" attribute as the name of the current value property.')
+  }
 
   for (let i = 0; i < array.length; i++) {
     const item = array[i]
@@ -51,9 +53,9 @@ function repeatAttribute (array, elem) {
 
     for (let j = i; j < prevArray.length; j++) {
       const prevItem = prevArray[j]
-      if (isSame(item, prevItem, repeatKey)) {
+      if (trackBy === '$index' || isSame(item, prevItem, trackBy)) {
         if (i === j) {
-          elem.$mutateContext(i, { [repeatIndex]: i })
+          elem.$mutateContext(i, {'$index': i, [value]: item})
         } else {
           prevArray.splice(i, 0, prevArray.splice(j, 1)[0])
           elem.$moveContent(j, i)
@@ -64,7 +66,7 @@ function repeatAttribute (array, elem) {
     }
     if (!found) {
       prevArray.splice(i, 0, item)
-      elem.$insertContent(i, {[repeatValue]: array[i], [repeatIndex]: i})
+      elem.$insertContent(i, {'$index': i, [value]: item})
     }
   }
 
@@ -74,13 +76,10 @@ function repeatAttribute (array, elem) {
   }
 }
 
-function isSame (item1, item2, key) {
-  if (item1 === item2) {
-    return true
-  }
-  if (key && typeof item1 === 'object' && item1 !== null && typeof item2 === 'object' && item2 !== null) {
-    return (item1[key] === item2[key])
-  }
+function isSame (item1, item2, trackBy) {
+  return (item1 === item2) ||
+  (trackBy && item1 && item2 && typeof item1 === 'object' && typeof item2 === 'object' &&
+  item1[trackBy] === item2[trackBy])
 }
 
 function setupFlow (elem) {
