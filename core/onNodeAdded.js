@@ -15,6 +15,7 @@ module.exports = function onNodeAdded (node, context) {
 }
 
 function setupNodeAndChildren (node, state, contentMiddlewares) {
+  node.$type = node.nodeType
   if (!shouldProcess(node)) return
   node.$lifecycleStage = 'attached'
 
@@ -34,21 +35,23 @@ function setupNodeAndChildren (node, state, contentMiddlewares) {
   }
   runMiddlewares(node, contentMiddlewares, node.$middlewares)
 
-  let child = node.firstChild
-  while (child) {
-    setupNodeAndChildren(child, node.$state, contentMiddlewares)
-    child = child.nextSibling
+  if (node.$type === 1 && node.$isolate !== true) {
+    let child = node.firstChild
+    while (child) {
+      setupNodeAndChildren(child, node.$state, contentMiddlewares)
+      child = child.nextSibling
+    }
   }
 }
 
 function shouldProcess (node) {
-  if (node.$lifecycleStage || node.$isolate === true) {
+  if (node.$lifecycleStage) {
     return false
   }
-  if (node.nodeType === 1) {
+  if (node.$type === 1) {
     return ((!node.hasAttribute('is') && node.tagName.indexOf('-') === -1) || node.$registered)
   }
-  if (node.nodeType === 3) {
+  if (node.$type === 3) {
     return node.nodeValue.trim()
   }
 }

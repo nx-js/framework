@@ -2,13 +2,14 @@
 
 const secret = {
   showing: Symbol('flow showing'),
-  prevArray: Symbol('flow prevArray')
+  prevArray: Symbol('flow prevArray'),
+  hasIf: Symbol('has if'),
+  hasRepeat: Symbol('has repeat')
 }
 
 function flow (elem) {
-  if (elem.nodeType !== 1) return
+  if (elem.$type !== 1) return
 
-  setupFlow(elem)
   elem.$attribute('if', ifAttribute)
   elem.$attribute('repeat', repeatAttribute)
 }
@@ -17,77 +18,87 @@ flow.$require = ['content', 'attributes']
 module.exports = flow
 
 function ifAttribute (show, elem) {
+  if (elem[secret.hasRepeat]) {
+    throw new Error('You cant use if and repeat on the same node')
+  }
+  if (!elem[secret.hasIf]) {
+    elem.$extractContent()
+    elem[secret.hasIf] = true
+  }
+
   if (show && !elem[secret.showing]) {
     elem.$insertContent()
     elem[secret.showing] = true
   } else if (!show && elem[secret.showing]) {
-    elem.$removeContent()
+    elem.$clearContent()
     elem[secret.showing] = false
   }
 }
 
 function repeatAttribute (array, elem) {
-  if (array === undefined) {
-    elem[secret.prevArray] = []
-    elem.innerHTML = ''
-    return
+  if (elem[secret.hasIf]) {
+    throw new Error('You cant use if and repeat on the same node')
   }
-  array = Array.from(array)
+  if (!elem[secret.hasRepeat]) {
+    elem.$extractContent()
+    elem[secret.hasRepeat] = true
+  }
+
+  array = array ? Array.from(array) : []
   if (!array.length) {
-    elem[secret.prevArray] = []
-    elem.innerHTML = ''
+    elem[secret.prevArray] = array
+    elem.$clearContent()
     return
   }
-  elem[secret.prevArray] = elem[secret.prevArray] || []
-  const prevArray = elem[secret.prevArray]
 
   const trackBy = elem.getAttribute('track-by')
-  const value = elem.getAttribute('value')
-  if (!value) {
-    throw new Error('You must provide a "value" attribute as the name of the current value property.')
+  const repeatValue = elem.getAttribute('repeat-value')
+  if (!repeatValue) {
+    throw new Error('You must provide a "repeat-value" attribute as the name of the current value property.')
   }
 
-  for (let i = 0; i < array.length; i++) {
-    const item = array[i]
-    let found = false
+  const prevArray = elem[secret.prevArray]
+  const arrayLength = array.length
+  if (!prevArray || !prevArray.length) {
+    for (let i = 0; i < arrayLength; i++) {
+      elem.$insertContent(i, {'$index': i, [repeatValue]: array[i]})
+    }
+    elem[secret.prevArray] = array
+    return
+  }
 
-    for (let j = i; j < prevArray.length; j++) {
-      const prevItem = prevArray[j]
-      if (trackBy === '$index' || isSame(item, prevItem, trackBy)) {
-        if (i === j) {
-          elem.$mutateContext(i, {'$index': i, [value]: item})
-        } else {
-          prevArray.splice(i, 0, prevArray.splice(j, 1)[0])
-          elem.$moveContent(j, i)
-        }
-        found = true
-        break
+  let addedCount = 0
+  iteration: for (let i = 0; i < arrayLength; i++) {
+    const item = array[i]
+    let prevItem = prevArray[i]
+
+    if (item === prevItem) {
+      continue iteration
+    }
+    if (trackBy === '$index' && prevItem) {
+      elem.$mutateContext(i, {[repeatValue]: item})
+      continue iteration
+    }
+    if (isTrackBySame(item, prevItem, trackBy)) {
+      continue iteration
+    }
+    for (let j = i + 1; prevItem && !found; prevItem = prevArray[addedCount + j++]) {
+      if (item === prevItem || isTrackBySame(item, prevItem, trackBy)) {
+        elem.$moveContent(j, i)
+        continue iteration
       }
     }
-    if (!found) {
-      prevArray.splice(i, 0, item)
-      elem.$insertContent(i, {'$index': i, [value]: item})
-    }
+    elem.$insertContent(i, {'$index': i, [repeatValue]: item})
+    addedCount++
   }
 
-  while (array.length < prevArray.length) {
-    prevArray.splice(array.length, 1)
-    elem.$removeContent(array.length)
+  for (let i = addedCount + prevArray.length; arrayLength < i; i--) {
+    elem.$removeContent()
   }
+  elem[secret.prevArray] = array
 }
 
-function isSame (item1, item2, trackBy) {
-  return (item1 === item2) ||
-  (trackBy && item1 && item2 && typeof item1 === 'object' && typeof item2 === 'object' &&
-  item1[trackBy] === item2[trackBy])
-}
-
-function setupFlow (elem) {
-  const hasIf = elem.hasAttribute('if') || elem.hasAttribute('$if') || elem.hasAttribute('@if')
-  const hasRepeat = elem.hasAttribute('repeat') || elem.hasAttribute('$repeat') || elem.hasAttribute('@repeat')
-  if (hasIf && hasRepeat) {
-    throw new Error('It is forbidden to use the if and repeat attribute on the same element.')
-  } else if (hasIf || hasRepeat) {
-    elem.$extractContent()
-  }
+function isTrackBySame (item1, item2, trackBy) {
+  return (typeof item1 === 'object' && typeof item2 === 'object' &&
+  item1 && item2 && item1[trackBy] === item2[trackBy])
 }

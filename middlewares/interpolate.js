@@ -3,7 +3,7 @@
 const tokenCache = new Map()
 
 function interpolate (node) {
-  if (node.nodeType !== 3) return
+  if (node.$type !== 3) return
 
   const tokens = createTokens(node)
   tokens.forEach(processToken, node)
@@ -48,11 +48,8 @@ function processToken (token, index, tokens) {
 }
 
 function interpolateToken (token, value, tokens, node) {
-  if (value === undefined) value = ''
-  if (token.value !== value) {
-    token.value = value
-    node.nodeValue = (1 < tokens.length) ? tokens.join('') : value
-  }
+  token.value = (value !== undefined) ? value : ''
+  node.nodeValue = (1 < tokens.length) ? tokens.join('') : token.value
 }
 
 function parseValue (string) {

@@ -1,7 +1,7 @@
 'use strict'
 
 function style (elem) {
-  if (elem.nodeType !== 1) return
+  if (elem.$type !== 1) return
 
   elem.$attribute('class', classAttribute)
   elem.$attribute('style', styleAttribute)
@@ -12,7 +12,7 @@ module.exports = style
 
 function classAttribute (classes, elem) {
   if (typeof classes === 'object') {
-    for (let item in classes) {
+    for (var item in classes) {
       if (classes[item]) {
         elem.classList.add(item)
       } else if (elem.className) {

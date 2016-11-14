@@ -7,7 +7,7 @@ const secret = {
 updateHistory(pathToRoute(location.pathname), queryToParams(location.search), {history: false})
 
 function ref (elem) {
-  if (elem.nodeType !== 1) return
+  if (elem.$type !== 1) return
 
   elem.$route = $route
   if (elem instanceof HTMLAnchorElement) {

@@ -23,7 +23,7 @@ function onAnimationEnd (ev) {
 }
 
 function animate (elem) {
-  if (elem.nodeType !== 1) return
+  if (elem.$type !== 1) return
 
   elem.$attribute('enter-animation', enterAttribute)
   elem.$attribute('leave-animation', leaveAttribute)

@@ -35,6 +35,9 @@ function useOnContent (contentMiddleware) {
     throw new TypeError('first argument must be a function')
   }
   const config = this[secret.config]
+  if (config.isolate === true) {
+    throw new Error('content middlewares can not be added to isolated components')
+  }
   config.contentMiddlewares = config.contentMiddlewares || []
   config.contentMiddlewares.push(contentMiddleware)
   return this

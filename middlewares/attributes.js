@@ -4,13 +4,12 @@ const handlers = new Map()
 const attributeCache = new Map()
 
 function attributes (elem, state, next) {
-  if (elem.nodeType !== 1) return
+  if (elem.$type !== 1) return
 
   handlers.clear()
   elem.$attribute = $attribute
   next()
-  const attributes = getAttributes(elem)
-  handleAttributes(elem, attributes)
+  handleAttributes(elem, getAttributes(elem))
 }
 attributes.$name = 'attributes'
 attributes.$require = ['observe', 'expression']
@@ -31,7 +30,7 @@ function getAttributes (elem) {
   if (cloneId) {
     let attributes = attributeCache.get(cloneId)
     if (!attributes) {
-      attributes = cloneAttributes(elem)
+      attributes = elem.attributes
       attributeCache.set(cloneId, attributes)
     }
     return attributes
@@ -39,36 +38,22 @@ function getAttributes (elem) {
   return elem.attributes
 }
 
-function cloneAttributes (elem) {
-  const attributes = elem.attributes
-  const clonedAttributes = []
-  for (let i = attributes.length; i--;) {
-    const attribute = attributes[i]
-    clonedAttributes.push({name: attribute.name, value: attribute.value})
-  }
-  return clonedAttributes
-}
-
 function handleAttributes (elem, attributes) {
-  const contextState = elem.$contextState
-  const attributesToHandle = []
-
   for (let i = attributes.length; i--;) {
     const attribute = attributes[i]
-    attribute.type = attribute.name[0]
-    if (attribute.type === '$' || attribute.type === '@') {
-      attribute.$name = attribute.name.slice(1)
-      attribute.handler = handlers.get(attribute.$name) || defaultHandler
+    const type = attribute.name[0]
+    if (type === '$' || type === '@') {
+      const name = attribute.name.slice(1)
+      const handler = handlers.get(name) || defaultHandler
+      handleAttribute(name, attribute.value, type, handler, elem)
     } else {
-      attribute.handler = handlers.get(attribute.name)
-    }
-    if (attribute.handler === defaultHandler) {
-      attributesToHandle.unshift(attribute)
-    } else if (attribute.handler) {
-      attributesToHandle.push(attribute)
+      const name = attribute.name
+      const handler = handlers.get(name)
+      if (handler) {
+        handleAttribute(name, attribute.value, '', handler, elem)
+      }
     }
   }
-  attributesToHandle.forEach(handleAttribute, elem)
 }
 
 function defaultHandler (value, elem, name) {
@@ -79,14 +64,14 @@ function defaultHandler (value, elem, name) {
   }
 }
 
-function handleAttribute (attribute) {
-  if (attribute.type === '$') {
-    const expression = this.$compileExpression(attribute.value || attribute.$name)
-    attribute.$handler(expression(this.$contextState), this, attribute.$name)
-  } else if (attribute.type === '@') {
-    const expression = this.$compileExpression(attribute.value || attribute.$name)
-    this.$observe(() => attribute.handler(expression(this.$contextState), this, attribute.$name))
+function handleAttribute (name, value, type, handler, elem) {
+  if (type === '$') {
+    const expression = elem.$compileExpression(value || name)
+    handler(expression(elem.$contextState), elem, name)
+  } else if (type === '@') {
+    const expression = elem.$compileExpression(value || name)
+    elem.$observe(() => handler(expression(elem.$contextState), elem, name))
   } else {
-    attribute.handler(attribute.value, this, attribute.name)
+    handler(value, elem, name)
   }
 }
