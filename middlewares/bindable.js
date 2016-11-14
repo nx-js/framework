@@ -23,7 +23,7 @@ function onSubmit (ev) {
 }
 
 function bindable (elem, state, next) {
-  if (elem.$type !== 1) return
+  if (elem.nodeType !== 1) return
 
   elem.$bindable = $bindable
   next()

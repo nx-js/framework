@@ -7,7 +7,7 @@ const secret = {
 let cloneId = 0
 
 function content (elem) {
-  if (elem.$type !== 1) return
+  if (elem.nodeType !== 1) return
 
   elem.$extractContent = $extractContent
   elem.$insertContent = $insertContent

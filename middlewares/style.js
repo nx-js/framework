@@ -1,7 +1,7 @@
 'use strict'
 
 function style (elem) {
-  if (elem.$type !== 1) return
+  if (elem.nodeType !== 1) return
 
   elem.$attribute('class', classAttribute)
   elem.$attribute('style', styleAttribute)

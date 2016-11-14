@@ -13,7 +13,7 @@ module.exports = function renderFactory (config) {
   }
 
   function render (elem) {
-    if (elem.$type !== 1) {
+    if (elem.nodeType !== 1) {
       throw new Error('render only works with element nodes')
     }
 

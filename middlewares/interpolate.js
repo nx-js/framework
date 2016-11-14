@@ -3,7 +3,7 @@
 const tokenCache = new Map()
 
 function interpolate (node) {
-  if (node.$type !== 3) return
+  if (node.nodeType !== 3) return
 
   const tokens = createTokens(node)
   tokens.forEach(processToken, node)
@@ -20,7 +20,7 @@ function createTokens (node) {
     tokenCache.set(nodeValue, tokens)
     return tokens
   }
-  return tokens.map(cloneToken)
+  return (1 < tokens.length) ? tokens.map(cloneToken) : tokens
 }
 
 function cloneToken (token) {
@@ -40,14 +40,15 @@ function processToken (token, index, tokens) {
     const state = this.$state
     const expression = this.$compileExpression(token.expression)
     if (token.observed) {
-      this.$observe(() => interpolateToken(token, expression(state), tokens, this))
+      this.$observe(() => interpolateToken(this, expression, token, tokens))
     } else {
-      interpolateToken(token, expression(state), tokens, this)
+      interpolateToken(this, expression, token, tokens)
     }
   }
 }
 
-function interpolateToken (token, value, tokens, node) {
+function interpolateToken (node, expression, token, tokens) {
+  const value = expression(node.$state)
   token.value = (value !== undefined) ? value : ''
   node.nodeValue = (1 < tokens.length) ? tokens.join('') : token.value
 }

@@ -18,11 +18,9 @@ function cleanupNodeAndChildren (node) {
     }
   }
 
-  if (node.$type === 1) {
-    let child = node.firstChild
-    while (child) {
-      cleanupNodeAndChildren(child)
-      child = child.nextSibling
-    }
+  let child = node.firstChild
+  while (child) {
+    cleanupNodeAndChildren(child)
+    child = child.nextSibling
   }
 }

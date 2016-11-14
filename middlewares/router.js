@@ -14,7 +14,7 @@ function onPopState (ev) {
 }
 
 function router (router) {
-  if (router.$type !== 1) {
+  if (router.nodeType !== 1) {
     throw new Error('router only works with element nodes')
   }
   setupRouter(router)

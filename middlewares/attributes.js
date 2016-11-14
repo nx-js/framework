@@ -4,7 +4,7 @@ const handlers = new Map()
 const attributeCache = new Map()
 
 function attributes (elem, state, next) {
-  if (elem.$type !== 1) return
+  if (elem.nodeType !== 1) return
 
   handlers.clear()
   elem.$attribute = $attribute

@@ -8,7 +8,7 @@ const secret = {
 }
 
 function flow (elem) {
-  if (elem.$type !== 1) return
+  if (elem.nodeType !== 1) return
 
   elem.$attribute('if', ifAttribute)
   elem.$attribute('repeat', repeatAttribute)
@@ -94,13 +94,13 @@ function repeatAttribute (array, elem) {
         continue iteration
       }
     }
-    bigContext.$index = i
     bigContext[repeatValue] = item
+    bigContext.$index = i
     elem.$insertContent(i, bigContext)
     addedCount++
   }
 
-  for (let i = addedCount + prevArray.length; arrayLength < i; i--) {
+  for (let i = addedCount + prevArray.length - 1; arrayLength < i; i--) {
     elem.$removeContent(i)
   }
   elem[secret.prevArray] = array
