@@ -59,9 +59,14 @@ function repeatAttribute (array, elem) {
 
   const prevArray = elem[secret.prevArray]
   const arrayLength = array.length
+  const smallContext = {}
+  const bigContext = {}
+
   if (!prevArray || !prevArray.length) {
     for (let i = 0; i < arrayLength; i++) {
-      elem.$insertContent(i, {'$index': i, [repeatValue]: array[i]})
+      bigContext.$index = i
+      bigContext[repeatValue] = array[i]
+      elem.$insertContent(i, bigContext)
     }
     elem[secret.prevArray] = array
     return
@@ -76,7 +81,8 @@ function repeatAttribute (array, elem) {
       continue iteration
     }
     if (trackBy === '$index' && prevItem) {
-      elem.$mutateContext(i, {[repeatValue]: item})
+      smallContext[repeatValue] = item
+      elem.$mutateContext(i, smallContext)
       continue iteration
     }
     if (isTrackBySame(item, prevItem, trackBy)) {
@@ -88,12 +94,14 @@ function repeatAttribute (array, elem) {
         continue iteration
       }
     }
-    elem.$insertContent(i, {'$index': i, [repeatValue]: item})
+    bigContext.$index = i
+    bigContext[repeatValue] = item
+    elem.$insertContent(i, bigContext)
     addedCount++
   }
 
   for (let i = addedCount + prevArray.length; arrayLength < i; i--) {
-    elem.$removeContent()
+    elem.$removeContent(i)
   }
   elem[secret.prevArray] = array
 }

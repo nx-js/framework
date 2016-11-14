@@ -44,7 +44,7 @@ function setupNodeAndChildren (node, state, contentMiddlewares) {
   }
 }
 
-function shouldProcess (node) {
+function shouldProcess (node, type) {
   if (node.$lifecycleStage) {
     return false
   }

@@ -37,8 +37,8 @@ function $compileCode (rawCode) {
     codeCache.set(rawCode, code)
   }
 
-  if (!code.limiters) {
-    return code.exec
+  if (typeof code === 'function') {
+    return code
   }
 
   const context = {}
@@ -67,10 +67,14 @@ function $compileCode (rawCode) {
 
 function parseCode (rawCode) {
   const tokens = rawCode.match(limiterRegex)
-  const code = {
-    exec: compiler.compileCode(tokens[0])
+  if (tokens.length === 1) {
+    return compiler.compileCode(tokens[0])
   }
 
+  const code = {
+    exec: compiler.compileCode(tokens[0]),
+    limiters: []
+  }
   for (let i = 1; i < tokens.length; i++) {
     const limiterTokens = tokens[i].match(argsRegex) || []
     const limiterName = limiterTokens.shift()
@@ -78,7 +82,6 @@ function parseCode (rawCode) {
     if (!effect) {
       throw new Error(`there is no limiter named ${limiterName}`)
     }
-    code.limiters = code.limiters || []
     code.limiters.push({effect, argExpressions: limiterTokens.map(compileArgExpression)})
   }
   return code
