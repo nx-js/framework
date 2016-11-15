@@ -105,7 +105,7 @@ function $removeContent (index) {
 }
 
 function $clearContent () {
-  this.textContent = ''
+  this.innerHTML = ''
   this[secret.separators] = []
 }
 

@@ -43,7 +43,7 @@ function handleAttributes (elem, attributes) {
   while (i--) {
     const attribute = attributes[i]
     const type = attribute.name[0]
-    if (type === '$' || type === '@') {
+    if (type === '@' || type === '$') {
       const name = attribute.name.slice(1)
       const handler = handlers.get(name) || defaultHandler
       handleAttribute(name, attribute.value, type, handler, elem)
@@ -66,12 +66,12 @@ function defaultHandler (value, elem, name) {
 }
 
 function handleAttribute (name, value, type, handler, elem) {
-  if (type === '$') {
-    const expression = elem.$compileExpression(value || name)
-    handler(expression(elem.$contextState), elem, name)
-  } else if (type === '@') {
+  if (type === '@') {
     const expression = elem.$compileExpression(value || name)
     elem.$observe(() => handler(expression(elem.$contextState), elem, name))
+  } else if (type === '$') {
+    const expression = elem.$compileExpression(value || name)
+    handler(expression(elem.$contextState), elem, name)
   } else {
     handler(value, elem, name)
   }
