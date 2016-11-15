@@ -39,7 +39,8 @@ function getAttributes (elem) {
 }
 
 function handleAttributes (elem, attributes) {
-  for (let i = attributes.length; i--;) {
+  let i = attributes.length
+  while (i--) {
     const attribute = attributes[i]
     const type = attribute.name[0]
     if (type === '$' || type === '@') {

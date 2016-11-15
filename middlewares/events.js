@@ -28,9 +28,10 @@ function getEventHandlers (elem) {
 }
 
 function createEventHandlers (elem) {
-  const attributes = elem.attributes
   let handlers = false
-  for (let i = attributes.length; i--;) {
+  const attributes = elem.attributes
+  let i = attributes.length
+  while (i--) {
     const attribute = attributes[i]
     if (attribute.name[0] === '#') {
       handlers = handlers || new Map()

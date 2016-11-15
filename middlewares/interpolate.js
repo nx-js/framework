@@ -37,7 +37,6 @@ function cloneToken (token) {
 
 function processToken (token, index, tokens) {
   if (typeof token === 'object') {
-    const state = this.$state
     const expression = this.$compileExpression(token.expression)
     if (token.observed) {
       this.$observe(() => interpolateToken(this, expression, token, tokens))

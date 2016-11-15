@@ -37,7 +37,8 @@ function processContent (node) {
   if (node.nodeType === 1) {
     node.setAttribute('clone-id', cloneId++)
     const childNodes = node.childNodes
-    for (let i = childNodes.length; i--;) {
+    let i = childNodes.length
+    while (i--) {
       processContent(childNodes[i])
     }
   } else if (node.nodeType === 3 && !node.nodeValue.trim()) {

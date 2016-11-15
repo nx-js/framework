@@ -14,6 +14,7 @@ const contentWatcherConfig = {
   childList: true,
   subtree: true
 }
+const addedNodeContext = {}
 const addedNodes = new Set()
 
 module.exports = function component (rawConfig) {
@@ -97,29 +98,36 @@ function detachedCallback () {
 }
 
 function onMutations (mutations, contentWatcher) {
-  for (let mutation of mutations) {
-    for (let i = mutation.removedNodes.length; i--;) {
-      onNodeRemoved(mutation.removedNodes[i])
+  let mutationIndex = mutations.length
+  while (mutationIndex--) {
+    const mutation = mutations[mutationIndex]
+
+    let nodes = mutation.removedNodes
+    let nodeIndex = nodes.length
+    while (nodeIndex--) {
+      onNodeRemoved(nodes[nodeIndex])
     }
-    for (let i = mutation.addedNodes.length; i--;) {
-      const addedNode = mutation.addedNodes[i]
-      if (addedNode.nodeType < 4) {
-        addedNodes.add(addedNode)
-      }
+
+    nodes = mutation.addedNodes
+    nodeIndex = nodes.length
+    while (nodeIndex--) {
+      const node = nodes[nodeIndex]
+      if (nodes.nodeType < 4) addedNodes.add(node)
     }
   }
   processAddedNodes()
 }
 
 function processAddedNodes () {
-  let context
-  let prevParent
-  for (let addedNode of addedNodes) {
-    if (prevParent !== addedNode.parentNode) {
-      prevParent = addedNode.parentNode
-      context = getContext(prevParent)
-    }
-    onNodeAdded(addedNode, context)
-  }
+  addedNodes.forEach(processAddedNode, addedNodeContext)
   addedNodes.clear()
+}
+
+function processAddedNode (node) {
+  const parentNode = node.parentNode
+  if (this.parent !== parentNode) {
+    this.parent = parentNode
+    this.context = getContext(parentNode)
+  }
+  onNodeAdded(node, this.context)
 }
