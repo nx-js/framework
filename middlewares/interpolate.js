@@ -20,7 +20,7 @@ function createTokens (node) {
     tokenCache.set(nodeValue, tokens)
     return tokens
   }
-  return (1 < tokens.length) ? tokens.map(cloneToken) : tokens
+  return tokens.map(cloneToken)
 }
 
 function cloneToken (token) {
@@ -47,9 +47,12 @@ function processToken (token, index, tokens) {
 }
 
 function interpolateToken (node, expression, token, tokens) {
-  const value = expression(node.$state)
-  token.value = (value !== undefined) ? value : ''
-  node.nodeValue = (1 < tokens.length) ? tokens.join('') : token.value
+  let value = expression(node.$state)
+  value = (value !== undefined) ? value : ''
+  if (token.value !== value) {
+    token.value = value
+    node.nodeValue = (1 < tokens.length) ? tokens.join('') : value
+  }
 }
 
 function parseValue (string) {

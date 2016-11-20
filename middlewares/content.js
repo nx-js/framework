@@ -2,7 +2,7 @@
 
 const secret = {
   template: Symbol('content template'),
-  separators: Symbol('content separators')
+  firstNodes: Symbol('first nodes')
 }
 let cloneId = 0
 
@@ -27,9 +27,8 @@ function $extractContent () {
     processContent(node)
     node = this.firstChild
   }
-  template.appendChild(document.createComment('#separator#'))
   this[secret.template] = template
-  this[secret.separators] = []
+  this[secret.firstNodes] = []
   return template
 }
 
@@ -41,15 +40,16 @@ function processContent (node) {
     while (i--) {
       processContent(childNodes[i])
     }
-  } else if (node.nodeType === 3 && !node.nodeValue.trim()) {
+  } else if (node.nodeType === 3) {
+    if (!node.nodeValue.trim()) node.remove()
+  } else {
     node.remove()
   }
 }
 
 function $insertContent (index, contextState) {
-  index = index || 0
-  if (typeof index !== 'number') {
-    throw new TypeError('first argument must be a number')
+  if (index !== undefined && typeof index !== 'number') {
+    throw new TypeError('first argument must be a number or undefined')
   }
   if (contextState !== undefined && typeof contextState !== 'object') {
     throw new TypeError('second argument must be an object or undefined')
@@ -58,106 +58,92 @@ function $insertContent (index, contextState) {
     throw new Error('you must extract a template with $extractContent before inserting')
   }
   const content = document.importNode(this[secret.template], true)
-  const separators = this[secret.separators]
-  const separator = content.lastChild
+  var firstNode = content.firstChild
 
   if (contextState) {
     contextState = Object.assign(Object.create(this.$state), contextState)
-    let node = separator.previousSibling
+    let node = firstNode
     while (node) {
       node.$contextState = contextState
-      node = node.previousSibling
+      node = node.nextSibling
     }
   }
 
-  if (index === separators.length) {
-    this.appendChild(content)
-    separators.push(separator)
+  var firstNodes = this[secret.firstNodes]
+  var beforeNode = firstNodes[index]
+  if (beforeNode) {
+    this.insertBefore(content, beforeNode)
+    firstNodes.splice(index, 0, firstNode)
   } else {
-    this.insertBefore(content, findContentStartAtIndex(this, index))
-    separators.splice(index, 0, separator)
+    this.appendChild(content)
+    firstNodes.push(firstNode)
   }
 }
 
 function $removeContent (index) {
-  index = index || 0
   if (index !== undefined && typeof index !== 'number') {
     throw new TypeError('first argument must be a number or undefined')
   }
-  if (!this[secret.template]) {
-    throw new Error('you must extract a template with $extractContent before removing')
-  }
-  let node = findContentStartAtIndex(this, index)
+  const firstNodes = this[secret.firstNodes]
+  index = firstNodes[index] ? index : (firstNodes.length - 1)
+  const firstNode = firstNodes[index]
+  const nextNode = firstNodes[index + 1]
+
+
+  let node = firstNode
   let next
-  while (node && !isSeparator(node)) {
+  while (node && node !== nextNode) {
     next = node.nextSibling
     node.remove()
     node = next
   }
-  node.remove()
 
-  const separators = this[secret.separators]
-  if (index === separators.length) {
-    separators.pop()
+  if (nextNode) {
+    firstNodes.splice(index, 1)
   } else {
-    separators.splice(index, 1)
+    firstNodes.pop()
   }
 }
 
 function $clearContent () {
   this.innerHTML = ''
-  this[secret.separators] = []
+  this[secret.firstNodes] = []
 }
 
 function $moveContent (fromIndex, toIndex) {
-  fromIndex = fromIndex || 0
-  toIndex = toIndex || 0
-  if (!this[secret.template]) {
-    throw new Error('you must extract a template with $extractContent before removing')
+  if (typeof fromIndex !== 'number' || typeof toIndex !== 'number') {
+    throw new Error('first and second argument must be numbers')
   }
-  let fromNode = findContentStartAtIndex(this, fromIndex)
-  const toNode = findContentStartAtIndex(this, toIndex)
-  let fromNext
-  while (fromNode && !isSeparator(fromNode)) {
-    fromNext = fromNode.nextSibling
-    this.insertBefore(fromNode, toNode)
-    fromNode = fromNext
-  }
-  this.insertBefore(fromNode, toNode)
-  const separators = this[secret.separators]
-  const fromSeparator = separators[fromIndex]
-  separators[fromIndex] = separators[toIndex]
-  separators[toIndex] = fromSeparator
+  const firstNodes = this[secret.firstNodes]
+  const fromNode = firstNodes[fromIndex]
+  const untilNode = firstNodes[fromIndex + 1]
+  const toNode = firstNodes[toIndex]
 
-  // this should not be here -> maybe move it to flow with mutateContext later
+  let node = fromNode
+  let next
+  // do not do this if it is a single node (no loop needed)!
+  while (node && node !== untilNode) {
+    next = node.nextSibling
+    this.insertBefore(node, toNode)
+    node = next
+  }
+  firstNodes.splice(fromIndex, 1)
+  firstNodes.splice(toIndex, 0, fromNode)
+
   if (fromNode && fromNode.$contextState) {
     fromNode.$contextState.$index = toIndex
   }
 }
 
 function $mutateContext (index, extraContext) {
-  index = index || 0
-  if (typeof index !== 'number') {
-    throw new TypeError('first argument must be a number')
+  if (index !== undefined && typeof index !== 'number') {
+    throw new TypeError('first argument must be a number or undefined')
   }
   if (typeof extraContext !== 'object') {
     throw new TypeError('second argument must be an object')
   }
-  const startNode = findContentStartAtIndex(this, index)
+  const startNode = this[secret.firstNodes][index]
   if (startNode && startNode.$contextState) {
     Object.assign(startNode.$contextState, extraContext)
   }
-}
-
-function findContentStartAtIndex (node, index) {
-  index--
-  if (index < 0) {
-    return node.firstChild
-  }
-  const separator = node[secret.separators][index]
-  return separator ? separator.nextSibling : undefined
-}
-
-function isSeparator (node) {
-  return (node.nodeType === 8 && node.nodeValue === '#separator#')
 }

@@ -43,67 +43,54 @@ function repeatAttribute (array, elem) {
     elem.$extractContent()
     elem[secret.hasRepeat] = true
   }
-
-  array = array ? Array.from(array) : []
-  if (!array.length) {
-    elem[secret.prevArray] = array
-    elem.$clearContent()
-    return
-  }
-
   const trackBy = elem.getAttribute('track-by')
   const repeatValue = elem.getAttribute('repeat-value')
-  if (!repeatValue) {
-    throw new Error('You must provide a "repeat-value" attribute as the name of the current value property.')
-  }
 
-  const prevArray = elem[secret.prevArray]
-  const arrayLength = array.length
-  const smallContext = {}
-  const bigContext = {}
+  array = array || []
+  const prevArray = elem[secret.prevArray] = elem[secret.prevArray] || []
 
-  if (!prevArray || !prevArray.length) {
-    for (let i = 0; i < arrayLength; i++) {
-      bigContext.$index = i
-      bigContext[repeatValue] = array[i]
-      elem.$insertContent(i, bigContext)
+  let i = -1
+  iteration: for (let item of array) {
+    let prevItem = prevArray[++i]
+
+    if (prevItem === undefined) {
+      elem.$insertContent(i, {$index: i, [repeatValue]: item})
+      prevArray.push(item)
+      continue
     }
-    elem[secret.prevArray] = array
-    return
-  }
-
-  let addedCount = 0
-  iteration: for (let i = 0; i < arrayLength; i++) {
-    const item = array[i]
-    let prevItem = prevArray[i]
-
     if (item === prevItem) {
-      continue iteration
+      continue
     }
-    if (trackBy === '$index' && prevItem) {
-      smallContext[repeatValue] = item
-      elem.$mutateContext(i, smallContext)
-      continue iteration
+    if (trackBy === '$index') {
+      elem.$mutateContext(i, {$index: i, [repeatValue]: item})
+      prevArray[i] = item
+      continue
     }
-    if (isTrackBySame(item, prevItem, trackBy)) {
-      continue iteration
+    if (trackBy && isTrackBySame(item, prevItem, trackBy)) {
+      continue
     }
-    for (let j = i + 1; prevItem && !found; prevItem = prevArray[addedCount + j++]) {
-      if (item === prevItem || isTrackBySame(item, prevItem, trackBy)) {
+    for (let j = i + 1; j < prevArray.length; j++) {
+      prevItem = prevArray[j]
+      if (item === prevItem || (trackBy && isTrackBySame(item, prevItem, trackBy))) {
         elem.$moveContent(j, i)
+        prevArray.splice(i, 0, prevItem)
+        prevArray.splice(j, 1)
         continue iteration
       }
     }
-    bigContext[repeatValue] = item
-    bigContext.$index = i
-    elem.$insertContent(i, bigContext)
-    addedCount++
+    elem.$insertContent(i, {$index: i, [repeatValue]: item})
+    prevArray.splice(i, 0, item)
   }
 
-  for (let i = addedCount + prevArray.length - 1; arrayLength < i; i--) {
-    elem.$removeContent(i)
+  if ((++i) === 0) {
+    prevArray.length = 0
+    elem.$clearContent()
+  } else {
+    while (i < prevArray.length) {
+      elem.$removeContent()
+      prevArray.pop()
+    }
   }
-  elem[secret.prevArray] = array
 }
 
 function isTrackBySame (item1, item2, trackBy) {

@@ -111,8 +111,7 @@ function onMutations (mutations, contentWatcher) {
     nodes = mutation.addedNodes
     nodeIndex = nodes.length
     while (nodeIndex--) {
-      const node = nodes[nodeIndex]
-      if (nodes.nodeType < 4) addedNodes.add(node)
+      addedNodes.add(nodes[nodeIndex])
     }
   }
   processAddedNodes()
