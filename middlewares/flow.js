@@ -55,14 +55,14 @@ function repeatAttribute (array, elem) {
 
     if (prevItem === undefined) {
       elem.$insertContent(i, {$index: i, [repeatValue]: item})
-      prevArray.push(item)
+      prevArray[i] = item
       continue
     }
     if (item === prevItem) {
       continue
     }
     if (trackBy === '$index') {
-      elem.$mutateContext(i, {$index: i, [repeatValue]: item})
+      elem.$mutateContext(i, {[repeatValue]: item})
       prevArray[i] = item
       continue
     }

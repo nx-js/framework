@@ -39,19 +39,19 @@ function processToken (token, index, tokens) {
   if (typeof token === 'object') {
     const expression = this.$compileExpression(token.expression)
     if (token.observed) {
-      this.$observe(() => interpolateToken(this, expression, token, tokens))
+      this.$observe(interpolateToken, expression, token, tokens)
     } else {
-      interpolateToken(this, expression, token, tokens)
+      interpolateToken.call(this, expression, token, tokens)
     }
   }
 }
 
-function interpolateToken (node, expression, token, tokens) {
-  let value = expression(node.$state)
+function interpolateToken (expression, token, tokens) {
+  let value = expression(this.$state)
   value = (value !== undefined) ? value : ''
   if (token.value !== value) {
     token.value = value
-    node.nodeValue = (1 < tokens.length) ? tokens.join('') : value
+    this.nodeValue = (1 < tokens.length) ? tokens.join('') : value
   }
 }
 

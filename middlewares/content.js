@@ -58,7 +58,9 @@ function $insertContent (index, contextState) {
     throw new Error('you must extract a template with $extractContent before inserting')
   }
   const content = document.importNode(this[secret.template], true)
-  var firstNode = content.firstChild
+  const firstNodes = this[secret.firstNodes]
+  const firstNode = content.firstChild
+  const beforeNode = firstNodes[index]
 
   if (contextState) {
     contextState = Object.assign(Object.create(this.$state), contextState)
@@ -69,15 +71,9 @@ function $insertContent (index, contextState) {
     }
   }
 
-  var firstNodes = this[secret.firstNodes]
-  var beforeNode = firstNodes[index]
-  if (beforeNode) {
-    this.insertBefore(content, beforeNode)
-    firstNodes.splice(index, 0, firstNode)
-  } else {
-    this.appendChild(content)
-    firstNodes.push(firstNode)
-  }
+  this.insertBefore(content, beforeNode)
+  if (beforeNode) firstNodes.splice(index, 0, firstNode)
+  else firstNodes.push(firstNode)
 }
 
 function $removeContent (index) {
@@ -98,11 +94,8 @@ function $removeContent (index) {
     node = next
   }
 
-  if (nextNode) {
-    firstNodes.splice(index, 1)
-  } else {
-    firstNodes.pop()
-  }
+  if (nextNode) firstNodes.splice(index, 1)
+  else firstNodes.pop()
 }
 
 function $clearContent () {

@@ -65,14 +65,19 @@ function defaultHandler (value, elem, name) {
   }
 }
 
+function expressionHandler (expression, handler, elem, name) {
+  const value = expression(elem.$contextState)
+  handler.call(elem, value, elem, name)
+}
+
 function handleAttribute (name, value, type, handler, elem) {
   if (type === '@') {
     const expression = elem.$compileExpression(value || name)
-    elem.$observe(() => handler(expression(elem.$contextState), elem, name))
+    elem.$observe(expressionHandler, expression, handler, elem, name)
   } else if (type === '$') {
     const expression = elem.$compileExpression(value || name)
-    handler(expression(elem.$contextState), elem, name)
+    expressionHandler(expression, handler, elem, name)
   } else {
-    handler(value, elem, name)
+    handler.call(elem, value, elem, name)
   }
 }

@@ -18,7 +18,7 @@ observe.$name = 'observe'
 observe.$require = ['cleanup']
 module.exports = observe
 
-function $observe (fn) {
+function $observe (fn, ...args) {
   if (typeof fn !== 'function') {
     throw new TypeError('first argument must be a function')
   }
@@ -26,8 +26,7 @@ function $observe (fn) {
     this.$cleanup(cleanupObservers)
     this[secret.observers] = []
   }
-  this[secret.observers].push(fn)
-  observer.observe(fn)
+  this[secret.observers].push(observer.observe(fn, this, ...args))
 }
 
 function cleanupObservers (node) {

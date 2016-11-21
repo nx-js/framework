@@ -13,9 +13,7 @@ function cleanupNodeAndChildren (node) {
 
   const cleanupFunctions = node.$cleanupFunctions
   if (cleanupFunctions) {
-    for (let cleanupFunction of cleanupFunctions) {
-      cleanupFunction(node)
-    }
+    cleanupFunctions.forEach(cleanup, node)
   }
 
   let child = node.firstChild
@@ -23,4 +21,8 @@ function cleanupNodeAndChildren (node) {
     cleanupNodeAndChildren(child)
     child = child.nextSibling
   }
+}
+
+function cleanup (cleanupFunction) {
+  cleanupFunction(this)
 }

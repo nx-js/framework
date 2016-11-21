@@ -54,7 +54,9 @@ function register (name) {
   config.shouldValidate = validateMiddlewares(config.contentMiddlewares, config.middlewares)
   proto[secret.config] = config
   proto.attachedCallback = attachedCallback
-  proto.detachedCallback = detachedCallback
+  if (config.root) {
+    proto.detachedCallback = detachedCallback
+  }
   return document.registerElement(name, {prototype: proto, extends: config.element})
 }
 
@@ -91,10 +93,11 @@ function attachedCallback () {
 }
 
 function detachedCallback () {
-  if (this[secret.contentWatcher]) {
-    this[secret.contentWatcher].disconnect()
-    onNodeRemoved(this)
+  const contentWatcher = this[secret.contentWatcher]
+  if (contentWatcher) {
+    contentWatcher.disconnect()
   }
+  onNodeRemoved(this)
 }
 
 function onMutations (mutations, contentWatcher) {
