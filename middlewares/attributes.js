@@ -41,43 +41,41 @@ function getAttributes (elem) {
 function handleAttributes (elem, attributes) {
   let i = attributes.length
   while (i--) {
-    const attribute = attributes[i]
-    const type = attribute.name[0]
-    if (type === '@' || type === '$') {
-      const name = attribute.name.slice(1)
-      const handler = handlers.get(name) || defaultHandler
-      handleAttribute(name, attribute.value, type, handler, elem)
-    } else {
-      const name = attribute.name
-      const handler = handlers.get(name)
-      if (handler) {
-        handleAttribute(name, attribute.value, '', handler, elem)
-      }
+    const attr = attributes[i]
+    const type = attr.name[0]
+
+    if (type === '@') {
+      attr.$name = attr.$name || attr.name.slice(1)
+      attr.$expression = attr.$expression || elem.$compileExpression(attr.value || attr.$name)
+      attr.$handler = attr.$handler || handlers.get(attr.$name) || defaultHandler
+      elem.$observe(expressionHandler, [attr])
+      return
+    }
+
+    if (type === '$') {
+      attr.$name = attr.$name || attr.name.slice(1)
+      attr.$expression = attr.$expression || elem.$compileExpression(attr.value || attr.$name)
+      attr.$handler = attr.$handler || handlers.get(attr.$name) || defaultHandler
+      expressionHandler.call(elem, attr)
+      return
+    }
+
+    attr.$handler = attr.$handler || handlers.get(attr.name)
+    if (attr.$handler) {
+      attr.$handler.call(elem, attr.value, attr.name)
     }
   }
 }
 
-function defaultHandler (value, elem, name) {
+function defaultHandler (value, name) {
   if (value) {
-    elem.setAttribute(name, value)
+    this.setAttribute(name, value)
   } else {
-    elem.removeAttribute(name)
+    this.removeAttribute(name)
   }
 }
 
-function expressionHandler (expression, handler, elem, name) {
-  const value = expression(elem.$contextState)
-  handler.call(elem, value, elem, name)
-}
-
-function handleAttribute (name, value, type, handler, elem) {
-  if (type === '@') {
-    const expression = elem.$compileExpression(value || name)
-    elem.$observe(expressionHandler, [expression, handler, elem, name])
-  } else if (type === '$') {
-    const expression = elem.$compileExpression(value || name)
-    expressionHandler(expression, handler, elem, name)
-  } else {
-    handler.call(elem, value, elem, name)
-  }
+function expressionHandler (attr) {
+  const value = attr.$expression(this.$contextState)
+  attr.$handler.call(this, value, attr.$name)
 }

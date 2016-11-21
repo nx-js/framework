@@ -17,44 +17,44 @@ flow.$name = 'flow'
 flow.$require = ['content', 'attributes']
 module.exports = flow
 
-function ifAttribute (show, elem) {
-  if (elem[secret.hasRepeat]) {
+function ifAttribute (show) {
+  if (this[secret.hasRepeat]) {
     throw new Error('You cant use if and repeat on the same node')
   }
-  if (!elem[secret.hasIf]) {
-    elem.$extractContent()
-    elem[secret.hasIf] = true
+  if (!this[secret.hasIf]) {
+    this.$extractContent()
+    this[secret.hasIf] = true
   }
 
-  if (show && !elem[secret.showing]) {
-    elem.$insertContent()
-    elem[secret.showing] = true
-  } else if (!show && elem[secret.showing]) {
-    elem.$clearContent()
-    elem[secret.showing] = false
+  if (show && !this[secret.showing]) {
+    this.$insertContent()
+    this[secret.showing] = true
+  } else if (!show && this[secret.showing]) {
+    this.$clearContent()
+    this[secret.showing] = false
   }
 }
 
-function repeatAttribute (array, elem) {
-  if (elem[secret.hasIf]) {
+function repeatAttribute (array) {
+  if (this[secret.hasIf]) {
     throw new Error('You cant use if and repeat on the same node')
   }
-  if (!elem[secret.hasRepeat]) {
-    elem.$extractContent()
-    elem[secret.hasRepeat] = true
+  if (!this[secret.hasRepeat]) {
+    this.$extractContent()
+    this[secret.hasRepeat] = true
   }
-  const trackBy = elem.getAttribute('track-by')
-  const repeatValue = elem.getAttribute('repeat-value')
+  const trackBy = this.getAttribute('track-by')
+  const repeatValue = this.getAttribute('repeat-value')
 
   array = array || []
-  const prevArray = elem[secret.prevArray] = elem[secret.prevArray] || []
+  const prevArray = this[secret.prevArray] = this[secret.prevArray] || []
 
   let i = -1
   iteration: for (let item of array) {
     let prevItem = prevArray[++i]
 
     if (prevItem === undefined) {
-      elem.$insertContent(i, {$index: i, [repeatValue]: item})
+      this.$insertContent(i, {$index: i, [repeatValue]: item})
       prevArray[i] = item
       continue
     }
@@ -62,7 +62,7 @@ function repeatAttribute (array, elem) {
       continue
     }
     if (trackBy === '$index') {
-      elem.$mutateContext(i, {[repeatValue]: item})
+      this.$mutateContext(i, {[repeatValue]: item})
       prevArray[i] = item
       continue
     }
@@ -72,22 +72,22 @@ function repeatAttribute (array, elem) {
     for (let j = i + 1; j < prevArray.length; j++) {
       prevItem = prevArray[j]
       if (item === prevItem || (trackBy && isTrackBySame(item, prevItem, trackBy))) {
-        elem.$moveContent(j, i)
+        this.$moveContent(j, i)
         prevArray.splice(i, 0, prevItem)
         prevArray.splice(j, 1)
         continue iteration
       }
     }
-    elem.$insertContent(i, {$index: i, [repeatValue]: item})
+    this.$insertContent(i, {$index: i, [repeatValue]: item})
     prevArray.splice(i, 0, item)
   }
 
   if ((++i) === 0) {
     prevArray.length = 0
-    elem.$clearContent()
+    this.$clearContent()
   } else {
     while (i < prevArray.length) {
-      elem.$removeContent()
+      this.$removeContent()
       prevArray.pop()
     }
   }

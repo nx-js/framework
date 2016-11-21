@@ -4,11 +4,11 @@ const observer = require('@risingstack/nx-observe')
 let prevState
 
 function observe (node, state) {
-  if (prevState !== state) {
-    prevState = node.$state = observer.observable(state)
-  }
   if (prevState !== node.$contextState) {
     prevState = node.$contextState = observer.observable(node.$contextState)
+  }
+  if (prevState !== node.$state) {
+    prevState = node.$state = observer.observable(node.$state)
   }
 
   node.$observe = $observe

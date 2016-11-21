@@ -20,24 +20,24 @@ ref.$name = 'ref'
 ref.$require = ['attributes']
 module.exports = ref
 
-function irefAttribute (path, elem) {
-  elem[secret.config] = elem[secret.config] || {}
-  const config = elem[secret.config]
+function irefAttribute (path) {
+  this[secret.config] = this[secret.config] || {}
+  const config = this[secret.config]
   config.path = path
 
-  const href = path + (elem.search || '')
-  elem.setAttribute('href', href)
-  elem.addEventListener('click', onClick, true)
+  const href = path + (this.search || '')
+  this.setAttribute('href', href)
+  this.addEventListener('click', onClick, true)
 }
 
-function irefParamsAttribute (params, elem) {
-  elem[secret.config] = elem[secret.config] || {}
-  const config = elem[secret.config]
+function irefParamsAttribute (params) {
+  this[secret.config] = this[secret.config] || {}
+  const config = this[secret.config]
   config.params = params
 
-  const href = (elem.pathname || '') + paramsToQuery(params)
-  elem.setAttribute('href', href)
-  elem.addEventListener('click', onClick, true)
+  const href = (this.pathname || '') + paramsToQuery(params)
+  this.setAttribute('href', href)
+  this.addEventListener('click', onClick, true)
 }
 
 function onClick (ev) {
@@ -48,9 +48,9 @@ function onClick (ev) {
   }
 }
 
-function irefOptionsAttribute (options, elem) {
-  elem[secret.config] = elem[secret.config] || {}
-  elem[secret.config].options = options
+function irefOptionsAttribute (options) {
+  this[secret.config] = this[secret.config] || {}
+  this[secret.config].options = options
 }
 
 function $route (path, params, options) {

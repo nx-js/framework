@@ -10,24 +10,24 @@ style.$name = 'style'
 style.$require = ['attributes']
 module.exports = style
 
-function classAttribute (classes, elem) {
+function classAttribute (classes) {
   if (typeof classes === 'object') {
     for (var item in classes) {
       if (classes[item]) {
-        elem.classList.add(item)
-      } else if (elem.className) {
-        elem.classList.remove(item)
+        this.classList.add(item)
+      } else if (this.className) {
+        this.classList.remove(item)
       }
     }
-  } else if (elem.className !== classes) {
-    elem.className = classes
+  } else if (this.className !== classes) {
+    this.className = classes
   }
 }
 
-function styleAttribute (styles, elem) {
+function styleAttribute (styles) {
   if (typeof styles === 'object') {
-    Object.assign(elem.style, styles)
-  } else if (elem.style.cssText !== styles) {
-    elem.style.cssText = styles
+    Object.assign(this.style, styles)
+  } else if (this.style.cssText !== styles) {
+    this.style.cssText = styles
   }
 }

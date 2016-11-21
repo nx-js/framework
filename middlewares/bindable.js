@@ -42,7 +42,7 @@ function $bindable (params) {
   this[secret.params] = Object.assign({}, defaultParams, params)
 }
 
-function bindAttribute (params, elem) {
+function bindAttribute (params) {
   if (typeof params === 'string') {
     const tokens = params.match(paramsRegex)
     params = {}
@@ -53,12 +53,12 @@ function bindAttribute (params, elem) {
     }
   }
   if (typeof params === 'object') {
-    Object.assign(elem[secret.params], params)
+    Object.assign(this[secret.params], params)
   }
-  if (!Array.isArray(elem[secret.params].on)) {
-    elem[secret.params].on = [elem[secret.params].on]
+  if (!Array.isArray(this[secret.params].on)) {
+    this[secret.params].on = [this[secret.params].on]
   }
-  bindElement(elem)
+  bindElement(this)
 }
 
 function bindElement (elem) {

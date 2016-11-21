@@ -36,49 +36,49 @@ animate.$name = 'animate'
 animate.$require = ['attributes']
 module.exports = animate
 
-function enterAttribute (animation, elem) {
-  if (elem[secret.entering] !== false) {
-    elem[secret.entering] = true
+function enterAttribute (animation) {
+  if (this[secret.entering] !== false) {
+    this[secret.entering] = true
     if (typeof animation === 'object' && animation !== null) {
-      elem.style.animation = animationObjectToString (animation)
+      this.style.animation = animationObjectToString (animation)
     } else if (typeof animation === 'string') {
-      elem.style.animation = animation
+      this.style.animation = animation
     }
-    setAnimationDefaults(elem)
+    setAnimationDefaults(this)
   }
 }
 
-function leaveAttribute (animation, elem) {
-  const parent = elem.parentNode
-  watchedNodes.add(elem)
-  elem.$cleanup(unwatch)
-  elem.$cleanup(() => {
-    elem[secret.leaving] = true
+function leaveAttribute (animation) {
+  const parent = this.parentNode
+  watchedNodes.add(this)
+  this.$cleanup(unwatch)
+  this.$cleanup(() => {
+    this[secret.leaving] = true
     if (typeof animation === 'object' && animation !== null) {
-      elem.style.animation = animationObjectToString (animation)
+      this.style.animation = animationObjectToString (animation)
     } else if (typeof animation === 'string') {
-      elem.style.animation = animation
+      this.style.animation = animation
     }
-    setAnimationDefaults(elem)
-    parent.appendChild(elem)
-    if (shouldAbsolutePosition(elem)) {
-      toAbsolutePosition(elem)
+    setAnimationDefaults(this)
+    parent.appendChild(this)
+    if (shouldAbsolutePosition(this)) {
+      toAbsolutePosition(this)
     }
   })
 }
 
-function moveAttribute (transition, elem) {
-  elem[secret.moveTransition] = true
-  watchedNodes.add(elem)
-  elem.$cleanup(unwatch)
+function moveAttribute (transition) {
+  this[secret.moveTransition] = true
+  watchedNodes.add(this)
+  this.$cleanup(unwatch)
   if (typeof transition === 'object' && transition !== null) {
-    elem.style.transition = transitionObjectToString(transition)
+    this.style.transition = transitionObjectToString(transition)
   } else if (typeof transition === 'string') {
-    elem.style.transition = 'transform ' + transition
+    this.style.transition = 'transform ' + transition
   } else {
-    elem.style.transition = 'transform'
+    this.style.transition = 'transform'
   }
-  setTransitionDefaults(elem)
+  setTransitionDefaults(this)
 }
 
 function unwatch () {

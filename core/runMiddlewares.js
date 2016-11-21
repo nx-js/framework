@@ -16,10 +16,10 @@ module.exports = function runMiddlewares (currNode, currContentMiddlewares, curr
 
 function next () {
   if (contentIndex < contentMiddlewaresLength) {
-    contentMiddlewares[contentIndex++](node, node.$state, next)
+    contentMiddlewares[contentIndex++].call(node, node, node.$state, next)
     next()
   } else if (index < middlewaresLength) {
-    middlewares[index++](node, node.$state, next)
+    middlewares[index++].call(node, node, node.$state, next)
     next()
   }
 }
