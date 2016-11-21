@@ -32,7 +32,7 @@ module.exports = function paramsFactory (config) {
     node.$observe(() => syncParamsWithState(history.state.params, state, config, true))
   }
   params.$name = 'params'
-  params.$require = ['cleanup', 'observe']
+  params.$require = ['observe']
   return params
 }
 

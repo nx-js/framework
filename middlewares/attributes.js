@@ -73,7 +73,7 @@ function expressionHandler (expression, handler, elem, name) {
 function handleAttribute (name, value, type, handler, elem) {
   if (type === '@') {
     const expression = elem.$compileExpression(value || name)
-    elem.$observe(expressionHandler, expression, handler, elem, name)
+    elem.$observe(expressionHandler, [expression, handler, elem, name])
   } else if (type === '$') {
     const expression = elem.$compileExpression(value || name)
     expressionHandler(expression, handler, elem, name)

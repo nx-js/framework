@@ -33,6 +33,8 @@ function setupNodeAndChildren (node, state, contentMiddlewares) {
   if (node.$shouldValidate) {
     validateMiddlewares(contentMiddlewares, node.$middlewares, true)
   }
+  node.$cleanup = $cleanup
+
   runMiddlewares(node, contentMiddlewares, node.$middlewares)
 
   if (type === 1 && node.$isolate !== true) {
@@ -54,4 +56,15 @@ function shouldProcess (node, type) {
   if (type === 3) {
     return node.nodeValue.trim()
   }
+}
+
+function $cleanup (fn, args) {
+  if (typeof fn !== 'function') {
+    throw new TypeError('first argument must be a function')
+  }
+  if (!(args === undefined || args instanceof Array)) {
+    throw new TypeError('second argument must be an array or undefined')
+  }
+  this.$cleaners = this.$cleaners || []
+  this.$cleaners.push({fn, args})
 }

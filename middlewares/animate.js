@@ -33,7 +33,7 @@ function animate (elem) {
   elem.$cleanup(queueCheck)
 }
 animate.$name = 'animate'
-animate.$require = ['cleanup', 'attributes']
+animate.$require = ['attributes']
 module.exports = animate
 
 function enterAttribute (animation, elem) {
@@ -81,8 +81,8 @@ function moveAttribute (transition, elem) {
   setTransitionDefaults(elem)
 }
 
-function unwatch (elem) {
-  watchedNodes.delete(elem)
+function unwatch () {
+  watchedNodes.delete(this)
 }
 
 function queueCheck () {

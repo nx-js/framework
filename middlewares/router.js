@@ -22,7 +22,6 @@ function router (router) {
   routeRouterAndChildren(router, absoluteToRelativeRoute(router, history.state.route))
 }
 router.$name = 'router'
-router.$require = ['cleanup']
 module.exports = router
 
 function setupRouter (router) {

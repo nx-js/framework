@@ -11,9 +11,9 @@ function cleanupNodeAndChildren (node) {
   if (node.$lifecycleStage !== 'attached') return
   node.$lifecycleStage = 'detached'
 
-  const cleanupFunctions = node.$cleanupFunctions
-  if (cleanupFunctions) {
-    cleanupFunctions.forEach(cleanup, node)
+  if (node.$cleaners) {
+    node.$cleaners.forEach(runCleaner, node)
+    node.$cleaners = undefined
   }
 
   let child = node.firstChild
@@ -23,6 +23,6 @@ function cleanupNodeAndChildren (node) {
   }
 }
 
-function cleanup (cleanupFunction) {
-  cleanupFunction(this)
+function runCleaner (cleaner) {
+  cleaner.fn.apply(this, cleaner.args)
 }

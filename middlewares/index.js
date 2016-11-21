@@ -16,6 +16,5 @@ module.exports = {
   router: require('./router'),
   params: require('./params'),
   ref: require('./ref'),
-  observe: require('./observe'),
-  cleanup: require('./cleanup')
+  observe: require('./observe')
 }

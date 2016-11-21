@@ -4,9 +4,7 @@ const tokenCache = new Map()
 
 function interpolate (node) {
   if (node.nodeType !== 3) return
-
-  const tokens = createTokens(node)
-  tokens.forEach(processToken, node)
+  createTokens(node).forEach(processToken, node)
 }
 interpolate.$name = 'interpolate'
 interpolate.$require = ['observe', 'expression']
@@ -39,7 +37,7 @@ function processToken (token, index, tokens) {
   if (typeof token === 'object') {
     const expression = this.$compileExpression(token.expression)
     if (token.observed) {
-      this.$observe(interpolateToken, expression, token, tokens)
+      this.$observe(interpolateToken, [expression, token, tokens])
     } else {
       interpolateToken.call(this, expression, token, tokens)
     }
