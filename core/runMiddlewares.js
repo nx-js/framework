@@ -12,6 +12,7 @@ module.exports = function runMiddlewares (currNode, currContentMiddlewares, curr
   contentMiddlewaresLength = currContentMiddlewares ? currContentMiddlewares.length : 0
   index = contentIndex = 0
   next()
+  node = middlewares = contentMiddlewares = undefined
 }
 
 function next () {

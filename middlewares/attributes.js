@@ -30,7 +30,7 @@ function getAttributes (elem) {
   if (cloneId) {
     let attributes = attributeCache.get(cloneId)
     if (!attributes) {
-      attributes = Array.prototype.map.call(elem.attributes, simplifyAttribute) // try replacing with eleme.attributes
+      attributes = Array.prototype.map.call(elem.attributes, cacheAttribute)
       attributeCache.set(cloneId, attributes)
     }
     return attributes
@@ -38,8 +38,8 @@ function getAttributes (elem) {
   return elem.attributes
 }
 
-function simplifyAttribute (attr) {
-  return {name: attr.name, value: attr.value}
+function cacheAttribute (attr) {
+  return {name: attr.name, value: attr.value, $cached: true}
 }
 
 function handleAttributes (elem, attributes) {
