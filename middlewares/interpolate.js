@@ -37,7 +37,7 @@ function processToken (token, index, tokens) {
   if (typeof token === 'object') {
     const expression = this.$compileExpression(token.expression)
     if (token.observed) {
-      this.$observe(interpolateToken, [expression, token, tokens])
+      this.$observe(interpolateToken, expression, token, tokens)
     } else {
       interpolateToken.call(this, expression, token, tokens)
     }

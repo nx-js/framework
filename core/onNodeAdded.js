@@ -58,12 +58,9 @@ function shouldProcess (node, type) {
   }
 }
 
-function $cleanup (fn, args) {
+function $cleanup (fn, ...args) {
   if (typeof fn !== 'function') {
     throw new TypeError('first argument must be a function')
-  }
-  if (!(args === undefined || args instanceof Array)) {
-    throw new TypeError('second argument must be an array or undefined')
   }
   this.$cleaners = this.$cleaners || []
   this.$cleaners.push({fn, args})

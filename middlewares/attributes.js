@@ -30,12 +30,16 @@ function getAttributes (elem) {
   if (cloneId) {
     let attributes = attributeCache.get(cloneId)
     if (!attributes) {
-      attributes = elem.attributes
+      attributes = Array.prototype.map.call(elem.attributes, simplifyAttribute) // try replacing with eleme.attributes
       attributeCache.set(cloneId, attributes)
     }
     return attributes
   }
   return elem.attributes
+}
+
+function simplifyAttribute (attr) {
+  return {name: attr.name, value: attr.value}
 }
 
 function handleAttributes (elem, attributes) {
@@ -48,7 +52,7 @@ function handleAttributes (elem, attributes) {
       attr.$name = attr.$name || attr.name.slice(1)
       attr.$expression = attr.$expression || elem.$compileExpression(attr.value || attr.$name)
       attr.$handler = attr.$handler || handlers.get(attr.$name) || defaultHandler
-      elem.$observe(expressionHandler, [attr])
+      elem.$observe(expressionHandler, attr)
       return
     }
 

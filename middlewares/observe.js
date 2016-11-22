@@ -17,11 +17,12 @@ function observe (node, state) {
 observe.$name = 'observe'
 module.exports = observe
 
-function $observe (fn, args) {
+function $observe (fn, ...args) {
   if (typeof fn !== 'function') {
     throw new TypeError('first argument must be a function')
   }
-  const signal = observer.observe(fn, this, args)
-  this.$cleanup(observer.unobserve, [signal])
+  args.unshift(fn, this)
+  const signal = observer.observe.apply(null, args)
+  this.$cleanup(observer.unobserve, signal)
   return signal
 }

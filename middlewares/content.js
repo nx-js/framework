@@ -57,7 +57,7 @@ function $insertContent (index, contextState) {
   if (!this[secret.template]) {
     throw new Error('you must extract a template with $extractContent before inserting')
   }
-  const content = document.importNode(this[secret.template], true)
+  const content = this[secret.template].cloneNode(true)
   const firstNodes = this[secret.firstNodes]
   const firstNode = content.firstChild
   const beforeNode = firstNodes[index]
