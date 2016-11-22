@@ -59,9 +59,7 @@ function listener (event) {
   let elem = event.target
   while (elem) {
     runHandler(elem, event, type)
-    if (elem.$root) {
-      return
-    }
+    if (elem.$root) return
     elem = elem.parentNode
   }
 }

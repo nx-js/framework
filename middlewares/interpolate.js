@@ -24,7 +24,6 @@ function createTokens (node) {
 function cloneToken (token) {
   if (typeof token === 'object') {
     return {
-      value: token.value,
       observed: token.observed,
       expression: token.expression,
       toString: token.toString

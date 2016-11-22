@@ -2,8 +2,6 @@
 
 const component = require('../core')
 const middlewares = require('../middlewares')
-const filters = require('../filters')
-const limiters = require('../limiters')
 
 module.exports = function app (config) {
   config = Object.assign({root: true}, config)
