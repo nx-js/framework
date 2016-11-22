@@ -39,7 +39,7 @@ function getAttributes (elem) {
 }
 
 function cacheAttribute (attr) {
-  return {name: attr.name, value: attr.value, $cached: true}
+  return {name: attr.name, value: attr.value}
 }
 
 function handleAttributes (elem, attributes) {
@@ -51,22 +51,22 @@ function handleAttributes (elem, attributes) {
     if (type === '@') {
       attr.$name = attr.$name || attr.name.slice(1)
       attr.$expression = attr.$expression || elem.$compileExpression(attr.value || attr.$name)
-      attr.$handler = attr.$handler || handlers.get(attr.$name) || defaultHandler
-      elem.$observe(expressionHandler, attr)
+      const handler = handlers.get(attr.$name) || defaultHandler
+      elem.$observe(expressionHandler, attr, handler)
       return
     }
 
     if (type === '$') {
       attr.$name = attr.$name || attr.name.slice(1)
       attr.$expression = attr.$expression || elem.$compileExpression(attr.value || attr.$name)
-      attr.$handler = attr.$handler || handlers.get(attr.$name) || defaultHandler
-      expressionHandler.call(elem, attr)
+      const handler = handlers.get(attr.$name) || defaultHandler
+      expressionHandler.call(elem, attr, handler)
       return
     }
 
-    attr.$handler = attr.$handler || handlers.get(attr.name)
-    if (attr.$handler) {
-      attr.$handler.call(elem, attr.value, attr.name)
+    const handler = handlers.get(attr.name)
+    if (handler) {
+      handler.call(elem, attr.value, attr.name)
     }
   }
 }
@@ -79,7 +79,7 @@ function defaultHandler (value, name) {
   }
 }
 
-function expressionHandler (attr) {
+function expressionHandler (attr, handler) {
   const value = attr.$expression(this.$contextState)
-  attr.$handler.call(this, value, attr.$name)
+  handler.call(this, value, attr.$name)
 }
