@@ -96,5 +96,5 @@ function parseValue (string) {
 }
 
 function tokenToString () {
-  return this.value
+  return String(this.value)
 }
