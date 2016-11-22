@@ -7,24 +7,11 @@ const argsRegex = /\S+/g
 const codeCache = new Map()
 const limiters = new Map()
 
-nx.limiter = function limiter (name, handler) {
-  if (typeof name !== 'string') {
-    throw new TypeError('first argument must be a string')
-  }
-  if (typeof handler !== 'function') {
-    throw new TypeError('second argument must be a function')
-  }
-  if (limiters.has(name)) {
-    throw new Error(`a limiter named ${name} is already registered`)
-  }
-  limiters.set(name, handler)
-  return this
-}
-
 function code (node) {
   node.$compileCode = $compileCode
 }
 code.$name = 'code'
+code.limiter = limiter
 module.exports = code
 
 function $compileCode (rawCode) {
@@ -102,4 +89,18 @@ function createBackup (state, expando) {
     backup[key] = state[key]
   }
   return backup
+}
+
+function limiter (name, handler) {
+  if (typeof name !== 'string') {
+    throw new TypeError('first argument must be a string')
+  }
+  if (typeof handler !== 'function') {
+    throw new TypeError('second argument must be a function')
+  }
+  if (limiters.has(name)) {
+    throw new Error(`a limiter named ${name} is already registered`)
+  }
+  limiters.set(name, handler)
+  return this
 }

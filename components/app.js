@@ -23,11 +23,3 @@ module.exports = function app (config) {
     .useOnContent(middlewares.bind)
     .useOnContent(middlewares.events)
 }
-
-for (let name in filters) {
-  nx.filter(name, filters[name])
-}
-
-for (let name in limiters) {
-  nx.limiter(name, limiters[name])
-}

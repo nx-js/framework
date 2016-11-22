@@ -7,24 +7,11 @@ const argsRegex = /\S+/g
 const expressionCache = new Map()
 const filters = new Map()
 
-nx.filter = function filter (name, handler) {
-  if (typeof name !== 'string') {
-    throw new TypeError('first argument must be a string')
-  }
-  if (typeof handler !== 'function') {
-    throw new TypeError('second argument must be a function')
-  }
-  if (filters.has(name)) {
-    throw new Error(`a filter named ${name} is already registered`)
-  }
-  filters.set(name, handler)
-  return this
-}
-
 function expression (node) {
   node.$compileExpression = $compileExpression
 }
 expression.$name = 'expression'
+expression.filter = filter
 module.exports = expression
 
 function $compileExpression (rawExpression) {
@@ -79,4 +66,18 @@ function evaluateArgExpression (argExpression) {
 
 function compileArgExpression (argExpression) {
   return compiler.compileExpression(argExpression)
+}
+
+function filter (name, handler) {
+  if (typeof name !== 'string') {
+    throw new TypeError('first argument must be a string')
+  }
+  if (typeof handler !== 'function') {
+    throw new TypeError('second argument must be a function')
+  }
+  if (filters.has(name)) {
+    throw new Error(`a filter named ${name} is already registered`)
+  }
+  filters.set(name, handler)
+  return this
 }
