@@ -53,7 +53,7 @@ function handleAttributes (elem, attributes) {
       attr.$expression = attr.$expression || elem.$compileExpression(attr.value || attr.$name)
       const handler = handlers.get(attr.$name) || defaultHandler
       elem.$observe(expressionHandler, attr, handler)
-      return
+      continue
     }
 
     if (type === '$') {
@@ -61,7 +61,7 @@ function handleAttributes (elem, attributes) {
       attr.$expression = attr.$expression || elem.$compileExpression(attr.value || attr.$name)
       const handler = handlers.get(attr.$name) || defaultHandler
       expressionHandler.call(elem, attr, handler)
-      return
+      continue
     }
 
     const handler = handlers.get(attr.name)
