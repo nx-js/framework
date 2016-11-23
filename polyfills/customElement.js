@@ -15,10 +15,14 @@ if (!document.registerElement) {
       Array.prototype.forEach.call(mutation.addedNodes, onNodeAdded)
       Array.prototype.forEach.call(mutation.removedNodes, onNodeRemoved)
     }
+    mutations = observer.takeRecords()
+    if (mutations.length) {
+      onMutations(mutations)
+    }
   }
 
   function onNodeAdded (node) {
-    if (node.nodeType !== 1) return
+    if (!(node instanceof Element)) return
 
     let config = registry.get(node.getAttribute('is'))
     if (!config || config.extends !== node.tagName.toLowerCase()) {
@@ -31,12 +35,14 @@ if (!document.registerElement) {
     if (node[secret.registered] && node.attachedCallback) {
       node.attachedCallback()
     }
+    Array.prototype.forEach.call(node.childNodes, onNodeAdded)
   }
 
   function onNodeRemoved (node) {
     if (node[secret.registered] && node.detachedCallback) {
       node.detachedCallback()
     }
+    Array.prototype.forEach.call(node.childNodes, onNodeRemoved)
   }
 
   document.registerElement = function registerElement (name, config) {
