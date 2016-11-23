@@ -44,7 +44,8 @@ function repeatAttribute (array) {
     this[secret.hasRepeat] = true
   }
   const trackBy = this.getAttribute('track-by')
-  const repeatValue = this.getAttribute('repeat-value')
+  const repeatValue = this.getAttribute('repeat-value') || '$value'
+  const repeatIndex = this.getAttribute('repeat-index') || '$index'
 
   array = array || []
   const prevArray = this[secret.prevArray] = this[secret.prevArray] || []
@@ -54,31 +55,33 @@ function repeatAttribute (array) {
     let prevItem = prevArray[++i]
 
     if (prevItem === undefined) {
-      this.$insertContent(i, {$index: i, [repeatValue]: item})
+      this.$insertContent(i, {[repeatIndex]: i, [repeatValue]: item})
       prevArray[i] = item
       continue
     }
     if (item === prevItem) {
+      this.$mutateContext(i, {[repeatIndex]: i})
       continue
     }
-    if (trackBy === '$index') {
+    if (trackBy === repeatIndex) {
       this.$mutateContext(i, {[repeatValue]: item})
       prevArray[i] = item
       continue
     }
     if (trackBy && isTrackBySame(item, prevItem, trackBy)) {
+      this.$mutateContext(i, {[repeatIndex]: i})
       continue
     }
     for (let j = i + 1; j < prevArray.length; j++) {
       prevItem = prevArray[j]
       if (item === prevItem || (trackBy && isTrackBySame(item, prevItem, trackBy))) {
-        this.$moveContent(j, i)
+        this.$moveContent(j, i, {[repeatIndex]: i})
         prevArray.splice(i, 0, prevItem)
         prevArray.splice(j, 1)
         continue iteration
       }
     }
-    this.$insertContent(i, {$index: i, [repeatValue]: item})
+    this.$insertContent(i, {[repeatIndex]: i, [repeatValue]: item})
     prevArray.splice(i, 0, item)
   }
 

@@ -103,9 +103,12 @@ function $clearContent () {
   this[secret.firstNodes] = []
 }
 
-function $moveContent (fromIndex, toIndex) {
+function $moveContent (fromIndex, toIndex, extraContext) {
   if (typeof fromIndex !== 'number' || typeof toIndex !== 'number') {
     throw new Error('first and second argument must be numbers')
+  }
+  if (extraContext !== undefined && typeof extraContext !== 'object') {
+    throw new Error('third argument must be an object or undefined')
   }
   const firstNodes = this[secret.firstNodes]
   const fromNode = firstNodes[fromIndex]
@@ -114,7 +117,6 @@ function $moveContent (fromIndex, toIndex) {
 
   let node = fromNode
   let next
-  // do not do this if it is a single node (no loop needed)!
   while (node && node !== untilNode) {
     next = node.nextSibling
     this.insertBefore(node, toNode)
@@ -123,8 +125,8 @@ function $moveContent (fromIndex, toIndex) {
   firstNodes.splice(fromIndex, 1)
   firstNodes.splice(toIndex, 0, fromNode)
 
-  if (fromNode && fromNode.$contextState) {
-    fromNode.$contextState.$index = toIndex
+  if (extraContext && fromNode && fromNode.$contextState) {
+    Object.assign(fromNode.$contextState, extraContext)
   }
 }
 
