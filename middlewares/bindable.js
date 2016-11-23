@@ -64,14 +64,15 @@ function bindAttribute (params) {
 function bindElement (elem) {
   const params = elem[secret.params]
   const binder = elem[secret.binder]
+  let signal
   if (params.mode === 'two-way') {
-    elem.$observe(binder)
+    signal = elem.$observe(binder)
     Promise.resolve().then(binder)
   } else if (params.mode === 'one-time') {
-    elem.$unobserve(binder)
+    elem.$unobserve(signal)
     Promise.resolve().then(binder)
   } else if (params.mode === 'one-way') {
-    elem.$unobserve(binder)
+    elem.$unobserve(signal)
   } else {
     throw new TypeError('bind mode must be two-way, one-time or one-way')
   }

@@ -29,23 +29,16 @@ function $compileCode (rawCode) {
   }
 
   const context = {}
-  return function evaluateCode (contextState, expando) {
-    const backup = createBackup(contextState, expando)
+  return function evaluateCode (state, tempVars) {
     let i = 0
     function next () {
-      try {
-        Object.assign(contextState, expando)
-        Object.assign(context, expando)
-        if (i < code.limiters.length) {
-          const limiter = code.limiters[i++]
-          const args = limiter.argExpressions.map(evaluateArgExpression, contextState)
-          limiter.effect(next, context, ...args)
-        } else {
-          code.exec(contextState)
-        }
-      } finally {
-        Object.assign(contextState, backup)
-        Object.assign(context, backup)
+      Object.assign(context, tempVars)
+      if (i < code.limiters.length) {
+        const limiter = code.limiters[i++]
+        const args = limiter.argExpressions.map(evaluateArgExpression, state)
+        limiter.effect(next, context, ...args)
+      } else {
+        code.exec(state, tempVars)
       }
     }
     next()
@@ -80,15 +73,6 @@ function evaluateArgExpression (argExpression) {
 
 function compileArgExpression (argExpression) {
   return compiler.compileExpression(argExpression)
-}
-
-function createBackup (state, expando) {
-  if (!expando) return undefined
-  const backup = {}
-  for (let key in expando) {
-    backup[key] = state[key]
-  }
-  return backup
 }
 
 function limiter (name, handler) {
