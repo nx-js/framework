@@ -4,7 +4,7 @@ const component = require('../core')
 const middlewares = require('../middlewares')
 
 module.exports = function app (config) {
-  config = Object.assign({root: true}, config)
+  config = Object.assign({root: true, isolate: 'middlewares'}, config)
 
   return component(config)
     .useOnContent(middlewares.observe)

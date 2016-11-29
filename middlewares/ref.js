@@ -25,7 +25,9 @@ function irefAttribute (path) {
   const config = this[secret.config]
   config.path = path
 
-  const href = path + (this.search || '')
+  let route = pathToRoute(path)
+  route = route.some(filterRelativeTokens) ? relativeToAbsoluteRoute(this, route) : route
+  const href =  routeToPath(route) + (this.search || '')
   this.setAttribute('href', href)
   this.addEventListener('click', onClick, true)
 }

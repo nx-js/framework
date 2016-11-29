@@ -36,7 +36,7 @@ module.exports = function validateConfig (rawConfig) {
     throw new Error('invalid root config: ' + rawConfig.root)
   }
 
-  if (resultConfig.root && (resultConfig.isolate || !resultConfig.state)) {
+  if (resultConfig.root && (resultConfig.isolate === true || !resultConfig.state)) {
     throw new Error('root components must have a state and must not be isolated')
   }
 
