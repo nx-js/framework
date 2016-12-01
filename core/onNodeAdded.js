@@ -43,6 +43,12 @@ function setupNodeAndChildren (node, state, contentMiddlewares) {
       setupNodeAndChildren(child, node.$state, contentMiddlewares)
       child = child.nextSibling
     }
+
+    child = node.shadowRoot ? node.shadowRoot.firstChild : undefined
+    while (child) {
+      setupNodeAndChildren(child, node.$state, contentMiddlewares)
+      child = child.nextSibling
+    }
   }
 }
 

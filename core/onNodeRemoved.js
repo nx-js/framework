@@ -21,6 +21,12 @@ function cleanupNodeAndChildren (node) {
     cleanupNodeAndChildren(child)
     child = child.nextSibling
   }
+
+  child = node.shadowRoot ? node.shadowRoot.firstChild : undefined
+  while (child) {
+    cleanupNodeAndChildren(child, node.$state, contentMiddlewares)
+    child = child.nextSibling
+  }
 }
 
 function runCleaner (cleaner) {

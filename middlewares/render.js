@@ -1,35 +1,45 @@
 'use strict'
 
 let selectorScope
+const hostRegex = /:host/g
+const functionalHostRegex = /:host\((.*?)\)/g
 
 module.exports = function renderFactory (config) {
   config = validateAndCloneConfig(config)
-  if (config.cache) {
-    config.template = cacheTemplate(config.template)
-  }
+  config.template = cacheTemplate(config.template)
 
   function render (elem) {
     if (elem.nodeType !== 1) {
       throw new Error('render only works with element nodes')
     }
+    addContext(elem)
 
-    let template
-    if (config.cache) {
-      template = document.importNode(config.template, true)
+    const template = document.importNode(config.template, true)
+    if (config.shadow) {
+      const shadowRoot = elem.attachShadow({mode: 'open'})
+      shadowRoot.appendChild(template)
+      const style = document.createElement('style')
+      style.appendChild(document.createTextNode(config.style))
+      shadowRoot.appendChild(style)
     } else {
-      template = cacheTemplate(config.template)
-    }
-    composeContentWithTemplate(elem, template)
-    elem.appendChild(template)
-
-    if (config.style) {
-      addScopedStyle(config.style, elem)
-      config.style = undefined
+      composeContentWithTemplate(elem, template)
+      if (config.style) {
+        addScopedStyle(elem, config.style)
+        config.style = undefined
+      }
     }
   }
 
   render.$name = 'render'
   return render
+}
+
+function addContext (elem) {
+  let child = elem.firstChild
+  while (child) {
+    child.$contextState = elem.$contextState
+    child = child.nextSibling
+  }
 }
 
 function composeContentWithTemplate (elem, template) {
@@ -43,42 +53,43 @@ function composeContentWithTemplate (elem, template) {
       if (slotFillers.length) {
         slot.innerHTML = ''
         for (let i = slotFillers.length; i--;) {
-          const slotFiller = slotFillers[i]
-          slotFiller.$contextState = elem.$contextState
-          slot.appendChild(slotFiller)
+          slot.appendChild(slotFillers[i])
         }
       }
-    } else if (slot.hasAttribute('name')) {
+    } else {
       defaultSlot = slot
     }
   }
 
-  if (defaultSlot && elem.childNodes.length) {
+  if (defaultSlot && elem.firstChild) {
     defaultSlot.innerHTML = ''
     while (elem.firstChild) {
-      elem.firstChild[exposed.contextState] = elem[exposed.contextState]
       defaultSlot.appendChild(elem.firstChild)
     }
   }
   elem.innerHTML = ''
+  elem.appendChild(template)
 }
 
-function addScopedStyle (styleString, elem) {
+function addScopedStyle (elem, styleString) {
+  setSelectorScope(elem)
+  styleString = styleString
+    .replace(functionalHostRegex, `${selectorScope}$1`)
+    .replace(hostRegex, selectorScope)
+
   const style = document.createElement('style')
   style.appendChild(document.createTextNode(styleString))
+  document.head.insertBefore(style, document.head.firstChild)
 
-  if (style.scoped !== undefined) {
-    style.scoped = true
-    elem.appendChild(style)
-  } else {
-    document.documentElement.appendChild(style)
-    setSelectorScope(elem)
-    const rules = style.sheet.cssRules
-    for (let i = rules.length; i--;) {
-      const rule = rules[i]
-      if (rule.type === 1) {
-        rule.selectorText = rule.selectorText.split(',').map(scopeSelector).join(', ')
-      }
+  const sheet = style.sheet
+  const rules = style.sheet.cssRules
+  for (let i = rules.length; i--;) {
+    const rule = rules[i]
+    if (rule.type === 1) {
+      const selectorText = rule.selectorText.split(',').map(scopeSelector).join(', ')
+      const styleText = rule.style.cssText
+      sheet.deleteRule(i)
+      sheet.insertRule(`${selectorText} { ${styleText} }`, i)
     }
   }
 }
@@ -89,13 +100,16 @@ function setSelectorScope (elem) {
 }
 
 function scopeSelector (selector) {
-  return `${selectorScope} ${selector.replace(':scope', '')}`
+  if (selector.indexOf(selectorScope) !== -1) {
+    return selector
+  }
+  return `${selectorScope} ${selector}`
 }
 
-function cacheTemplate (template) {
-  const cachedTemplate = document.createElement('template')
-  cachedTemplate.innerHTML = template
-  return cachedTemplate.content
+function cacheTemplate (templateHTML) {
+  const templateDOM = document.createElement('template')
+  templateDOM.innerHTML = templateHTML
+  return templateDOM.content
 }
 
 function validateAndCloneConfig (rawConfig) {
@@ -117,12 +131,10 @@ function validateAndCloneConfig (rawConfig) {
     throw new TypeError('template config must be a string or undefined')
   }
 
-  if (typeof rawConfig.cache === 'boolean') {
-    resultConfig.cache = rawConfig.cache
-  } else if (rawConfig.cache === undefined) {
-    resultConfig.cache = true
-  } else {
-    throw new TypeError('cache config must be a boolean or undefined')
+  if (typeof rawConfig.shadow === 'boolean') {
+    resultConfig.shadow = rawConfig.shadow
+  } else if (rawConfig.shadow !== undefined) {
+    throw new TypeError('shadow config must be a boolean or undefined')
   }
 
   return resultConfig
