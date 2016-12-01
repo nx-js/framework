@@ -81,8 +81,16 @@ function addScopedStyle (elem, styleString) {
   style.appendChild(document.createTextNode(styleString))
   document.head.insertBefore(style, document.head.firstChild)
 
-  const sheet = style.sheet
-  const rules = style.sheet.cssRules
+  scopeSheet(style.sheet)
+}
+
+function setSelectorScope (elem) {
+  const is = elem.getAttribute('is')
+  selectorScope = (is ? `${elem.tagName}[is="${is}"]` : elem.tagName).toLowerCase()
+}
+
+function scopeSheet (sheet) {
+  const rules = sheet.cssRules
   for (let i = rules.length; i--;) {
     const rule = rules[i]
     if (rule.type === 1) {
@@ -90,13 +98,10 @@ function addScopedStyle (elem, styleString) {
       const styleText = rule.style.cssText
       sheet.deleteRule(i)
       sheet.insertRule(`${selectorText} { ${styleText} }`, i)
+    } else if (rule.cssRules) {
+      scopeSheet(rule)
     }
   }
-}
-
-function setSelectorScope (elem) {
-  const is = elem.getAttribute('is')
-  selectorScope = (is ? `${elem.tagName}[is="${is}"]` : elem.tagName).toLowerCase()
 }
 
 function scopeSelector (selector) {
