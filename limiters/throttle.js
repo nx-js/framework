@@ -10,7 +10,7 @@ module.exports = function throttle (next, context, threshold) {
   const last = context[lastExecution]
   if (last && Date.now() < (last + threshold)) {
     clearTimeout(context[timer])
-    context[timer] = setTimeout(execute, context, next, threshold)
+    context[timer] = setTimeout(execute, threshold, context, next)
   } else {
     execute(context, next)
   }
