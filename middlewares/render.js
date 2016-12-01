@@ -1,15 +1,11 @@
 'use strict'
 
+let selectorScope
+
 module.exports = function renderFactory (config) {
   config = validateAndCloneConfig(config)
   if (config.cache) {
     config.template = cacheTemplate(config.template)
-  }
-  if (config.style) {
-    const style = document.createTextNode(config.style)
-    const styleContainer = document.createElement('style')
-    styleContainer.appendChild(style)
-    document.head.appendChild(styleContainer)
   }
 
   function render (elem) {
@@ -25,20 +21,28 @@ module.exports = function renderFactory (config) {
     }
     composeContentWithTemplate(elem, template)
     elem.appendChild(template)
+
+    if (config.style) {
+      addScopedStyle(config.style, elem)
+      config.style = undefined
+    }
   }
+
   render.$name = 'render'
   return render
 }
 
 function composeContentWithTemplate (elem, template) {
   let defaultSlot
+  const slots = template.querySelectorAll('slot')
 
-  Array.prototype.forEach.call(template.querySelectorAll('slot'), (slot) => {
+  for (let i = slots.length; i--;) {
+    const slot = slots[i]
     if (slot.getAttribute('name')) {
       const slotFillers = elem.querySelectorAll(`[slot=${slot.getAttribute('name')}]`)
       if (slotFillers.length) {
-        clearContent(slot)
-        for (let i = 0; i < slotFillers.length; i++) {
+        slot.innerHTML = ''
+        for (let i = slotFillers.length; i--;) {
           const slotFiller = slotFillers[i]
           slotFiller.$contextState = elem.$contextState
           slot.appendChild(slotFiller)
@@ -47,28 +51,51 @@ function composeContentWithTemplate (elem, template) {
     } else if (slot.hasAttribute('name')) {
       defaultSlot = slot
     }
-  })
+  }
 
   if (defaultSlot && elem.childNodes.length) {
-    clearContent(defaultSlot)
+    defaultSlot.innerHTML = ''
     while (elem.firstChild) {
       elem.firstChild[exposed.contextState] = elem[exposed.contextState]
       defaultSlot.appendChild(elem.firstChild)
     }
   }
-  clearContent(elem)
+  elem.innerHTML = ''
+}
+
+function addScopedStyle (styleString, elem) {
+  const style = document.createElement('style')
+  style.appendChild(document.createTextNode(styleString))
+
+  if (style.scoped !== undefined) {
+    style.scoped = true
+    elem.appendChild(style)
+  } else {
+    document.documentElement.appendChild(style)
+    setSelectorScope(elem)
+    const rules = style.sheet.cssRules
+    for (let i = rules.length; i--;) {
+      const rule = rules[i]
+      if (rule.type === 1) {
+        rule.selectorText = rule.selectorText.split(',').map(scopeSelector).join(', ')
+      }
+    }
+  }
+}
+
+function setSelectorScope (elem) {
+  const is = elem.getAttribute('is')
+  selectorScope = (is ? `${elem.tagName}[is="${is}"]` : elem.tagName).toLowerCase()
+}
+
+function scopeSelector (selector) {
+  return `${selectorScope} ${selector.replace(':scope', '')}`
 }
 
 function cacheTemplate (template) {
   const cachedTemplate = document.createElement('template')
   cachedTemplate.innerHTML = template
   return cachedTemplate.content
-}
-
-function clearContent (elem) {
-  while (elem.firstChild) {
-    elem.firstChild.remove()
-  }
 }
 
 function validateAndCloneConfig (rawConfig) {
