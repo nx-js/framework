@@ -15,7 +15,9 @@ module.exports = function renderFactory (config) {
     addContext(elem)
 
     const template = document.importNode(config.template, true)
-    if (config.shadow) {
+
+    // fall back to non shadow mode (scoped style) for now, add polyfill later
+    if (config.shadow && elem.attachShadow) {
       const shadowRoot = elem.attachShadow({mode: 'open'})
       shadowRoot.appendChild(template)
       const style = document.createElement('style')
@@ -133,7 +135,7 @@ function validateAndCloneConfig (rawConfig) {
   if (typeof rawConfig.style === 'string') {
     resultConfig.style = rawConfig.style
   } else if (rawConfig.style !== undefined) {
-    throw new TypeError('template config must be a string or undefined')
+    throw new TypeError('style config must be a string or undefined')
   }
 
   if (typeof rawConfig.shadow === 'boolean') {

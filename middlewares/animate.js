@@ -49,7 +49,7 @@ function enterAttribute (animation) {
 }
 
 function leaveAttribute (animation) {
-  const parent = this.parentNode
+  const parent = this.parentNode || this.host
   watchedNodes.add(this)
   this.$cleanup(unwatch)
   this.$cleanup(() => {
@@ -160,14 +160,15 @@ function setTransitionDefaults (elem) {
 }
 
 function shouldAbsolutePosition (elem) {
+  elem = elem.parentNode || elem.host
   while (elem) {
-    elem = elem.parentNode
     if (elem[secret.leaving]) {
       return false
     }
     if (elem.$root) {
       return true
     }
+    elem = elem.parentNode || elem.host
   }
   return true
 }

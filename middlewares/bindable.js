@@ -7,19 +7,14 @@ const secret = {
 const paramsRegex = /\S+/g
 const defaultParams = {mode: 'two-way', on: 'change', type: 'string'}
 
-document.addEventListener('submit', onSubmit, true)
-
 function onInput (ev) {
   const params = ev.target[secret.params]
   if (ev.type === 'submit') {
     syncStateWithForm(ev.target)
+    ev.preventDefault()
   } else if (params && (params.on.indexOf(ev.type) !== -1)) {
     syncStateWithElement(ev.target)
   }
-}
-
-function onSubmit (ev) {
-  ev.preventDefault()
 }
 
 function bindable (elem, state, next) {
@@ -77,7 +72,11 @@ function bindElement (elem) {
     throw new TypeError('bind mode must be two-way, one-time or one-way')
   }
   for (let eventName of params.on) {
-    document.addEventListener(eventName, onInput, true)
+    // delegate to the nearest root (shadow or document)
+    while (elem.parentNode) {
+      elem = elem.parentNode
+    }
+    elem.addEventListener(eventName, onInput, true)
   }
 }
 

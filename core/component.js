@@ -7,10 +7,9 @@ const onNodeAdded = require('./onNodeAdded')
 const onNodeRemoved = require('./onNodeRemoved')
 
 const secret = {
-  config: Symbol('component config'),
-  contentWatcher: Symbol('content watcher')
+  config: Symbol('component config')
 }
-const contentWatcherConfig = {
+const observerConfig = {
   childList: true,
   subtree: true
 }
@@ -80,27 +79,22 @@ function attachedCallback () {
 
     if (config.root) {
       this.$root = true
-      this[secret.contentWatcher] = new MutationObserver(onMutations)
-      this[secret.contentWatcher].observe(this, contentWatcherConfig)
-      onNodeAdded(this, getContext(this.parentNode))
-    } else {
-      if (addedNodes.size === 0) {
-        Promise.resolve().then(processAddedNodes)
-      }
-      addedNodes.add(this)
+      const contentObserver = new MutationObserver(onMutations)
+      contentObserver.observe(this, observerConfig)
     }
+    
+    if (addedNodes.size === 0) {
+      Promise.resolve().then(processAddedNodes)
+    }
+    addedNodes.add(this)
   }
 }
 
 function detachedCallback () {
-  const contentWatcher = this[secret.contentWatcher]
-  if (contentWatcher) {
-    contentWatcher.disconnect()
-  }
   onNodeRemoved(this)
 }
 
-function onMutations (mutations, contentWatcher) {
+function onMutations (mutations) {
   let mutationIndex = mutations.length
   while (mutationIndex--) {
     const mutation = mutations[mutationIndex]
@@ -126,10 +120,14 @@ function processAddedNodes () {
 }
 
 function processAddedNode (node) {
-  const parentNode = node.parentNode
+  const parentNode = node.parentNode || node.host
   if (this.parent !== parentNode) {
     this.parent = parentNode
     this.context = getContext(parentNode)
   }
   onNodeAdded(node, this.context)
+  if (node.shadowRoot) {
+    const shadowObserver = new MutationObserver(onMutations)
+    shadowObserver.observe(node.shadowRoot, observerConfig)
+  }
 }

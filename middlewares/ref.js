@@ -103,11 +103,12 @@ function filterEmptyTokens (token) {
 }
 
 function findParentRouter (node) {
-  while(node.parentNode) {
-    node = node.parentNode
+  node = node.parentNode
+  while (node) {
     if (node.$routerLevel !== undefined) {
       return node
     }
+    node = node.parentNode
   }
 }
 

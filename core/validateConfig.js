@@ -12,7 +12,7 @@ module.exports = function validateConfig (rawConfig) {
 
   if (typeof rawConfig.state === 'boolean' || rawConfig.state === 'inherit') {
     resultConfig.state = rawConfig.state
-  } else if (typeof rawConfig.state === 'object' && observer.isObservable(rawConfig.state)) {
+  } else if (typeof rawConfig.state === 'object') {
     resultConfig.state = rawConfig.state
   } else if (rawConfig.state === undefined) {
     resultConfig.state = true

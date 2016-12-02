@@ -8,7 +8,12 @@ const handledEvents = new Set()
 
 function events (elem) {
   if (elem.nodeType !== 1) return
-  elem[secret.handlers] = getEventHandlers(elem)
+
+  const handlers = getEventHandlers(elem)
+  if (handlers) {
+    handlers.forEach(addEventHandlers, elem)
+    elem[secret.handlers] = handlers
+  }
 }
 events.$name = 'events'
 events.$require = ['code']
@@ -44,34 +49,19 @@ function createEventHandlers (elem) {
           handlers.set(name, typeHandlers)
         }
         typeHandlers.add(handler)
-        if (!handledEvents.has(name)) {
-          document.addEventListener(name, listener, true)
-          handledEvents.add(name)
-        }
       }
     }
   }
   return handlers
 }
 
-function listener (event) {
-  const type = event.type
-  let elem = event.target
-  while (elem) {
-    runHandler(elem, event, type)
-    if (elem.$root) return
-    elem = elem.parentNode
-  }
+function addEventHandlers (handlers, type) {
+  this.addEventListener(type, listener, true)
 }
 
-function runHandler (elem, event, type) {
-  const handlers = elem[secret.handlers]
-  if (handlers) {
-    const typeHandlers = handlers.get(type)
-    if (typeHandlers) {
-      for (let handler of typeHandlers) {
-        handler(elem.$contextState, { $event: event })
-      }
-    }
+function listener (ev) {
+  const handlers = this[secret.handlers].get(ev.type)
+  for (let handler of handlers) {
+    handler(this.$contextState, { $event: ev })
   }
 }

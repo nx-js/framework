@@ -19,7 +19,7 @@ module.exports = function getContext (node) {
     if (node.$root) {
       return context
     }
-    node = node.parentNode
+    node = node.parentNode || node.host
   }
   return context
 }
