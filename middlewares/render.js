@@ -100,7 +100,7 @@ function scopeSheet (sheet) {
       const styleText = rule.style.cssText
       sheet.deleteRule(i)
       sheet.insertRule(`${selectorText} { ${styleText} }`, i)
-    } else if (rule.cssRules) {
+    } else if (rule.type === 4) { // media rules
       scopeSheet(rule)
     }
   }
