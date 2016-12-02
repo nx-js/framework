@@ -9,7 +9,7 @@ const secret = {
 const watchedNodes = new Set()
 let checkQueued = false
 
-window.addEventListener('animationend', onAnimationEnd, true)
+// window.addEventListener('animationend', onAnimationEnd, true)
 
 function onAnimationEnd (ev) {
   const elem = ev.target
@@ -65,6 +65,12 @@ function leaveAttribute (animation) {
       toAbsolutePosition(this)
     }
   })
+  // not optimal, fix this with performance batch
+  let root = this
+  while (root.parentNode) {
+    root = root.parentNode
+  }
+  root.addEventListener('animationend', onAnimationEnd, true)
 }
 
 function moveAttribute (transition) {
