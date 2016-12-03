@@ -40,7 +40,7 @@ function enterAttribute (animation) {
   if (this[secret.entering] !== false) {
     this[secret.entering] = true
     if (typeof animation === 'object' && animation !== null) {
-      this.style.animation = animationObjectToString (animation)
+      this.style.animation = animationObjectToString(animation)
     } else if (typeof animation === 'string') {
       this.style.animation = animation
     }
@@ -55,7 +55,7 @@ function leaveAttribute (animation) {
   this.$cleanup(() => {
     this[secret.leaving] = true
     if (typeof animation === 'object' && animation !== null) {
-      this.style.animation = animationObjectToString (animation)
+      this.style.animation = animationObjectToString(animation)
     } else if (typeof animation === 'string') {
       this.style.animation = animation
     }
@@ -150,7 +150,7 @@ function transitionObjectToString (transition) {
 
 function setAnimationDefaults (elem) {
   const style = elem.style
-  if (style.animationDuration === 'initial' || style.animationDuration === '') {
+  if (style.animationDuration === 'initial' || style.animationDuration === '' || style.animationDuration === '0s') {
     elem.style.animationDuration = '1s'
   }
   if (style.animationFillMode === 'initial' || style.animationFillMode === '' || style.animationFillMode === 'none') {
@@ -160,7 +160,7 @@ function setAnimationDefaults (elem) {
 
 function setTransitionDefaults (elem) {
   const style = elem.style
-  if (style.transitionDuration === 'initial' || style.transitionDuration === '') {
+  if (style.transitionDuration === 'initial' || style.transitionDuration === '' || style.transitionDuration === '0s') {
     style.transitionDuration = '1s'
   }
 }
