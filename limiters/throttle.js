@@ -7,16 +7,11 @@ module.exports = function throttle (next, context, threshold) {
   if (threshold === undefined || isNaN(threshold)) {
     threshold = 200
   }
-  const last = context[lastExecution]
-  if (last && Date.now() < (last + threshold)) {
-    clearTimeout(context[timer])
-    context[timer] = setTimeout(execute, threshold, context, next)
-  } else {
-    execute(context, next)
-  }
-}
 
-function execute (context, next) {
-  context[lastExecution] = Date.now()
-  next()
+  const last = context[lastExecution]
+  const now = Date.now()
+  if (!last || (last + threshold) < now) {
+    context[lastExecution] = now
+    next()
+  }
 }
