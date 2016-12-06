@@ -36,7 +36,7 @@ function useOnContent (contentMiddleware) {
   }
   const config = this[secret.config]
   if (config.isolate === true) {
-    throw new Error('content middlewares can not be added to isolated components')
+    console.log('warning: content middlewares have no effect inside isolated components')
   }
   config.contentMiddlewares = config.contentMiddlewares || []
   config.contentMiddlewares.push(contentMiddleware)
@@ -82,7 +82,7 @@ function attachedCallback () {
       const contentObserver = new MutationObserver(onMutations)
       contentObserver.observe(this, observerConfig)
     }
-    
+
     if (addedNodes.size === 0) {
       Promise.resolve().then(processAddedNodes)
     }
