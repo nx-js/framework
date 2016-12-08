@@ -1,16 +1,18 @@
 'use strict'
 
 const secret = {
-  showing: Symbol('flow showing'),
-  prevArray: Symbol('flow prevArray'),
   hasIf: Symbol('has if'),
-  hasRepeat: Symbol('has repeat')
+  showing: Symbol('flow showing'),
+  hasRepeat: Symbol('has repeat'),
+  prevArray: Symbol('flow prevArray'),
+  trackBy: Symbol('track by')
 }
 
 function flow (elem) {
   if (elem.nodeType !== 1) return
 
   elem.$attribute('if', ifAttribute)
+  elem.$attribute('track-by', trackByAttribute)
   elem.$attribute('repeat', repeatAttribute)
 }
 flow.$name = 'flow'
@@ -35,6 +37,10 @@ function ifAttribute (show) {
   }
 }
 
+function trackByAttribute (trackBy) {
+  this[secret.trackBy] = trackBy
+}
+
 function repeatAttribute (array) {
   if (this[secret.hasIf]) {
     throw new Error('You cant use if and repeat on the same node')
@@ -43,9 +49,16 @@ function repeatAttribute (array) {
     this.$extractContent()
     this[secret.hasRepeat] = true
   }
-  const trackBy = this.getAttribute('track-by')
+
   const repeatValue = this.getAttribute('repeat-value') || '$value'
   const repeatIndex = this.getAttribute('repeat-index') || '$index'
+
+  let trackBy = this[secret.trackBy] || isSame
+  let trackByProp
+  if (typeof trackBy === 'string') {
+    trackByProp = trackBy
+    trackBy = isSame
+  }
 
   array = array || []
   const prevArray = this[secret.prevArray] = this[secret.prevArray] || []
@@ -54,27 +67,14 @@ function repeatAttribute (array) {
   iteration: for (let item of array) {
     let prevItem = prevArray[++i]
 
-    if (prevItem === undefined) {
-      this.$insertContent(i, {[repeatIndex]: i, [repeatValue]: item})
-      prevArray[i] = item
-      continue
-    }
-    if (item === prevItem) {
-      this.$mutateContext(i, {[repeatIndex]: i})
-      continue
-    }
-    if (trackBy === repeatIndex) {
+    if (trackBy(item, prevItem, trackByProp)) {
       this.$mutateContext(i, {[repeatValue]: item})
       prevArray[i] = item
       continue
     }
-    if (trackBy && isTrackBySame(item, prevItem, trackBy)) {
-      this.$mutateContext(i, {[repeatIndex]: i})
-      continue
-    }
     for (let j = i + 1; j < prevArray.length; j++) {
       prevItem = prevArray[j]
-      if (item === prevItem || (trackBy && isTrackBySame(item, prevItem, trackBy))) {
+      if (trackBy(item, prevItem, trackByProp)) {
         this.$moveContent(j, i, {[repeatIndex]: i})
         prevArray.splice(i, 0, prevItem)
         prevArray.splice(j, 1)
@@ -96,7 +96,11 @@ function repeatAttribute (array) {
   }
 }
 
-function isTrackBySame (item1, item2, trackBy) {
-  return (typeof item1 === 'object' && typeof item2 === 'object' &&
-  item1 && item2 && item1[trackBy] === item2[trackBy])
+function isSame (item1, item2, prop) {
+  if (item1 === item2) {
+    return true
+  }
+  if (prop && item1 && item2 && typeof item1 === typeof item2 === 'object' && item1[prop] === item2[prop]) {
+    return true
+  }
 }
