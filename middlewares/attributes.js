@@ -50,13 +50,13 @@ function processAttributeWithoutHandler (attribute) {
   if (type === '$') {
     const name = attribute.name.slice(1)
     if (!handlers.has(name)) {
-      const expression = this.$compileExpression(value || name)
+      const expression = this.$compileExpression(attribute.value || name)
       processExpression.call(this, expression, name, defaultHandler)
     }
   } else if (type === '@') {
     const name = attribute.name.slice(1)
     if (!handlers.has(name)) {
-      const expression = this.$compileExpression(value || name)
+      const expression = this.$compileExpression(attribute.value || name)
       this.$observe(processExpression, expression, name, defaultHandler)
     }
   }
