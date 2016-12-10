@@ -67,6 +67,9 @@ function repeatAttribute (array) {
   iteration: for (let item of array) {
     let prevItem = prevArray[++i]
 
+    if (prevItem === item) {
+      continue
+    }
     if (trackBy(item, prevItem, trackByProp)) {
       this.$mutateContext(i, {[repeatValue]: item})
       prevArray[i] = item
