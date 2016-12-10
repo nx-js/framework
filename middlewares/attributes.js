@@ -63,20 +63,13 @@ function processAttributeWithoutHandler (attribute) {
 }
 
 function processAttributeWithHandler (handler, name) {
-  let value = this.getAttribute(name)
-  if (value) {
-    handler.call(this, value, name)
-    return
-  }
-  value = this.getAttribute('$' + name)
-  if (value) {
-    const expression = this.$compileExpression(value || name)
+  if (this.hasAttribute(name)) {
+    handler.call(this, this.getAttribute(name), name)
+  } else if (this.hasAttribute(onceName)) {
+    const expression = this.$compileExpression(this.getAttribute(onceName))
     processExpression.call(this, expression, name, handler)
-    return
-  }
-  value = this.getAttribute('@' + name)
-  if (value) {
-    const expression = this.$compileExpression(value || name)
+  } else if (this.hasAttribute(observedName)) {
+    const expression = this.$compileExpression(this.getAttribute(observedName))
     this.$observe(processExpression, expression, name, handler)
   }
 }
