@@ -1,15 +1,17 @@
 'use strict'
 
+let currAttributes
 const handlers = new Map()
 const attributeCache = new Map()
 
 function attributes (elem, state, next) {
   if (elem.nodeType !== 1) return
+
+  currAttributes = getAttributes(elem)
   elem.$attribute = $attribute
   next()
 
-  const attributes = getAttributes(elem)
-  Array.prototype.forEach.call(attributes, processAttributeWithoutHandler, elem)
+  currAttributes.forEach(processAttributeWithoutHandler, elem)
   handlers.forEach(processAttributeWithHandler, elem)
   handlers.clear()
 }
@@ -24,7 +26,9 @@ function $attribute (name, handler) {
   if (typeof handler !== 'function') {
     throw new TypeError('second argument must be a function')
   }
-  handlers.set(name, handler)
+  if (currAttributes.has(name)) {
+    handlers.set(name, handler)
+  }
 }
 
 function getAttributes (elem) {
@@ -33,47 +37,48 @@ function getAttributes (elem) {
   if (cloneId) {
     attributes = attributeCache.get(cloneId)
     if (!attributes) {
-      attributes = Array.prototype.map.call(elem.attributes, cacheAttribute)
+      attributes = cacheAttributes(elem.attributes)
       attributeCache.set(cloneId, attributes)
     }
     return attributes
   }
-  return elem.attributes
+  return cacheAttributes(elem.attributes)
 }
 
-function cacheAttribute (attribute) {
-  return {name: attribute.name, value: attribute.value}
+function cacheAttributes (attributes) {
+  let i = attributes.length
+  const cachedAttributes = new Map()
+  while (i--) {
+    const attribute = attributes[i]
+    const type = attribute.name[0]
+    const name = (type === '$' || type === '@') ? attribute.name.slice(1) : attribute.name
+    cachedAttributes.set(name, {value: attribute.value, type})
+  }
+  return cachedAttributes
 }
 
-function processAttributeWithoutHandler (attribute) {
-  const type = attribute.name[0]
-  if (type === '$') {
-    const name = attribute.name.slice(1)
-    if (!handlers.has(name)) {
-      const expression = this.$compileExpression(attribute.value || name)
+function processAttributeWithoutHandler (attr, name) {
+  if (!handlers.has(name)) {
+    if (attr.type === '$') {
+      const expression = this.$compileExpression(attr.value || name)
       processExpression.call(this, expression, name, defaultHandler)
-    }
-  } else if (type === '@') {
-    const name = attribute.name.slice(1)
-    if (!handlers.has(name)) {
-      const expression = this.$compileExpression(attribute.value || name)
+    } else if (attr.type === '@') {
+      const expression = this.$compileExpression(attr.value || name)
       this.$observe(processExpression, expression, name, defaultHandler)
     }
   }
 }
 
 function processAttributeWithHandler (handler, name) {
-  const onceName = '$' + name
-  const observedName = '@' + name
-
-  if (this.hasAttribute(name)) {
-    handler.call(this, this.getAttribute(name), name)
-  } else if (this.hasAttribute(onceName)) {
-    const expression = this.$compileExpression(this.getAttribute(onceName))
-    processExpression.call(this, expression, name, handler)
-  } else if (this.hasAttribute(observedName)) {
-    const expression = this.$compileExpression(this.getAttribute(observedName))
+  const attr = currAttributes.get(name)
+  if (attr.type === '@') {
+    const expression = this.$compileExpression(attr.value)
     this.$observe(processExpression, expression, name, handler)
+  } else if (attr.type === '$') {
+    const expression = this.$compileExpression(attr.value)
+    processExpression.call(this, expression, name, handler)
+  } else {
+    handler.call(this, attr.value, name)
   }
 }
 
