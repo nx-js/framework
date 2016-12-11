@@ -1,5 +1,6 @@
 'use strict'
 
+let cloneId = 0
 let selectorScope
 const hostRegex = /:host/g
 const functionalHostRegex = /:host\((.*?)\)/g
@@ -114,9 +115,30 @@ function scopeSelector (selector) {
 }
 
 function cacheTemplate (templateHTML) {
-  const templateDOM = document.createElement('template')
-  templateDOM.innerHTML = templateHTML
-  return templateDOM.content
+  let template = document.createElement('template')
+  template.innerHTML = templateHTML
+  template = template.content
+  let node = template.firstChild
+  while (node) {
+    processContent(node)
+    node = node.nextSibling
+  }
+  return template
+}
+
+function processContent (node) {
+  if (node.nodeType === 1) {
+    node.setAttribute('clone-id', `render-${cloneId++}`)
+    const childNodes = node.childNodes
+    let i = childNodes.length
+    while (i--) {
+      processContent(childNodes[i])
+    }
+  } else if (node.nodeType === 3) {
+    if (!node.nodeValue.trim()) node.remove()
+  } else {
+    node.remove()
+  }
 }
 
 function validateAndCloneConfig (rawConfig) {

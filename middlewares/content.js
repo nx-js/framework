@@ -34,7 +34,7 @@ function $extractContent () {
 
 function processContent (node) {
   if (node.nodeType === 1) {
-    node.setAttribute('clone-id', cloneId++)
+    node.setAttribute('clone-id', `content-${cloneId++}`)
     const childNodes = node.childNodes
     let i = childNodes.length
     while (i--) {
