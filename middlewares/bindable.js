@@ -1,8 +1,7 @@
 'use strict'
 
 const secret = {
-  params: Symbol('bindable params'),
-  binder: Symbol('bindable binder')
+  params: Symbol('bindable params')
 }
 const paramsRegex = /\S+/g
 const defaultParams = {mode: 'two-way', on: 'change', type: 'string'}
@@ -24,7 +23,6 @@ function bindable (elem, state, next) {
   next()
 
   if (elem[secret.params]) {
-    elem[secret.binder] = syncElementWithState.bind(null, elem)
     elem.$attribute('bind', bindAttribute)
   }
 }
@@ -58,14 +56,12 @@ function bindAttribute (params) {
 
 function bindElement (elem) {
   const params = elem[secret.params]
-  const binder = elem[secret.binder]
   let signal
   if (params.mode === 'two-way') {
-    signal = elem.$observe(binder)
-    Promise.resolve().then(binder)
+    signal = elem.$observe(syncElementWithState, elem)
   } else if (params.mode === 'one-time') {
     elem.$unobserve(signal)
-    Promise.resolve().then(binder)
+    syncElementWithState(elem)
   } else if (params.mode === 'one-way') {
     elem.$unobserve(signal)
   } else {
