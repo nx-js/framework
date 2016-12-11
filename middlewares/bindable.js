@@ -1,7 +1,8 @@
 'use strict'
 
 const secret = {
-  params: Symbol('bindable params')
+  params: Symbol('bind params'),
+  bindEvents: Symbol('bind events')
 }
 const paramsRegex = /\S+/g
 const defaultParams = {mode: 'two-way', on: 'change', type: 'string'}
@@ -21,7 +22,6 @@ function bindable (elem, state, next) {
 
   elem.$bindable = $bindable
   next()
-
   if (elem[secret.params]) {
     elem.$attribute('bind', bindAttribute)
   }
@@ -35,21 +35,19 @@ function $bindable (params) {
   this[secret.params] = Object.assign({}, defaultParams, params)
 }
 
-function bindAttribute (params) {
-  if (typeof params === 'string') {
-    const tokens = params.match(paramsRegex)
-    params = {}
-    if (tokens) {
-      if (tokens[0]) params.mode = tokens[0]
-      if (tokens[1]) params.on = tokens[1].split(',')
-      if (tokens[2]) params.type = tokens[2]
-    }
+function bindAttribute (newParams) {
+  const params = this[secret.params]
+
+  if (newParams && typeof newParams === 'string') {
+    const tokens = newParams.match(paramsRegex)
+    params.mode = tokens[0] || params.mode,
+    params.on = tokens[1] ? tokens[1].split(',') : params.on,
+    params.type = tokens[2] || params.type
+  } else if (newParams && typeof newParams === 'object') {
+    Object.assign(params, newParams)
   }
-  if (typeof params === 'object') {
-    Object.assign(this[secret.params], params)
-  }
-  if (!Array.isArray(this[secret.params].on)) {
-    this[secret.params].on = [this[secret.params].on]
+  if (!Array.isArray(params.on)) {
+    params.on = [params.on]
   }
   bindElement(this)
 }
@@ -59,27 +57,38 @@ function bindElement (elem) {
   let signal
   if (params.mode === 'two-way') {
     signal = elem.$observe(syncElementWithState, elem)
+    Promise.resolve().then(() => syncElementWithState(elem))
   } else if (params.mode === 'one-time') {
     elem.$unobserve(signal)
-    syncElementWithState(elem)
+    Promise.resolve().then(() => syncElementWithState(elem))
   } else if (params.mode === 'one-way') {
     elem.$unobserve(signal)
-  } else {
-    throw new TypeError('bind mode must be two-way, one-time or one-way')
+  }
+
+  const root = getRoot(elem)
+  let bindEvents = root[secret.bindEvents]
+  if (!bindEvents) {
+    bindEvents = root[secret.bindEvents] = new Set()
   }
   for (let eventName of params.on) {
-    // delegate to the nearest root (shadow or document)
-    while (elem.parentNode) {
-      elem = elem.parentNode
+    if (!bindEvents.has(eventName)) {
+      root.addEventListener(eventName, onInput, true)
+      bindEvents.add(eventName)
     }
-    elem.addEventListener(eventName, onInput, true)
+  }
+}
+
+function getRoot (elem) {
+  while (elem) {
+    if (elem.$root) return elem
+    if (elem.shadowRoot) return elem.shadowRoot
+    elem = elem.parentNode
   }
 }
 
 function syncElementWithState (elem) {
-  const state = elem.$state
   const params = elem[secret.params]
-  const value = getValue(state, elem.name)
+  const value = getValue(elem.$state, elem.name)
   if (elem.type === 'radio' || elem.type === 'checkbox') {
     elem.checked = (value === toType(elem.value, params.type))
   } else if (elem.value !== toType(value)) {
@@ -88,13 +97,12 @@ function syncElementWithState (elem) {
 }
 
 function syncStateWithElement (elem) {
-  const state = elem.$state
   const params = elem[secret.params]
   if (elem.type === 'radio' || elem.type === 'checkbox') {
     const value = elem.checked ? toType(elem.value, params.type) : undefined
-    setValue(state, elem.name, value)
+    setValue(elem.$state, elem.name, value)
   } else {
-    setValue(state, elem.name, toType(elem.value, params.type))
+    setValue(elem.$state, elem.name, toType(elem.value, params.type))
   }
 }
 
@@ -112,22 +120,16 @@ function syncStateWithFormControl (elem) {
 function toType (value, type) {
   if (value === '') return undefined
   if (value === undefined) return ''
-
   if (type === 'string') return String(value)
   else if (type === 'number') return Number(value)
   else if (type === 'boolean') return Boolean(value)
   else if (type === 'date') return new Date(value)
-  else if (type !== undefined) {
-    throw new TypeError('bind type must be string, number, boolean or date')
-  }
-
   return value
 }
 
 function getValue (state, name) {
   const tokens = name.split('.')
   let value = state
-
   for (let token of tokens) {
     value = value[token]
   }
@@ -138,7 +140,6 @@ function setValue (state, name, value) {
   const tokens = name.split('.')
   const propName = tokens.pop()
   let parent = state
-
   for (let token of tokens) {
     parent = parent[token]
   }

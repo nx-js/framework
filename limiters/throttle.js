@@ -1,6 +1,5 @@
 'use strict'
 
-const timer = Symbol('throttle timer')
 const lastExecution = Symbol('throttle last execution')
 
 module.exports = function throttle (next, context, threshold) {

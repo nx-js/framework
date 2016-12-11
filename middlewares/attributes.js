@@ -63,6 +63,9 @@ function processAttributeWithoutHandler (attribute) {
 }
 
 function processAttributeWithHandler (handler, name) {
+  const onceName = '$' + name
+  const observedName = '@' + name
+
   if (this.hasAttribute(name)) {
     handler.call(this, this.getAttribute(name), name)
   } else if (this.hasAttribute(onceName)) {
