@@ -1,19 +1,20 @@
 'use strict'
 
 const secret = {
-  params: Symbol('bind params'),
-  bindEvents: Symbol('bind events')
+  bound: Symbol('bound element'),
+  params: Symbol('bind params')
 }
 const paramsRegex = /\S+/g
 const defaultParams = {mode: 'two-way', on: 'change', type: 'string'}
 
 function onInput (ev) {
-  const params = ev.target[secret.params]
+  const elem = ev.target
+  const params = elem[secret.params]
   if (ev.type === 'submit') {
-    syncStateWithForm(ev.target)
+    syncStateWithForm(elem)
     ev.preventDefault()
-  } else if (params && (params.on.indexOf(ev.type) !== -1)) {
-    syncStateWithElement(ev.target)
+  } else if (elem[secret.bound] && params.on.indexOf(ev.type) !== -1) {
+    syncStateWithElement(elem)
   }
 }
 
@@ -31,11 +32,11 @@ bindable.$require = ['observe', 'attributes']
 module.exports = bindable
 
 function $bindable (params) {
-  if (typeof params !== 'object') params = {}
   this[secret.params] = Object.assign({}, defaultParams, params)
 }
 
 function bindAttribute (newParams) {
+  this[secret.bound] = true
   const params = this[secret.params]
 
   if (newParams && typeof newParams === 'string') {
@@ -111,9 +112,11 @@ function syncStateWithForm (form) {
 }
 
 function syncStateWithFormControl (elem) {
-  const params = elem[secret.params]
-  if (params && (params.on.indexOf('submit') !== -1)) {
-    syncStateWithElement(elem)
+  if (elem[secret.bound]) {
+    const params = elem[secret.params]
+    if (params.on.indexOf('submit') !== -1) {
+      syncStateWithElement(elem)
+    }
   }
 }
 
