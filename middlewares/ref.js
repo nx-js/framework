@@ -10,7 +10,7 @@ function ref (elem) {
   if (elem.nodeType !== 1) return
 
   elem.$route = $route
-  if (elem instanceof HTMLAnchorElement) {
+  if (elem.tagName === 'A') {
     elem.$attribute('iref', irefAttribute)
     elem.$attribute('iref-params', irefParamsAttribute)
     elem.$attribute('iref-options', irefOptionsAttribute)
