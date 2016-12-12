@@ -21,24 +21,21 @@ ref.$require = ['attributes']
 module.exports = ref
 
 function irefAttribute (path) {
-  this[secret.config] = this[secret.config] || {}
-  const config = this[secret.config]
+  const config = this[secret.config] = this[secret.config] || {}
   config.path = path
 
   let route = pathToRoute(path)
-  route = route.some(filterRelativeTokens) ? relativeToAbsoluteRoute(this, route) : route
-  const href =  routeToPath(route) + (this.search || '')
-  this.setAttribute('href', href)
+  if (route.some(filterRelativeTokens)) {
+    route = relativeToAbsoluteRoute(this, route)
+  }
+  this.href = routeToPath(route) + (this.search || '')
   this.addEventListener('click', onClick, true)
 }
 
 function irefParamsAttribute (params) {
-  this[secret.config] = this[secret.config] || {}
-  const config = this[secret.config]
+  const config = this[secret.config] = this[secret.config] || {}
   config.params = params
-
-  const href = (this.pathname || '') + paramsToQuery(params)
-  this.setAttribute('href', href)
+  this.href = (this.pathname || '') + paramsToQuery(params)
   this.addEventListener('click', onClick, true)
 }
 
@@ -51,17 +48,13 @@ function onClick (ev) {
 }
 
 function irefOptionsAttribute (options) {
-  this[secret.config] = this[secret.config] || {}
-  this[secret.config].options = options
+  const config = this[secret.config] = this[secret.config] || {}
+  config.options = options
 }
 
 function $route (path, params, options) {
-  if (params === undefined) {
-    params = {}
-  }
-  if (options === undefined) {
-    options = {}
-  }
+  params = params || {}
+  options = options || {}
   let route = pathToRoute(path)
   if (route.some(filterRelativeTokens)) {
     route = relativeToAbsoluteRoute(this, route)
@@ -104,12 +97,10 @@ function filterEmptyTokens (token) {
 
 function findParentRouter (node) {
   node = node.parentNode
-  while (node) {
-    if (node.$routerLevel !== undefined) {
-      return node
-    }
+  while (node && node.$routerLevel === undefined) {
     node = node.parentNode
   }
+  return node
 }
 
 function updateHistory (route, params, options) {
@@ -129,28 +120,20 @@ function updateHistory (route, params, options) {
 }
 
 function routeToPath (route) {
-  if (route === undefined) {
-    route = []
-  }
-  return '/' + route.join('/')
+  return route ? '/' + route.join('/') : ''
 }
 
 function pathToRoute (path) {
-  if (path.charAt(0) === '/') {
-    path = path.slice(1)
-  }
   return path.split('/').filter(filterEmptyTokens)
 }
 
 function paramsToQuery (params) {
-  if (params === undefined) {
-    params = {}
-  }
-
+  params = params || {}
   let query = ''
-  for (let param in params) {
-    if (params[param] !== undefined) {
-      query += `${param}=${params[param]}&`
+  for (let paramName in params) {
+    const param = params[paramName]
+    if (param !== undefined) {
+      query += `${paramName}=${param}&`
     }
   }
   if (query !== '') {
@@ -160,7 +143,7 @@ function paramsToQuery (params) {
 }
 
 function queryToParams (query) {
-  if (query.charAt(0) === '?') {
+  if (query[0] === '?') {
     query = query.slice(1)
   }
   query = query.split('&')
