@@ -72,10 +72,10 @@ function processAttributeWithoutHandler (attr, name) {
 function processAttributeWithHandler (handler, name) {
   const attr = currAttributes.get(name)
   if (attr.type === '@') {
-    const expression = this.$compileExpression(attr.value)
+    const expression = this.$compileExpression(attr.value || name)
     this.$observe(processExpression, expression, name, handler)
   } else if (attr.type === '$') {
-    const expression = this.$compileExpression(attr.value)
+    const expression = this.$compileExpression(attr.value || name)
     processExpression.call(this, expression, name, handler)
   } else {
     handler.call(this, attr.value, name)
