@@ -4,8 +4,8 @@ const secret = {
   config: Symbol('router config')
 }
 const rootRouters = new Set()
+let cloneId = 0
 
-// figure out what to do with shadow boundaries
 window.addEventListener('popstate', onPopState, true)
 
 function onPopState (ev) {
@@ -33,13 +33,18 @@ function setupRouter (router) {
   const parentRouter = findParentRouter(router)
   if (parentRouter) {
     router.$routerLevel = parentRouter.$routerLevel + 1
-    parentRouter[secret.config].children.add(router)
-    router.$cleanup(() => parentRouter[secret.config].children.delete(router))
+    const siblingRouters = parentRouter[secret.config].children
+    siblingRouters.add(router)
+    router.$cleanup(cleanupRouter, siblingRouters)
   } else {
     router.$routerLevel = 1
     rootRouters.add(router)
-    router.$cleanup(() => rootRouters.delete(router))
+    router.$cleanup(cleanupRouter, rootRouters)
   }
+}
+
+function cleanupRouter (siblingRouters) {
+  siblingRouters.delete(this)
 }
 
 function absoluteToRelativeRoute (router, route) {
@@ -47,32 +52,49 @@ function absoluteToRelativeRoute (router, route) {
 }
 
 function extractViews (router) {
-  let view
-  while (router.firstChild) {
-    view = router.firstChild
-    if (view instanceof Element && view.hasAttribute('route')) {
-      router[secret.config].templates.set(view.getAttribute('route'), view)
-      if (view.hasAttribute('default-route')) {
-        router[secret.config].defaultView = view.getAttribute('route')
+  let child = router.firstChild
+  while (child) {
+    if (child.nodeType === 1 && child.hasAttribute('route')) {
+      const route = child.getAttribute('route')
+      router[secret.config].templates.set(route, child)
+      if (child.hasAttribute('default-route')) {
+        router[secret.config].defaultView = route
       }
+      processContent(child)
     }
-    view.remove()
+    child.remove()
+    child = router.firstChild
+  }
+}
+
+function processContent (node) {
+  if (node.nodeType === 1) {
+    node.setAttribute('clone-id', `router-${cloneId++}`)
+    const childNodes = node.childNodes
+    let i = childNodes.length
+    while (i--) {
+      processContent(childNodes[i])
+    }
+  } else if (node.nodeType === 3) {
+    if (!node.nodeValue.trim()) node.remove()
+  } else {
+    node.remove()
   }
 }
 
 function findParentRouter (node) {
-  while (node.parentNode) {
+  node = node.parentNode
+  while (node && node.$routerLevel === undefined) {
     node = node.parentNode
-    if (node.$routerLevel !== undefined) {
-      return node
-    }
   }
+  return node
 }
 
 function routeRouterAndChildren (router, route) {
   route = route.slice()
-  const templates = router[secret.config].templates
-  const defaultView = router[secret.config].defaultView
+  const config = router[secret.config]
+  const templates = config.templates
+  const defaultView = config.defaultView
   const prevView = router.$currentView
   let nextView = route.shift()
 
@@ -101,11 +123,8 @@ function routeRouterAndChildren (router, route) {
 }
 
 function routeRouter (router, nextView) {
+  router.innerHTML = ''
   const template = router[secret.config].templates.get(nextView)
-
-  while (router.firstChild) {
-    router.firstChild.remove()
-  }
   if (template) {
     router.appendChild(document.importNode(template, true))
   }
