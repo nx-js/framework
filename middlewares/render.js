@@ -118,10 +118,10 @@ function cacheTemplate (templateHTML) {
   let template = document.createElement('template')
   template.innerHTML = templateHTML
   template = template.content
-  let node = template.firstChild
-  while (node) {
-    processContent(node)
-    node = node.nextSibling
+  const childNodes = template.childNodes
+  let i = childNodes.length
+  while (i--) {
+    processContent(childNodes[i])
   }
   return template
 }
