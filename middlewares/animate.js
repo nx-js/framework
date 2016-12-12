@@ -98,7 +98,7 @@ function unwatch () {
 }
 
 function queueCheck () {
-  if (!checkQueued) {
+  if (!checkQueued && watchedNodes.size) {
     checkQueued = true
     requestAnimationFrame(checkWatchedNodes)
   }

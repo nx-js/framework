@@ -1,19 +1,18 @@
 'use strict'
 
 const secret = {
-  config: Symbol('params sync config')
+  config: Symbol('params sync config'),
+  initSynced: Symbol('node initial synced')
 }
-const nodesToSync = new Set()
+const watchedNodes = new Set()
 
 window.addEventListener('popstate', onPopState)
 
 function onPopState (ev) {
-  for (let node of nodesToSync) {
+  for (let node of watchedNodes) {
     if (document.body.contains(node)) { // TODO -> refine this a bit! I need a better check
-      const state = node.$state
-      const config = node[secret.config]
-      syncStateWithParams(state, history.state.params, config)
-      syncParamsWithState(history.state.params, state, config, false)
+      syncStateWithParams(node)
+      syncParamsWithState(node, false)
     }
   }
 }
@@ -21,29 +20,34 @@ function onPopState (ev) {
 module.exports = function paramsFactory (config) {
   function params (node, state, next) {
     node[secret.config] = config
-    nodesToSync.add(node)
-    node.$cleanup(() => nodesToSync.delete(node))
+    watchedNodes.add(node)
+    node.$cleanup(unwatch)
 
-    syncStateWithParams(state, history.state.params, config)
-
+    syncStateWithParams(node)
     next()
-
-    syncParamsWithState(history.state.params, state, config, false)
-    node.$observe(() => syncParamsWithState(history.state.params, state, config, true))
+    syncParamsWithState(node, false)
+    node.$observe(syncParamsWithState, node, true)
   }
   params.$name = 'params'
   params.$require = ['observe']
   return params
 }
 
-function syncStateWithParams (state, params, config) {
+function unwatch () {
+  watchedNodes.delete(this)
+}
+
+function syncStateWithParams (node) {
+  const params = history.state.params
+  const state = node.$state
+  const config = node[secret.config]
+
   for (let paramName in config) {
     const param = params[paramName] || config[paramName].default
-    const type = config[paramName].type
-
     if (config[paramName].required && param === undefined) {
       throw new Error(`${paramName} is a required parameter`)
     }
+    const type = config[paramName].type
     if (state[paramName] !== param) {
       if (param === undefined) {
         state[paramName] = undefined
@@ -62,7 +66,10 @@ function syncStateWithParams (state, params, config) {
   }
 }
 
-function syncParamsWithState (params, state, config, shouldUpdateHistory) {
+function syncParamsWithState (node, shouldUpdateHistory) {
+  const params = history.state.params
+  const state = node.$state
+  const config = node[secret.config]
   let newParams = {}
   let paramsChanged = false
   let historyChanged = false
@@ -96,14 +103,11 @@ function updateHistory (params, historyChanged) {
 }
 
 function paramsToQuery (params) {
-  if (params === undefined) {
-    params = {}
-  }
-
   let query = ''
-  for (let param in params) {
-    if (params[param] !== undefined) {
-      query += `${param}=${params[param]}&`
+  for (let paramName in params) {
+    const param = params[paramName]
+    if (param !== undefined) {
+      query += `${paramName}=${param}&`
     }
   }
   if (query !== '') {
