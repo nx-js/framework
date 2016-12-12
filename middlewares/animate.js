@@ -56,14 +56,16 @@ function enterAttribute (animation) {
 }
 
 function leaveAttribute (animation) {
-  watchedNodes.add(this)
-  this.$cleanup(onLeave, animation)
-  this[secret.parent] = this.parentNode
+  if (!this[secret.parent]) {
+    watchedNodes.add(this)
+    this.$cleanup(unwatch)
+    this.$cleanup(onLeave, animation)
+    this[secret.parent] = this.parentNode
+  }
 }
 
 function onLeave (animation) {
   this[secret.leaving] = true
-  watchedNodes.delete(this)
   if (typeof animation === 'object' && animation) {
     animation = animationObjectToString(animation)
   } else if (typeof animation === 'string') {
@@ -79,9 +81,11 @@ function onLeave (animation) {
 }
 
 function moveAttribute (transition) {
-  this[secret.moveTransition] = true
-  watchedNodes.add(this)
-  this.$cleanup(unwatch)
+  if (!this[secret.moveTransition]) {
+    watchedNodes.add(this)
+    this.$cleanup(unwatch)
+    this[secret.moveTransition] = true
+  }
   if (typeof transition === 'object' && transition) {
     transition = 'transform ' + transitionObjectToString(transition)
   } else if (typeof transition === 'string') {
