@@ -25,9 +25,7 @@ function bindable (elem, state, next) {
 
   elem.$bindable = $bindable
   next()
-  if (elem[secret.params]) {
-    elem.$attribute('bind', bindAttribute)
-  }
+  elem.$attribute('bind', bindAttribute)
 }
 bindable.$name = 'bindable'
 bindable.$require = ['observe', 'attributes']
@@ -38,21 +36,23 @@ function $bindable (params) {
 }
 
 function bindAttribute (newParams) {
-  this[secret.bound] = true
   const params = this[secret.params]
 
-  if (newParams && typeof newParams === 'string') {
-    const tokens = newParams.match(paramsRegex)
-    params.mode = tokens[0] || params.mode,
-    params.on = tokens[1] ? tokens[1].split(',') : params.on,
-    params.type = tokens[2] || params.type
-  } else if (newParams && typeof newParams === 'object') {
-    Object.assign(params, newParams)
+  if (params) {
+    if (newParams && typeof newParams === 'string') {
+      const tokens = newParams.match(paramsRegex)
+      params.mode = tokens[0] || params.mode,
+      params.on = tokens[1] ? tokens[1].split(',') : params.on,
+      params.type = tokens[2] || params.type
+    } else if (newParams && typeof newParams === 'object') {
+      Object.assign(params, newParams)
+    }
+    if (!Array.isArray(params.on)) {
+      params.on = [params.on]
+    }
+    bindElement(this)
+    this[secret.bound] = true
   }
-  if (!Array.isArray(params.on)) {
-    params.on = [params.on]
-  }
-  bindElement(this)
 }
 
 function bindElement (elem) {
