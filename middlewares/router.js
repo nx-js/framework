@@ -5,6 +5,7 @@ const secret = {
 }
 const rootRouters = new Set()
 
+// figure out what to do with shadow boundaries
 window.addEventListener('popstate', onPopState, true)
 
 function onPopState (ev) {

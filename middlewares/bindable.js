@@ -2,7 +2,8 @@
 
 const secret = {
   bound: Symbol('bound element'),
-  params: Symbol('bind params')
+  params: Symbol('bind params'),
+  bindEvents: Symbol('bind events')
 }
 const paramsRegex = /\S+/g
 const defaultParams = {mode: 'two-way', on: 'change', type: 'string'}
@@ -80,11 +81,11 @@ function bindElement (elem) {
 }
 
 function getRoot (elem) {
-  while (elem) {
-    if (elem.$root) return elem
-    if (elem.shadowRoot) return elem.shadowRoot
+  while (elem.parentNode) {
     elem = elem.parentNode
+    if (elem.$root) break
   }
+  return elem
 }
 
 function syncElementWithState (elem) {

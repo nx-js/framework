@@ -4,12 +4,11 @@ const secret = {
   entering: Symbol('during entering animation'),
   leaving: Symbol('during leaving animation'),
   moveTransition: Symbol('watch move transition'),
-  position: Symbol('animated element position')
+  position: Symbol('animated element position'),
+  parent: Symbol('parent node of leaving node')
 }
 const watchedNodes = new Set()
 let checkQueued = false
-
-// window.addEventListener('animationend', onAnimationEnd, true)
 
 function onAnimationEnd (ev) {
   const elem = ev.target
@@ -17,13 +16,20 @@ function onAnimationEnd (ev) {
     elem.remove()
   }
   if (elem[secret.entering]) {
-    elem[secret.entering] = false
     elem.style.animation = ''
+    elem[secret.entering] = false
   }
 }
 
 function animate (elem) {
   if (elem.nodeType !== 1) return
+
+  if (elem.$root) {
+    elem.addEventListener('animationend', onAnimationEnd, true)
+  }
+  if (elem.shadowRoot) {
+    elem.shadowRoot.addEventListener('animationend', onAnimationEnd, true)
+  }
 
   elem.$attribute('enter-animation', enterAttribute)
   elem.$attribute('leave-animation', leaveAttribute)
@@ -39,51 +45,51 @@ module.exports = animate
 function enterAttribute (animation) {
   if (this[secret.entering] !== false) {
     this[secret.entering] = true
-    if (typeof animation === 'object' && animation !== null) {
-      this.style.animation = animationObjectToString(animation)
+    if (typeof animation === 'object' && animation) {
+      animation = animationObjectToString(animation)
     } else if (typeof animation === 'string') {
-      this.style.animation = animation
+      animation = animation
     }
+    this.style.animation = animation
     setAnimationDefaults(this)
   }
 }
 
 function leaveAttribute (animation) {
-  const parent = this.parentNode || this.host
   watchedNodes.add(this)
-  this.$cleanup(unwatch)
-  this.$cleanup(() => {
-    this[secret.leaving] = true
-    if (typeof animation === 'object' && animation !== null) {
-      this.style.animation = animationObjectToString(animation)
-    } else if (typeof animation === 'string') {
-      this.style.animation = animation
-    }
-    setAnimationDefaults(this)
-    parent.appendChild(this)
-    if (shouldAbsolutePosition(this)) {
-      toAbsolutePosition(this)
-    }
-  })
-  // not optimal, fix this with performance batch
-  let root = this
-  while (root.parentNode) {
-    root = root.parentNode
+  this.$cleanup(onLeave, animation)
+  this[secret.parent] = this.parentNode
+}
+
+function onLeave (animation) {
+  this[secret.leaving] = true
+  watchedNodes.delete(this)
+  if (typeof animation === 'object' && animation) {
+    animation = animationObjectToString(animation)
+  } else if (typeof animation === 'string') {
+    animation = animation
   }
-  root.addEventListener('animationend', onAnimationEnd, true)
+  this.style.animation = animation
+  setAnimationDefaults(this)
+
+  this[secret.parent].appendChild(this)
+  if (shouldAbsolutePosition(this)) {
+    toAbsolutePosition(this)
+  }
 }
 
 function moveAttribute (transition) {
   this[secret.moveTransition] = true
   watchedNodes.add(this)
   this.$cleanup(unwatch)
-  if (typeof transition === 'object' && transition !== null) {
-    this.style.transition = transitionObjectToString(transition)
+  if (typeof transition === 'object' && transition) {
+    transition = 'transform ' + transitionObjectToString(transition)
   } else if (typeof transition === 'string') {
-    this.style.transition = 'transform ' + transition
+    transition = 'transform ' + transition
   } else {
-    this.style.transition = 'transform'
+    transition = 'transform'
   }
+  this.style.transition = transition
   setTransitionDefaults(this)
 }
 
@@ -100,7 +106,6 @@ function queueCheck () {
 
 function checkWatchedNodes () {
   for (let elem of watchedNodes) {
-    const rect = elem.getBoundingClientRect() || {}
     const position = {
       left: elem.offsetLeft,
       top: elem.offsetTop
@@ -118,19 +123,20 @@ function checkWatchedNodes () {
 }
 
 function onMove (elem, xDiff, yDiff) {
-  const transition = elem.style.transition
-  elem.style.transition = ''
-  elem.style.transform = `translate3d(${xDiff}px, ${yDiff}px, 0)`
+  const style = elem.style
+  const transition = style.transition
+  style.transition = ''
+  style.transform = `translate3d(${xDiff}px, ${yDiff}px, 0)`
   requestAnimationFrame(() => {
-    elem.style.transition = transition
-    elem.style.transform = ''
+    style.transition = transition
+    style.transform = ''
   })
 }
 
 function animationObjectToString (animation) {
   return [
     animation.name,
-    timeToString(animation.duration) || '1s',
+    timeToString(animation.duration),
     animation.timingFunction,
     timeToString(animation.delay),
     animation.iterationCount,
@@ -150,17 +156,20 @@ function transitionObjectToString (transition) {
 
 function setAnimationDefaults (elem) {
   const style = elem.style
-  if (style.animationDuration === 'initial' || style.animationDuration === '' || style.animationDuration === '0s') {
-    elem.style.animationDuration = '1s'
+  const duration = style.animationDuration
+  const fillMode = style.animationFillMode
+  if (duration === 'initial' || duration === '' || duration === '0s') {
+    style.animationDuration = '1s'
   }
-  if (style.animationFillMode === 'initial' || style.animationFillMode === '' || style.animationFillMode === 'none') {
+  if (fillMode === 'initial' || fillMode === '' || fillMode === 'none') {
     style.animationFillMode = 'both'
   }
 }
 
 function setTransitionDefaults (elem) {
   const style = elem.style
-  if (style.transitionDuration === 'initial' || style.transitionDuration === '' || style.transitionDuration === '0s') {
+  const duration = style.transitionDuration
+  if (duration === 'initial' || duration === '' || duration === '0s') {
     style.transitionDuration = '1s'
   }
 }
@@ -168,15 +177,10 @@ function setTransitionDefaults (elem) {
 function shouldAbsolutePosition (elem) {
   elem = elem.parentNode || elem.host
   while (elem) {
-    if (elem[secret.leaving]) {
-      return false
-    }
-    if (elem.$root) {
-      return true
-    }
+    if (elem[secret.leaving]) return false
+    if (elem.$root) return true
     elem = elem.parentNode || elem.host
   }
-  return true
 }
 
 function toAbsolutePosition (elem) {
@@ -184,22 +188,17 @@ function toAbsolutePosition (elem) {
   const position = elem[secret.position]
   style.left = `${position.left}px`
   style.top = `${position.top}px`
-  style.width = `${elem.offsetWidth + 1}px` // it always rounds downwards
-  style.height = `${elem.offsetHeight + 1}px` // it always rounds downwards
   style.margin = '0'
-  style.boxSizing = 'border-box'
+  style.width = '-moz-max-content'
+  style.width = '-webkit-max-content'
+  style.width = 'max-content'
   style.position = 'absolute'
 }
 
 function timeToString (time) {
-  if (typeof time === 'number') {
-    return time + 'ms'
-  }
-  return time
+  return (typeof time === 'number') ? time + 'ms' : time
 }
 
 function boolToPlayState (bool) {
-  if (bool === false || bool === 'paused') {
-    return 'paused'
-  }
+  return (bool === false || bool === 'paused') ? 'paused' : 'running'
 }

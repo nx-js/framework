@@ -100,10 +100,7 @@ function repeatAttribute (array) {
 }
 
 function isSame (item1, item2, prop) {
-  if (item1 === item2) {
-    return true
-  }
-  if (prop && item1 && item2 && typeof item1 === typeof item2 === 'object' && item1[prop] === item2[prop]) {
-    return true
-  }
+  return (item1 === item2 ||
+    (prop && typeof item1 === 'object' && typeof item2 === 'object' &&
+    item1 && item2 && item1[prop] === item2[prop]))
 }
