@@ -35,7 +35,7 @@ function animate (elem) {
   elem.$attribute('leave-animation', leaveAttribute)
   elem.$attribute('move-animation', moveAttribute)
 
-  Promise.resolve().then(queueCheck)
+  queueCheck()
   elem.$cleanup(queueCheck)
 }
 animate.$name = 'animate'
@@ -102,7 +102,7 @@ function unwatch () {
 }
 
 function queueCheck () {
-  if (!checkQueued && watchedNodes.size) {
+  if (!checkQueued) {
     checkQueued = true
     requestAnimationFrame(checkWatchedNodes)
   }
