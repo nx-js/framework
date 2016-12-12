@@ -35,7 +35,7 @@ function animate (elem) {
   elem.$attribute('leave-animation', leaveAttribute)
   elem.$attribute('move-animation', moveAttribute)
 
-  queueCheck()
+  Promise.resolve().then(queueCheck)
   elem.$cleanup(queueCheck)
 }
 animate.$name = 'animate'
