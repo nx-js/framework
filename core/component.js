@@ -13,7 +13,8 @@ const observerConfig = {
   childList: true,
   subtree: true
 }
-const addedNodeContext = {}
+let context
+let prevParent
 const addedNodes = new Set()
 
 module.exports = function component (rawConfig) {
@@ -115,17 +116,18 @@ function onMutations (mutations) {
 }
 
 function processAddedNodes () {
-  addedNodes.forEach(processAddedNode, addedNodeContext)
+  addedNodes.forEach(processAddedNode)
   addedNodes.clear()
+  context = prevParent = undefined
 }
 
 function processAddedNode (node) {
   const parentNode = node.parentNode || node.host
-  if (this.parent !== parentNode) {
-    this.parent = parentNode
-    this.context = getContext(parentNode)
+  if (prevParent !== parentNode) {
+    prevParent = parentNode
+    context = getContext(parentNode)
   }
-  onNodeAdded(node, this.context)
+  onNodeAdded(node, context)
   if (node.shadowRoot) {
     const shadowObserver = new MutationObserver(onMutations)
     shadowObserver.observe(node.shadowRoot, observerConfig)
