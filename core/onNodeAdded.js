@@ -6,15 +6,15 @@ const runMiddlewares = require('./runMiddlewares')
 module.exports = function onNodeAdded (node, context) {
   const parent = node.parentNode
   const validParent = (parent && parent.$lifecycleStage === 'attached')
-  if (validParent && node.$root) {
+  if (validParent && node === node.$root) {
     throw new Error(`Nested root component: ${node.tagName}`)
   }
-  if ((validParent || node.$root) && context.isolate !== true) {
-    setupNodeAndChildren(node, context.state, context.contentMiddlewares)
+  if ((validParent || node === node.$root) && context.isolate !== true) {
+    setupNodeAndChildren(node, context.state, context.contentMiddlewares, context.root)
   }
 }
 
-function setupNodeAndChildren (node, state, contentMiddlewares) {
+function setupNodeAndChildren (node, state, contentMiddlewares, root) {
   const type = node.nodeType
   if (!shouldProcess(node, type)) return
   node.$lifecycleStage = 'attached'
@@ -24,6 +24,8 @@ function setupNodeAndChildren (node, state, contentMiddlewares) {
   if (node.$inheritState) {
     Object.setPrototypeOf(node.$state, node.$contextState)
   }
+
+  node.$root = node.$root || root
 
   if (node.$isolate === 'middlewares') {
     contentMiddlewares = node.$contentMiddlewares || []
@@ -40,13 +42,13 @@ function setupNodeAndChildren (node, state, contentMiddlewares) {
   if (type === 1 && node.$isolate !== true) {
     let child = node.firstChild
     while (child) {
-      setupNodeAndChildren(child, node.$state, contentMiddlewares)
+      setupNodeAndChildren(child, node.$state, contentMiddlewares, node.$root)
       child = child.nextSibling
     }
 
     child = node.shadowRoot ? node.shadowRoot.firstChild : undefined
     while (child) {
-      setupNodeAndChildren(child, node.$state, contentMiddlewares)
+      setupNodeAndChildren(child, node.$state, contentMiddlewares, node.shadowRoot)
       child = child.nextSibling
     }
   }

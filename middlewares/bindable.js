@@ -69,7 +69,7 @@ function bindElement (elem) {
     elem[secret.signal] = undefined
   }
 
-  const root = getRoot(elem)
+  const root = elem.$root
   let bindEvents = root[secret.bindEvents]
   if (!bindEvents) {
     bindEvents = root[secret.bindEvents] = new Set()
@@ -80,14 +80,6 @@ function bindElement (elem) {
       bindEvents.add(eventName)
     }
   }
-}
-
-function getRoot (elem) {
-  while (elem.parentNode) {
-    elem = elem.parentNode
-    if (elem.$root) break
-  }
-  return elem
 }
 
 function syncElementWithState (elem) {

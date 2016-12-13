@@ -79,7 +79,7 @@ function attachedCallback () {
     this.$registered = true
 
     if (config.root) {
-      this.$root = true
+      this.$root = this
       const contentObserver = new MutationObserver(onMutations)
       contentObserver.observe(this, observerConfig)
     }

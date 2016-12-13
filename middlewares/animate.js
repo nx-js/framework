@@ -5,7 +5,8 @@ const secret = {
   leaving: Symbol('during leaving animation'),
   moveTransition: Symbol('watch move transition'),
   position: Symbol('animated element position'),
-  parent: Symbol('parent node of leaving node')
+  parent: Symbol('parent node of leaving node'),
+  listening: Symbol('listening for animationend')
 }
 const watchedNodes = new Set()
 let checkQueued = false
@@ -24,11 +25,10 @@ function onAnimationEnd (ev) {
 function animate (elem) {
   if (elem.nodeType !== 1) return
 
-  if (elem.$root) {
-    elem.addEventListener('animationend', onAnimationEnd, true)
-  }
-  if (elem.shadowRoot) {
-    elem.shadowRoot.addEventListener('animationend', onAnimationEnd, true)
+  const root = elem.$root
+  if (!root[secret.listening]) {
+    root.addEventListener('animationend', onAnimationEnd, true)
+    root[secret.listening] = true
   }
 
   elem.$attribute('enter-animation', enterAttribute)
@@ -179,11 +179,11 @@ function setTransitionDefaults (elem) {
 }
 
 function shouldAbsolutePosition (elem) {
-  elem = elem.parentNode || elem.host
+  elem = elem.parentNode
   while (elem) {
     if (elem[secret.leaving]) return false
-    if (elem.$root) return true
-    elem = elem.parentNode || elem.host
+    if (elem === elem.$root) return true
+    elem = elem.parentNode
   }
 }
 

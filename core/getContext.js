@@ -16,10 +16,16 @@ module.exports = function getContext (node) {
         context.contentMiddlewares = node.$contentMiddlewares.concat(context.contentMiddlewares)
       }
     }
-    if (node.$root) {
+    if (node === node.$root) {
+      context.root = context.root || node
       return context
     }
-    node = node.parentNode || node.host
+    if (node.host) {
+      context.root = context.root || node
+      node = node.host
+    } else {
+      node = node.parentNode
+    }
   }
   return context
 }
