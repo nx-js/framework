@@ -128,11 +128,13 @@ function cacheTemplate (templateHTML) {
 
 function processContent (node) {
   if (node.nodeType === 1) {
-    node.setAttribute('clone-id', `render-${cloneId++}`)
-    const childNodes = node.childNodes
-    let i = childNodes.length
-    while (i--) {
-      processContent(childNodes[i])
+    if (node.tagName !== 'PRE' && node.tagName !== 'CODE') {
+      node.setAttribute('clone-id', `render-${cloneId++}`)
+      const childNodes = node.childNodes
+      let i = childNodes.length
+      while (i--) {
+        processContent(childNodes[i])
+      }  
     }
   } else if (node.nodeType === 3) {
     if (!node.nodeValue.trim()) node.remove()
