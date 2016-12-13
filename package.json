@@ -1,6 +1,6 @@
 {
   "name": "@risingstack/nx-framework",
-  "version": "1.0.0-alpha.5.0.0",
+  "version": "1.0.0-alpha.6.0.0",
   "description": "Next generation client side framework",
   "main": "index.js",
   "author": {
@@ -29,8 +29,8 @@
     "data binding"
   ],
   "dependencies": {
-    "@risingstack/nx-compile": "^4.1.0",
-    "@risingstack/nx-observe": "^2.0.1",
+    "@risingstack/nx-compile": "^4.2.0",
+    "@risingstack/nx-observe": "^2.0.4",
     "keycode": "^2.1.4"
   },
   "devDependencies": {

@@ -25,12 +25,6 @@ function onAnimationEnd (ev) {
 function animate (elem) {
   if (elem.nodeType !== 1) return
 
-  const root = elem.$root
-  if (!root[secret.listening]) {
-    root.addEventListener('animationend', onAnimationEnd, true)
-    root[secret.listening] = true
-  }
-
   elem.$attribute('enter-animation', enterAttribute)
   elem.$attribute('leave-animation', leaveAttribute)
   elem.$attribute('move-animation', moveAttribute)
@@ -52,6 +46,7 @@ function enterAttribute (animation) {
     }
     this.style.animation = animation
     setAnimationDefaults(this)
+    registerListener(this)
   }
 }
 
@@ -61,6 +56,15 @@ function leaveAttribute (animation) {
     this.$cleanup(unwatch)
     this.$cleanup(onLeave, animation)
     this[secret.parent] = this.parentNode
+    registerListener(this)
+  }
+}
+
+function registerListener (elem) {
+  const root = elem.$root
+  if (!root[secret.listening]) {
+    root.addEventListener('animationend', onAnimationEnd, true)
+    root[secret.listening] = true
   }
 }
 
@@ -180,11 +184,11 @@ function setTransitionDefaults (elem) {
 
 function shouldAbsolutePosition (elem) {
   elem = elem.parentNode
-  while (elem) {
+  while (elem && elem !== elem.$root) {
     if (elem[secret.leaving]) return false
-    if (elem === elem.$root) return true
     elem = elem.parentNode
   }
+  return true
 }
 
 function toAbsolutePosition (elem) {
