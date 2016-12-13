@@ -4,7 +4,6 @@ const secret = {
   handlers: Symbol('event handlers')
 }
 const handlerCache = new Map()
-const handledEvents = new Set()
 
 function events (elem) {
   if (elem.nodeType !== 1) return
