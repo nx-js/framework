@@ -4,7 +4,7 @@ const secret = {
   bound: Symbol('bound element'),
   params: Symbol('bind params'),
   bindEvents: Symbol('bind events'),
-  observing: Symbol('observing bind')
+  signal: Symbol('observing signal')
 }
 const paramsRegex = /\S+/g
 const defaultParams = {mode: 'two-way', on: 'change', type: 'string'}
@@ -57,18 +57,16 @@ function bindAttribute (newParams) {
 
 function bindElement (elem) {
   const params = elem[secret.params]
-  let signal
-  if (params.mode === 'two-way' && !elem[secret.observing]) {
-    signal = elem.$observe(syncElementWithState, elem)
+  if (params.mode === 'two-way' && !elem[secret.signal]) {
+    elem[secret.signal] = elem.$observe(syncElementWithState, elem)
     Promise.resolve().then(() => syncElementWithState(elem))
-    elem[secret.observing] = true
   } else if (params.mode === 'one-time') {
-    elem.$unobserve(signal)
+    elem.$unobserve(elem[secret.signal])
     Promise.resolve().then(() => syncElementWithState(elem))
-    elem[secret.observing] = false
+    elem[secret.signal] = undefined
   } else if (params.mode === 'one-way') {
-    elem.$unobserve(signal)
-    elem[secret.observing] = false
+    elem.$unobserve(elem[secret.signal])
+    elem[secret.signal] = undefined
   }
 
   const root = getRoot(elem)
