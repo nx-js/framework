@@ -4,7 +4,8 @@ const secret = {
   bound: Symbol('bound element'),
   params: Symbol('bind params'),
   bindEvents: Symbol('bind events'),
-  signal: Symbol('observing signal')
+  signal: Symbol('observing signal'),
+  preventSubmit: Symbol('prevent submit')
 }
 const paramsRegex = /\S+/g
 const defaultParams = {mode: 'two-way', on: 'change', type: 'string'}
@@ -14,7 +15,6 @@ function onInput (ev) {
   const params = elem[secret.params]
   if (ev.type === 'submit') {
     syncStateWithForm(elem)
-    ev.preventDefault()
   } else if (elem[secret.bound] && params.on.indexOf(ev.type) !== -1) {
     syncStateWithElement(elem)
   }
@@ -68,11 +68,18 @@ function bindElement (elem) {
     elem.$unobserve(elem[secret.signal])
     elem[secret.signal] = undefined
   }
+  registerListeners(elem, params)
+}
 
+function registerListeners (elem, params) {
   const root = elem.$root
   let bindEvents = root[secret.bindEvents]
   if (!bindEvents) {
     bindEvents = root[secret.bindEvents] = new Set()
+  }
+  if (!root[secret.preventSubmit]) {
+    root.addEventListener('submit', preventDefault, true)
+    root[secret.preventSubmit] = true
   }
   for (let eventName of params.on) {
     if (!bindEvents.has(eventName)) {
@@ -80,6 +87,10 @@ function bindElement (elem) {
       bindEvents.add(eventName)
     }
   }
+}
+
+function preventDefault (ev) {
+  ev.preventDefault()
 }
 
 function syncElementWithState (elem) {
