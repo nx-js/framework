@@ -59,10 +59,9 @@ function bindElement (elem) {
   const params = elem[secret.params]
   if (params.mode === 'two-way' && !elem[secret.signal]) {
     elem[secret.signal] = elem.$observe(syncElementWithState, elem)
-    Promise.resolve().then(() => syncElementWithState(elem))
   } else if (params.mode === 'one-time') {
     elem.$unobserve(elem[secret.signal])
-    Promise.resolve().then(() => syncElementWithState(elem))
+    elem.$queue(syncElementWithState, elem)
     elem[secret.signal] = undefined
   } else if (params.mode === 'one-way') {
     elem.$unobserve(elem[secret.signal])

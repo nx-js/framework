@@ -38,7 +38,7 @@ function processToken (token, index, tokens) {
     if (token.observed) {
       this.$observe(interpolateToken, expression, token, tokens)
     } else {
-      interpolateToken.call(this, expression, token, tokens)
+      this.$queue(interpolateToken, expression, token, tokens)
     }
   }
 }

@@ -95,7 +95,7 @@ function detachedCallback () {
   onNodeRemoved(this)
 }
 
-function onMutations (mutations) {
+function onMutations (mutations, contentObserver) {
   let mutationIndex = mutations.length
   while (mutationIndex--) {
     const mutation = mutations[mutationIndex]
@@ -112,6 +112,12 @@ function onMutations (mutations) {
       addedNodes.add(nodes[nodeIndex])
     }
   }
+
+  mutations = contentObserver.takeRecords()
+  if (mutations.length) {
+    onMutations(mutations, contentObserver)
+  }
+
   processAddedNodes()
 }
 

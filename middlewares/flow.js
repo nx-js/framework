@@ -1,15 +1,23 @@
 'use strict'
 
 const secret = {
-  hasIf: Symbol('has if'),
   showing: Symbol('flow showing'),
-  hasRepeat: Symbol('has repeat'),
   prevArray: Symbol('flow prevArray'),
   trackBy: Symbol('track by')
 }
 
 function flow (elem) {
   if (elem.nodeType !== 1) return
+
+  const hasIf = elem.$hasAttribute('if')
+  const hasRepeat = elem.$hasAttribute('repeat')
+
+  if (hasIf && hasRepeat) {
+    throw new Error('if and repeat attributes can not be used on the same element')
+  }
+  if (hasIf || hasRepeat) {
+    elem.$extractContent()
+  }
 
   elem.$attribute('if', ifAttribute)
   elem.$attribute('track-by', trackByAttribute)
@@ -20,14 +28,6 @@ flow.$require = ['content', 'attributes']
 module.exports = flow
 
 function ifAttribute (show) {
-  if (this[secret.hasRepeat]) {
-    throw new Error('You cant use if and repeat on the same node')
-  }
-  if (!this[secret.hasIf]) {
-    this.$extractContent()
-    this[secret.hasIf] = true
-  }
-
   if (show && !this[secret.showing]) {
     this.$insertContent()
     this[secret.showing] = true
@@ -42,14 +42,6 @@ function trackByAttribute (trackBy) {
 }
 
 function repeatAttribute (array) {
-  if (this[secret.hasIf]) {
-    throw new Error('You cant use if and repeat on the same node')
-  }
-  if (!this[secret.hasRepeat]) {
-    this.$extractContent()
-    this[secret.hasRepeat] = true
-  }
-
   const repeatValue = this.getAttribute('repeat-value') || '$value'
   const repeatIndex = this.getAttribute('repeat-index') || '$index'
 

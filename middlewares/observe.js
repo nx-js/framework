@@ -7,17 +7,20 @@ function observe (node, state) {
   node.$state = observer.observable(node.$state)
 
   node.$observe = $observe
+  node.$queue = $queue
   node.$unobserve = observer.unobserve
 }
 observe.$name = 'observe'
 module.exports = observe
 
 function $observe (fn, ...args) {
-  if (typeof fn !== 'function') {
-    throw new TypeError('first argument must be a function')
-  }
   args.unshift(fn, this)
   const signal = observer.observe.apply(null, args)
   this.$cleanup(observer.unobserve, signal)
   return signal
+}
+
+function $queue (fn, ...args) {
+  args.unshift(fn, this)
+  return observer.queue.apply(null, args)
 }

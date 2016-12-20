@@ -9,6 +9,7 @@ function attributes (elem, state, next) {
 
   currAttributes = getAttributes(elem)
   elem.$attribute = $attribute
+  elem.$hasAttribute = $hasAttribute
   next()
 
   currAttributes.forEach(processAttributeWithoutHandler, elem)
@@ -29,6 +30,13 @@ function $attribute (name, handler) {
   if (currAttributes.has(name)) {
     handlers.set(name, handler)
   }
+}
+
+function $hasAttribute (name) {
+  if (typeof name !== 'string') {
+    throw new TypeError('first argument must be a string')
+  }
+  return currAttributes.has(name)
 }
 
 function getAttributes (elem) {
@@ -61,7 +69,7 @@ function processAttributeWithoutHandler (attr, name) {
   if (!handlers.has(name)) {
     if (attr.type === '$') {
       const expression = this.$compileExpression(attr.value || name)
-      processExpression.call(this, expression, name, defaultHandler)
+      this.$queue(processExpression, expression, name, defaultHandler)
     } else if (attr.type === '@') {
       const expression = this.$compileExpression(attr.value || name)
       this.$observe(processExpression, expression, name, defaultHandler)
@@ -76,7 +84,7 @@ function processAttributeWithHandler (handler, name) {
     this.$observe(processExpression, expression, name, handler)
   } else if (attr.type === '$') {
     const expression = this.$compileExpression(attr.value || name)
-    processExpression.call(this, expression, name, handler)
+    this.$queue(processExpression, expression, name, handler)
   } else {
     handler.call(this, attr.value, name)
   }
