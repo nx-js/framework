@@ -58,10 +58,10 @@ function bindAttribute (newParams) {
 function bindElement (elem) {
   const params = elem[secret.params]
   if (params.mode === 'two-way' && !elem[secret.signal]) {
-    elem[secret.signal] = elem.$observe(syncElementWithState, elem)
+    Promise.resolve().then(() => elem[secret.signal] = elem.$observe(syncElementWithState, elem))
   } else if (params.mode === 'one-time') {
     elem.$unobserve(elem[secret.signal])
-    elem.$queue(syncElementWithState, elem)
+    Promise.resolve().then(() => elem.$queue(syncElementWithState, elem))
     elem[secret.signal] = undefined
   } else if (params.mode === 'one-way') {
     elem.$unobserve(elem[secret.signal])
