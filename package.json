@@ -1,6 +1,6 @@
 {
-  "name": "@risingstack/nx-framework",
-  "version": "1.0.0-alpha.6.1.0",
+  "name": "@nx-js/framework",
+  "version": "1.0.0-beta.1.0.0",
   "description": "Next generation client side framework",
   "main": "index.js",
   "author": {
@@ -12,26 +12,41 @@
     "url": "git@github.com:RisingStack/nx-framework.git"
   },
   "scripts": {
-    "build": "webpack ./index.js nx.js && npm run minify",
-    "minify": "uglifyjs nx.js -c -m -o nx.min.js"
+    "build": "webpack ./src lib/nx.js && npm run minify",
+    "minify": "uglifyjs lib/nx.js -c -m -o lib/nx.min.js"
   },
   "bugs": {
     "url": "https://github.com/RisingStack/nx-framework/issues"
   },
-  "homepage": "http://nx-nxframework.rhcloud.com",
+  "homepage": "http://nx-framework.com",
   "license": "MIT",
   "keywords": [
     "nx",
     "client",
     "framework",
-    "next",
-    "generation",
-    "data binding"
+    "next generation",
+    "web"
   ],
   "dependencies": {
-    "@risingstack/nx-compile": "^4.2.0",
-    "@risingstack/nx-observe": "^3.0.0",
-    "keycode": "^2.1.4"
+    "@nx-js/core": "^1.0.0",
+    "@nx-js/compiler-util": "^1.0.0",
+    "@nx-js/observer-util": "^1.0.0",
+    "@nx-js/dom-util": "^1.0.0",
+    "@nx-js/filters": "^1.0.0",
+    "@nx-js/limiters": "^1.0.0",
+    "@nx-js/animate-middleware": "^1.0.0",
+    "@nx-js/attributes-middleware": "^1.0.0",
+    "@nx-js/events-middleware": "^1.0.0",
+    "@nx-js/interpolate-middleware": "^1.0.0",
+    "@nx-js/render-middleware": "^1.0.0",
+    "@nx-js/flow-middleware": "^1.0.0",
+    "@nx-js/bindable-middleware": "^1.0.0",
+    "@nx-js/bind-middleware": "^1.0.0",
+    "@nx-js/style-middleware": "^1.0.0",
+    "@nx-js/route-middleware": "^1.0.0",
+    "@nx-js/params-middleware": "^1.0.0",
+    "@nx-js/ref-middleware": "^1.0.0",
+    "@nx-js/observe-middleware": "^1.0.0"
   },
   "devDependencies": {
     "webpack": "1.13.1",

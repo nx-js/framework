@@ -1,9 +1,9 @@
 'use strict'
 
-const component = require('../core')
+const component = require('@nx-js/core')
 const middlewares = require('../middlewares')
 
 module.exports = function routerComp (config) {
   return component(config)
-    .use(middlewares.router)
+    .use(middlewares.route)
 }
