@@ -2,9 +2,9 @@
 
 [Home page](http://nx-framework.com), [Docs](http://nx-framework.com/docs)
 
-NX is a modular front-end framework - built with ES6 and Web Components. The building
+**NX is a modular front-end framework - built with ES6 and Web Components. The building
 blocks of NX are the core, the middlewares, the components and the utilities. These are
-all hosted in separate GitHub repos and npm packages.
+all hosted in separate GitHub repos and npm packages.**
 
 The NX core is a tiny library, responsible for one thing only. It allows you to create dumb components and to augment them with middlewares. A component executes its middlewares when it is attached to the DOM and it gains all the extra functionalities from them. NX comes with some core middlewares out of the box, which you can find listed below.
 
