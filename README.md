@@ -1,10 +1,12 @@
-# NX
+# The NX framework
 
 [Home page](http://nx-framework.com), [Docs](http://nx-framework.com/docs)
 
-### NX is a next generation client side framework, built with ES6 and Web Components.
+NX is a modular front-end framework - built with ES6 and Web Components. The building
+blocks of NX are the core, the middlewares, the components and the utilities. These are
+all hosted in separate GitHub repos and npm packages.
 
-The NX core is a tiny library, responsible for one thing only. It allows you to create and combine components and middlewares. A component executes its middlewares when it is attached to the DOM and gains all the added functionalities from them. NX comes with some core middlewares out of the box, which you can find listed below.
+The NX core is a tiny library, responsible for one thing only. It allows you to create dumb components and to augment them with middlewares. A component executes its middlewares when it is attached to the DOM and it gains all the extra functionalities from them. NX comes with some core middlewares out of the box, which you can find listed below.
 
 - Text interpolation: Interpolate values from the code into the view dynamically or one-time. Includes optional filters.
 - Dynamic and custom attributes: Use one-time or dynamically evaluated native attributes or define some custom ones.
@@ -19,32 +21,37 @@ The NX core is a tiny library, responsible for one thing only. It allows you to 
 - Anything else you define with the simple `function middleware (elem, state, next) {}` syntax.
 
 These can be combined to create components with the desired functionality.
-Alternatively ready made core components (app, router) can be extended and used,
+Alternatively ready made core components can be extended and used,
 to avoid boilerplate code.
-
-## Example app
-
-The [NX Hacker News demo](https://github.com/nx-hacker-news/nx-hacker-news.github.io)
-features client-side routing, real-time updates and animations.
-
-- The code: https://github.com/nx-hacker-news/nx-hacker-news.github.io
-- The live demo: https://nx-hacker-news.github.io/?type=top&page=0
 
 ## Resources
 
-- [NX Docs](http://nx-framework.com/docs)
-- [Hacker News in NX](https://github.com/nx-hacker-news/nx-hacker-news.github.io)
-- [NX TodoMVC](https://github.com/tastejs/todomvc/pull/1679/files)
+- [Home page](http://nx-framework.com/)
+- [Docs](http://nx-framework.com/docs)
+- [Intro app](https://github.com/nx-js/intro-example)
+- [TodoMVC](https://github.com/nx-js/todomvc-example)
+- [Hacker News clone](https://github.com/nx-js/hackernews-example)
+- [Blog](http://nx-framework.com/blog/public)
 - [Article series about writing NX](https://blog.risingstack.com/writing-a-javascript-framework-project-structuring/)
 
 ## Installation
 
-The best option is to download NX from the [download page](http://nx-framework.com/download).
-If you would like to get it from npm instead, use the `npm install @risingstack/nx-framework` command.
+You can get NX from npm with the `npm install @nx-js/framework` command. See the
+[installation page](http://nx-framework.com/install) for other options.
+
+## Local development
+
+You can bundle the framework locally with the `npm run build` command and minify it
+with the `npm run minify` command. The bundled and minified files are placed in the
+`lib` folder.
 
 ## Contributing
 
-[List of contributors](/contributors.md)
+[A list of contributors](/contributors.md)
 
-If you have a new feature idea, just open a new issue or PR.
-Bug fixes and tests are always welcome. Thanks!
+NX is very modular and every module is hosted in its own GitHub repository. Please
+open the issues and PRs in the relevant repositories. For example: if you have a feature
+request for routing, open a new issue in the
+[route-middleware](https://github.com/nx-js/route-middleware) repo.
+
+Thanks!

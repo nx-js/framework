@@ -1,7 +1,7 @@
 {
   "name": "@nx-js/framework",
   "version": "1.0.0-beta.1.0.0",
-  "description": "Next generation client side framework",
+  "description": "NX is a modular front-end framework - inspired by the server-side and Web Components.",
   "main": "index.js",
   "author": {
     "name": "Miklos Bertalan",
@@ -25,7 +25,9 @@
     "client",
     "framework",
     "next generation",
-    "web"
+    "web",
+    "front-end",
+    "modular"
   ],
   "dependencies": {
     "@nx-js/core": "^1.0.0",
