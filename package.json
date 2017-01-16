@@ -1,6 +1,6 @@
 {
   "name": "@nx-js/framework",
-  "version": "1.0.0-beta.1.0.0",
+  "version": "1.0.0-beta.1.1.0",
   "description": "NX is a modular front-end framework - inspired by the server-side and Web Components.",
   "main": "index.js",
   "author": {
