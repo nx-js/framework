@@ -15,6 +15,7 @@ The NX core is a tiny library, responsible for one thing only. It allows you to 
 - Data binding: One-way, one-time or two-way data binding on any event and with no edge cases.
 - Rendering: Modularize your HTML and CSS code by moving them into separate files for each component.
 - Routing: Simple, but powerful routing with automatic parameter synchronization and router events.
+- Metadata and analytics: Handle your SPA's metadata and analytics declaratively with ease.
 - Dynamic styling: Simplify styling by passing objects to the style and class attributes.
 - Animations: Create powerful animations by using only a few HTML attributes.
 - Some other low level middlewares, mentioned in the Docs.

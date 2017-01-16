@@ -13,5 +13,6 @@ module.exports = {
   route: require('@nx-js/route-middleware'),
   params: require('@nx-js/params-middleware'),
   ref: require('@nx-js/ref-middleware'),
-  observe: require('@nx-js/observe-middleware')
+  observe: require('@nx-js/observe-middleware'),
+  meta: require('@nx-js/meta-middleware')
 }

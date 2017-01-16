@@ -48,7 +48,8 @@
     "@nx-js/route-middleware": "^1.0.0",
     "@nx-js/params-middleware": "^1.0.0",
     "@nx-js/ref-middleware": "^1.0.0",
-    "@nx-js/observe-middleware": "^1.0.0"
+    "@nx-js/observe-middleware": "^1.0.0",
+    "@nx-js/meta-middleware": "^1.0.0"
   },
   "devDependencies": {
     "webpack": "1.13.1",
