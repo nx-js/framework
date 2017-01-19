@@ -1,12 +1,12 @@
 'use strict'
 
-const component = require('@nx-js/core')
+const page = require('./page')
 const middlewares = require('../middlewares')
 
 module.exports = function app (config) {
   config = Object.assign({root: true, isolate: 'middlewares'}, config)
 
-  return component(config)
+  return page(config)
     .useOnContent(middlewares.observe)
     .useOnContent(middlewares.interpolate)
     .useOnContent(middlewares.attributes)

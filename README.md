@@ -55,4 +55,8 @@ open the issues and PRs in the relevant repositories. For example: if you have a
 request for routing, open a new issue in the
 [route-middleware](https://github.com/nx-js/route-middleware) repo.
 
-Thanks!
+## Sponsored by
+
+<a href="https://trace.risingstack.com/">
+  <img src="http://nx-framework.com/images/trace_colored.svg" width="200" />
+</a>
