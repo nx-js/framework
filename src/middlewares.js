@@ -2,6 +2,7 @@
 
 module.exports = {
   attributes: require('@nx-js/attributes-middleware'),
+  props: require('@nx-js/props-middleware'),
   events: require('@nx-js/events-middleware'),
   interpolate: require('@nx-js/interpolate-middleware'),
   render: require('@nx-js/render-middleware'),

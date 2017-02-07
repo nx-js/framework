@@ -3,10 +3,9 @@
 const rendered = require('./rendered')
 const middlewares = require('../middlewares')
 
-module.exports = function page (config) {
+module.exports = function display (config) {
   config = config || {}
 
   return rendered(config)
-    .use(middlewares.meta(config))
-    .use(middlewares.params(config.params || {}))
+    .use(middlewares.props.apply(null, config.props || []))
 }
