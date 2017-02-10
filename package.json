@@ -1,6 +1,6 @@
 {
   "name": "@nx-js/framework",
-  "version": "1.0.0-beta.1.1.0",
+  "version": "1.0.0-beta.2.0.0",
   "description": "NX is a modular front-end framework - inspired by the server-side and Web Components.",
   "main": "index.js",
   "author": {
@@ -32,12 +32,14 @@
   "dependencies": {
     "@nx-js/core": "^1.0.0",
     "@nx-js/compiler-util": "^1.0.0",
-    "@nx-js/observer-util": "^1.0.0",
+    "@nx-js/observer-util": "^2.0.0",
     "@nx-js/dom-util": "^1.0.0",
+    "@nx-js/router-util": "^1.0.0",
     "@nx-js/filters": "^1.0.0",
     "@nx-js/limiters": "^1.0.0",
     "@nx-js/animate-middleware": "^1.0.0",
     "@nx-js/attributes-middleware": "^1.0.0",
+    "@nx-js/props-middleware": "^1.0.0",
     "@nx-js/events-middleware": "^1.0.0",
     "@nx-js/interpolate-middleware": "^1.0.0",
     "@nx-js/render-middleware": "^1.0.0",
@@ -45,10 +47,10 @@
     "@nx-js/bindable-middleware": "^1.0.0",
     "@nx-js/bind-middleware": "^1.0.0",
     "@nx-js/style-middleware": "^1.0.0",
-    "@nx-js/route-middleware": "^1.0.0",
-    "@nx-js/params-middleware": "^1.0.0",
-    "@nx-js/ref-middleware": "^1.0.0",
-    "@nx-js/observe-middleware": "^1.0.0",
+    "@nx-js/route-middleware": "^2.0.0",
+    "@nx-js/params-middleware": "^2.0.0",
+    "@nx-js/ref-middleware": "^2.0.0",
+    "@nx-js/observe-middleware": "^2.0.0",
     "@nx-js/meta-middleware": "^1.0.0"
   },
   "devDependencies": {
